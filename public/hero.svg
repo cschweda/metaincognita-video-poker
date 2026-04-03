@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cardShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c9a227"/>
+      <stop offset="50%" stop-color="#ffd60a"/>
+      <stop offset="100%" stop-color="#c9a227"/>
+    </linearGradient>
+    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a14"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="cardFace" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0f0f5"/>
+    </linearGradient>
+    <linearGradient id="heldGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c9a227" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#c9a227" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.3"/>
+
+  <!-- Convergence chart (right side, subtle) -->
+  <g opacity="0.25" transform="translate(0, 40)">
+    <line x1="680" y1="280" x2="1160" y2="280" stroke="#4ade80" stroke-width="1" stroke-dasharray="6 4" opacity="0.4"/>
+    <polyline
+      points="700,220 730,340 760,250 790,310 820,270 850,295 880,275 910,285 940,278 970,282 1000,279 1030,280.5 1060,280 1090,279.8 1120,280 1150,280"
+      stroke="url(#chartGrad)" stroke-width="2" fill="none" filter="url(#glow)"
+    />
+    <text x="1158" y="276" fill="#4ade80" font-family="monospace" font-size="9" opacity="0.6">99.54%</text>
+    <text x="870" y="370" fill="#475569" font-family="monospace" font-size="9">convergence over 100,000 hands</text>
+  </g>
+
+  <!-- Title -->
+  <text x="80" y="80" fill="url(#gold)" font-family="'Fira Code', 'SF Mono', monospace" font-size="42" font-weight="700" filter="url(#glow)">
+    Video Poker Trainer
+  </text>
+  <text x="82" y="110" fill="#64748b" font-family="system-ui, sans-serif" font-size="16">
+    Exhaustive EV analysis for every hand, every hold, every draw
+  </text>
+
+  <!-- Five cards: Full House (A A A K K) — three Aces + two Kings -->
+  <g transform="translate(80, 160)" filter="url(#cardShadow)">
+
+    <!-- Card 1: Ace of Spades (HELD) -->
+    <g transform="translate(0, -12)">
+      <!-- Held glow -->
+      <rect x="-4" y="-4" width="108" height="158" rx="12" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.6"/>
+      <rect x="0" y="0" width="100" height="150" rx="10" fill="url(#cardFace)" stroke="#d0d0d8" stroke-width="1"/>
+      <!-- Top corner -->
+      <text x="10" y="28" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
+      <text x="12" y="44" fill="#1a1a2e" font-family="serif" font-size="16">&#x2660;</text>
+      <!-- Center suit -->
+      <text x="50" y="90" fill="#1a1a2e" font-family="serif" font-size="44" text-anchor="middle">&#x2660;</text>
+      <!-- Bottom corner (inverted) -->
+      <g transform="translate(100, 150) rotate(180)">
+        <text x="10" y="28" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
+        <text x="12" y="44" fill="#1a1a2e" font-family="serif" font-size="16">&#x2660;</text>
+      </g>
+      <!-- HELD badge -->
+      <rect x="18" y="-22" width="64" height="18" rx="4" fill="#c9a227"/>
+      <text x="50" y="-9" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="10" font-weight="800" text-anchor="middle" letter-spacing="1.5">HELD</text>
+    </g>
+
+    <!-- Card 2: Ace of Hearts (HELD) -->
+    <g transform="translate(120, -12)">
+      <rect x="-4" y="-4" width="108" height="158" rx="12" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.6"/>
+      <rect x="0" y="0" width="100" height="150" rx="10" fill="url(#cardFace)" stroke="#d0d0d8" stroke-width="1"/>
+      <text x="10" y="28" fill="#e63946" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
+      <text x="12" y="44" fill="#e63946" font-family="serif" font-size="16">&#x2665;</text>
+      <text x="50" y="90" fill="#e63946" font-family="serif" font-size="44" text-anchor="middle">&#x2665;</text>
+      <g transform="translate(100, 150) rotate(180)">
+        <text x="10" y="28" fill="#e63946" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
+        <text x="12" y="44" fill="#e63946" font-family="serif" font-size="16">&#x2665;</text>
+      </g>
+      <rect x="18" y="-22" width="64" height="18" rx="4" fill="#c9a227"/>
+      <text x="50" y="-9" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="10" font-weight="800" text-anchor="middle" letter-spacing="1.5">HELD</text>
+    </g>
+
+    <!-- Card 3: Ace of Diamonds (HELD) -->
+    <g transform="translate(240, -12)">
+      <rect x="-4" y="-4" width="108" height="158" rx="12" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.6"/>
+      <rect x="0" y="0" width="100" height="150" rx="10" fill="url(#cardFace)" stroke="#d0d0d8" stroke-width="1"/>
+      <text x="10" y="28" fill="#457b9d" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
+      <text x="12" y="44" fill="#457b9d" font-family="serif" font-size="16">&#x2666;</text>
+      <text x="50" y="90" fill="#457b9d" font-family="serif" font-size="44" text-anchor="middle">&#x2666;</text>
+      <g transform="translate(100, 150) rotate(180)">
+        <text x="10" y="28" fill="#457b9d" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
+        <text x="12" y="44" fill="#457b9d" font-family="serif" font-size="16">&#x2666;</text>
+      </g>
+      <rect x="18" y="-22" width="64" height="18" rx="4" fill="#c9a227"/>
+      <text x="50" y="-9" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="10" font-weight="800" text-anchor="middle" letter-spacing="1.5">HELD</text>
+    </g>
+
+    <!-- Card 4: King of Clubs (HELD) -->
+    <g transform="translate(360, -12)">
+      <rect x="-4" y="-4" width="108" height="158" rx="12" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.6"/>
+      <rect x="0" y="0" width="100" height="150" rx="10" fill="url(#cardFace)" stroke="#d0d0d8" stroke-width="1"/>
+      <text x="10" y="28" fill="#2d6a4f" font-family="'Fira Code', monospace" font-size="24" font-weight="700">K</text>
+      <text x="12" y="44" fill="#2d6a4f" font-family="serif" font-size="16">&#x2663;</text>
+      <text x="50" y="90" fill="#2d6a4f" font-family="serif" font-size="44" text-anchor="middle">&#x2663;</text>
+      <g transform="translate(100, 150) rotate(180)">
+        <text x="10" y="28" fill="#2d6a4f" font-family="'Fira Code', monospace" font-size="24" font-weight="700">K</text>
+        <text x="12" y="44" fill="#2d6a4f" font-family="serif" font-size="16">&#x2663;</text>
+      </g>
+      <rect x="18" y="-22" width="64" height="18" rx="4" fill="#c9a227"/>
+      <text x="50" y="-9" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="10" font-weight="800" text-anchor="middle" letter-spacing="1.5">HELD</text>
+    </g>
+
+    <!-- Card 5: King of Hearts (HELD) -->
+    <g transform="translate(480, -12)">
+      <rect x="-4" y="-4" width="108" height="158" rx="12" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.6"/>
+      <rect x="0" y="0" width="100" height="150" rx="10" fill="url(#cardFace)" stroke="#d0d0d8" stroke-width="1"/>
+      <text x="10" y="28" fill="#e63946" font-family="'Fira Code', monospace" font-size="24" font-weight="700">K</text>
+      <text x="12" y="44" fill="#e63946" font-family="serif" font-size="16">&#x2665;</text>
+      <text x="50" y="90" fill="#e63946" font-family="serif" font-size="44" text-anchor="middle">&#x2665;</text>
+      <g transform="translate(100, 150) rotate(180)">
+        <text x="10" y="28" fill="#e63946" font-family="'Fira Code', monospace" font-size="24" font-weight="700">K</text>
+        <text x="12" y="44" fill="#e63946" font-family="serif" font-size="16">&#x2665;</text>
+      </g>
+      <rect x="18" y="-22" width="64" height="18" rx="4" fill="#c9a227"/>
+      <text x="50" y="-9" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="10" font-weight="800" text-anchor="middle" letter-spacing="1.5">HELD</text>
+    </g>
+  </g>
+
+  <!-- Result display -->
+  <text x="355" y="365" fill="#ffd60a" font-family="'Fira Code', monospace" font-size="22" font-weight="700" text-anchor="middle" filter="url(#glow)">
+    &#x2501;&#x2501;  FULL HOUSE &#x2014; 45 Credits  &#x2501;&#x2501;
+  </text>
+
+  <!-- EV analysis data -->
+  <g transform="translate(80, 410)" opacity="0.6">
+    <text x="0" y="0" fill="#4ade80" font-family="'Fira Code', monospace" font-size="11" font-weight="700">OPTIMAL PLAY</text>
+    <text x="0" y="20" fill="#94a3b8" font-family="'Fira Code', monospace" font-size="11">Hold all 5 &#x2014; pat hand  EV: 9.0000</text>
+    <text x="0" y="40" fill="#64748b" font-family="'Fira Code', monospace" font-size="10">#1  A&#x2660; A&#x2665; A&#x2666; K&#x2663; K&#x2665;  Hold all    9.0000</text>
+    <text x="0" y="56" fill="#475569" font-family="'Fira Code', monospace" font-size="10">#2  A&#x2660; A&#x2665; A&#x2666;          Hold trips  4.2384</text>
+    <text x="0" y="72" fill="#334155" font-family="'Fira Code', monospace" font-size="10">#3  A&#x2660; A&#x2665; A&#x2666; K&#x2663;      Hold 3+1    3.8712</text>
+  </g>
+
+  <!-- Stats badge (bottom right) -->
+  <g transform="translate(750, 440)">
+    <rect x="0" y="0" width="380" height="130" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" opacity="0.9"/>
+    <text x="20" y="24" fill="#64748b" font-family="'Fira Code', monospace" font-size="9" font-weight="700" letter-spacing="1.5">SESSION</text>
+    <text x="20" y="48" fill="#e2e8f0" font-family="'Fira Code', monospace" font-size="13">Hands: <tspan fill="#ffd60a">147</tspan>   Mistakes: <tspan fill="#4ade80">3</tspan></text>
+    <text x="20" y="68" fill="#e2e8f0" font-family="'Fira Code', monospace" font-size="13">EV Lost: <tspan fill="#f87171">$4.20</tspan>   Return: <tspan fill="#4ade80">99.1%</tspan></text>
+    <text x="20" y="96" fill="#64748b" font-family="'Fira Code', monospace" font-size="9" font-weight="700" letter-spacing="1.5">BOT COMPARISON</text>
+    <text x="20" y="116" fill="#94a3b8" font-family="'Fira Code', monospace" font-size="11">You: <tspan fill="#fbbf24">99.1%</tspan>  Pat: <tspan fill="#4ade80">99.5%</tspan>  Gary: <tspan fill="#f87171">96.3%</tspan></text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="624" width="1200" height="6" fill="url(#gold)" opacity="0.5"/>
+</svg>
