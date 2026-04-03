@@ -266,9 +266,22 @@ The only approximation in simulation: penalty card adjustments are omitted from 
 ```bash
 pnpm install
 pnpm dev        # http://localhost:3000
-pnpm build      # Production build
+pnpm build      # Production build (SSR)
+pnpm generate   # Static SPA build → .output/public
 pnpm preview    # Preview production build
 ```
+
+## Deployment
+
+Static SPA deployed to **Netlify**. The `netlify.toml` configures:
+
+- **Build command:** `pnpm generate` (Nuxt static generation with `ssr: false`)
+- **Publish directory:** `.output/public`
+- **SPA fallback:** All routes redirect to `/index.html` (client-side routing)
+- **Security headers:** CSP, X-Frame-Options DENY, no-sniff, strict referrer policy
+- **Node 22** build environment
+
+Connect the GitHub repo to Netlify — it auto-deploys on push to `main`.
 
 ## Session Features
 
