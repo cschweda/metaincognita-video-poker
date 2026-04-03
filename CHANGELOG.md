@@ -118,3 +118,16 @@ All notable changes to the Video Poker Trainer will be documented in this file.
 - Equal-width sidebars for visual symmetry
 - Consistent dark theme matching the NLH Hold'em simulator aesthetic
 - Footer nav with status indicators across all pages
+
+#### Deployment & Security
+- Netlify static SPA deployment (`pnpm generate` → `.output/public`)
+- SPA catch-all redirect for client-side routing
+- Hardened security headers:
+  - CSP: `default-src 'none'`, no `unsafe-eval`, explicit whitelist only
+  - HSTS: 2-year max-age with `includeSubDomains` and `preload`
+  - Cross-origin isolation: COOP `same-origin`, COEP `credentialless`, CORP `same-origin`
+  - `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`
+  - `Permissions-Policy` blocking all unused browser APIs
+  - `form-action: none`, `base-uri: self`, `upgrade-insecure-requests`
+  - Web Worker support via `worker-src 'self' blob:`
+- Immutable cache headers for hashed static assets (1-year, `/_nuxt/*`)

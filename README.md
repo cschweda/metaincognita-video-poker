@@ -278,10 +278,26 @@ Static SPA deployed to **Netlify**. The `netlify.toml` configures:
 - **Build command:** `pnpm generate` (Nuxt static generation with `ssr: false`)
 - **Publish directory:** `.output/public`
 - **SPA fallback:** All routes redirect to `/index.html` (client-side routing)
-- **Security headers:** CSP, X-Frame-Options DENY, no-sniff, strict referrer policy
 - **Node 22** build environment
 
 Connect the GitHub repo to Netlify — it auto-deploys on push to `main`.
+
+### Security Headers
+
+Hardened for a static SPA with no backend:
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `Content-Security-Policy` | `default-src 'none'`; explicit whitelist | No external scripts, no eval, no form submissions |
+| `Strict-Transport-Security` | 2 years, includeSubDomains, preload | Force HTTPS always |
+| `X-Frame-Options` | DENY | Prevent clickjacking |
+| `Cross-Origin-Opener-Policy` | same-origin | Spectre/side-channel mitigation |
+| `Cross-Origin-Embedder-Policy` | credentialless | Cross-origin resource isolation |
+| `Cross-Origin-Resource-Policy` | same-origin | Prevent resource theft |
+| `Permissions-Policy` | All unused APIs disabled | Camera, mic, geolocation, payment, USB, etc. |
+| `Referrer-Policy` | strict-origin-when-cross-origin | Control referrer leakage |
+
+The only CSP relaxation: `'unsafe-inline'` in `script-src` and `style-src` is required by Vue/Nuxt runtime. Eliminating it would require nonce-based CSP with server-side rendering.
 
 ## Session Features
 
