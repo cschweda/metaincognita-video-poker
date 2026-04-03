@@ -32,7 +32,7 @@ export const SUIT_NAMES: Record<Suit, string> = {
 export const SUIT_COLORS: Record<Suit, string> = {
   spades: '#1a1a2e',
   hearts: '#e63946',
-  diamonds: '#457b9d',
+  diamonds: '#e63946',
   clubs: '#2d6a4f',
   joker: '#7b2d8b'
 }

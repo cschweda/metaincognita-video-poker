@@ -19,22 +19,6 @@ const isActionDisabled = computed(() => {
     <!-- Buttons row -->
     <div class="control-bar__buttons">
       <button
-        class="ctrl-btn"
-        :disabled="!game.canBet"
-        @click="game.incrementBet()"
-      >
-        BET ONE
-      </button>
-
-      <button
-        class="ctrl-btn"
-        :disabled="!game.canBet"
-        @click="game.betMax()"
-      >
-        BET MAX
-      </button>
-
-      <button
         class="ctrl-btn ctrl-btn--primary"
         :disabled="isActionDisabled"
         @click="game.dealOrDraw()"
@@ -47,15 +31,7 @@ const isActionDisabled = computed(() => {
     <div class="control-bar__credits">
       <span>BALANCE ${{ game.creditsAsDollars }}</span>
       <span>WON {{ game.stats.handsWon }}/{{ game.stats.handsPlayed }}</span>
-      <span>BET ${{ game.betAsDollars }}</span>
-    </div>
-
-    <!-- Max coin warning -->
-    <div
-      v-if="game.coinsBet < 5 && game.canBet"
-      class="control-bar__warning"
-    >
-      &#9888; Royal Flush bonus requires max coins &mdash; return drops ~1.5%
+      <span>BET ${{ game.betAsDollars }} (MAX)</span>
     </div>
 
     <!-- Insert credits -->
@@ -144,18 +120,6 @@ const isActionDisabled = computed(() => {
   gap: 4px;
   font-family: 'Fira Code', monospace;
   letter-spacing: 0.08em;
-}
-
-/* Warning */
-.control-bar__warning {
-  font-size: 0.62rem;
-  color: #f87171;
-  text-align: center;
-  background: rgba(248, 113, 113, 0.07);
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(248, 113, 113, 0.12);
-  font-family: 'Fira Code', monospace;
 }
 
 .control-bar__insert {
