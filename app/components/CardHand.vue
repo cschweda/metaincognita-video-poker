@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const game = useGameStore()
 
+const isDeucesWild = computed(() => game.payTable.classifier === 'deucesWild')
+
 function onKeyDown(e: KeyboardEvent) {
   if (!game.canHold) return
 
@@ -38,6 +40,7 @@ function onKeyDown(e: KeyboardEvent) {
       :is-dimmed="game.canHold && game.anyHeld && !game.held[i]"
       :is-face-down="game.faceDown[i]"
       :can-hold="game.canHold"
+      :is-wild="isDeucesWild && card?.rank === 2"
       @toggle-hold="game.toggleHold(i)"
     />
   </div>

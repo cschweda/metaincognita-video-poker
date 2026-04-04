@@ -59,6 +59,22 @@ const rules = computed(() => VARIANT_RULES[props.variant])
           </ul>
         </section>
 
+        <!-- How this differs from other variants -->
+        <section v-if="rules.strategyDifferences?.length" class="rules-section rules-section--diff">
+          <h3 class="rules-heading">How Strategy Differs from Other Variants</h3>
+          <ul class="rules-strategy">
+            <li v-for="(diff, i) in rules.strategyDifferences" :key="i" class="rules-strategy-item rules-strategy-item--diff">
+              {{ diff }}
+            </li>
+          </ul>
+        </section>
+
+        <!-- Strategy complexity -->
+        <section v-if="rules.strategyComplexity" class="rules-section">
+          <h3 class="rules-heading">Strategy Complexity</h3>
+          <p class="rules-text">{{ rules.strategyComplexity }}</p>
+        </section>
+
         <!-- Pay table tip -->
         <section class="rules-section rules-section--tip">
           <h3 class="rules-heading">Pay Table Tip</h3>
@@ -157,6 +173,22 @@ const rules = computed(() => VARIANT_RULES[props.variant])
 .rules-strategy-item {
   color: #c8c8da;
   font-size: 0.82rem;
+}
+
+.rules-section--diff {
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.rules-section--diff .rules-heading {
+  color: #818cf8;
+}
+
+.rules-strategy-item--diff {
+  color: #c4b5fd !important;
+  font-size: 0.8rem;
 }
 
 .rules-section--tip {

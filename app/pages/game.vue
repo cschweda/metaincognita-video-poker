@@ -89,7 +89,7 @@ onUnmounted(() => {
           {{ group.variant }}
         </button>
         <button class="vp-nav__tab" @click="rulesOpen = true">
-          Rules
+          {{ currentVariantName }} Rules
         </button>
       </div>
       <div

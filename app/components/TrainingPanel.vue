@@ -293,15 +293,20 @@ function describeHold(cards: Card[], indices: number[]): string {
           class="tp-result-banner"
           :class="game.resultPayout > 0 ? 'tp-result-banner--win' : 'tp-result-banner--loss'"
         >
-          <div class="tp-result-banner__label">HAND OVER</div>
-          <div class="tp-result-banner__hand">
-            {{ game.resultHandName || 'No Win' }}
+          <div class="tp-result-banner__icon">
+            {{ game.resultPayout > 0 ? '&#10004;' : '&#10006;' }}
           </div>
-          <div v-if="game.resultPayout > 0" class="tp-result-banner__payout">
-            +{{ game.resultPayout }} credits (${{ (game.resultPayout * game.denomination).toFixed(2) }})
-          </div>
-          <div v-else class="tp-result-banner__payout tp-result-banner__payout--loss">
-            -{{ game.coinsBet }} credits (${{ game.betAsDollars }})
+          <div>
+            <div class="tp-result-banner__hand">
+              {{ game.resultHandName || 'No Win' }}
+            </div>
+            <div v-if="game.resultPayout > 0" class="tp-result-banner__payout">
+              Won ${{ (game.resultPayout * game.denomination).toFixed(2) }}
+              <span class="tp-result-banner__net">(net +${{ ((game.resultPayout - game.coinsBet) * game.denomination).toFixed(2) }})</span>
+            </div>
+            <div v-else class="tp-result-banner__payout tp-result-banner__payout--loss">
+              Lost ${{ game.betAsDollars }}
+            </div>
           </div>
         </div>
       </div>
@@ -363,7 +368,7 @@ function describeHold(cards: Card[], indices: number[]): string {
                 :class="game.handHistory[0]!.payout > 0 ? 'tp-recap__result--win' : 'tp-recap__result--loss'"
               >
                 {{ game.handHistory[0]!.handResult || 'No Win' }}
-                <span v-if="game.handHistory[0]!.payout > 0"> &mdash; +{{ game.handHistory[0]!.payout }} credits</span>
+                <span v-if="game.handHistory[0]!.payout > 0"> &mdash; +${{ (game.handHistory[0]!.payout * game.denomination).toFixed(2) }}</span>
               </div>
             </div>
           </div>
@@ -508,7 +513,7 @@ function describeHold(cards: Card[], indices: number[]): string {
             {{ game.effectiveReturn.toFixed(2) }}%
           </span>
           <span class="tp-persona-net" :class="(game.stats.totalReturned - game.stats.totalWagered) >= 0 ? 'tp-persona-net--up' : 'tp-persona-net--down'">
-            {{ (game.stats.totalReturned - game.stats.totalWagered) >= 0 ? '+' : '' }}{{ game.stats.totalReturned - game.stats.totalWagered }}c
+            {{ (game.stats.totalReturned - game.stats.totalWagered) >= 0 ? '+' : '' }}${{ ((game.stats.totalReturned - game.stats.totalWagered) * game.denomination).toFixed(2) }}
           </span>
         </div>
       </div>
@@ -534,7 +539,7 @@ function describeHold(cards: Card[], indices: number[]): string {
             class="tp-persona-net"
             :class="(pr.totalPayout - pr.totalWagered) >= 0 ? 'tp-persona-net--up' : 'tp-persona-net--down'"
           >
-            {{ (pr.totalPayout - pr.totalWagered) >= 0 ? '+' : '' }}{{ pr.totalPayout - pr.totalWagered }}c
+            {{ (pr.totalPayout - pr.totalWagered) >= 0 ? '+' : '' }}${{ ((pr.totalPayout - pr.totalWagered) * game.denomination).toFixed(2) }}
           </span>
         </div>
       </div>
@@ -576,38 +581,48 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 /* Hand result banner */
 .tp-result-banner {
-  text-align: center;
-  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
   border-radius: 8px;
 }
 
 .tp-result-banner--win {
   background: #dcfce7;
-  border: 1px solid #bbf7d0;
+  border: 2px solid #4ade80;
 }
 
 .tp-result-banner--loss {
-  background: #f5f5fa;
-  border: 1px solid #e0e0ea;
+  background: #fef2f2;
+  border: 2px solid #fca5a5;
 }
 
-.tp-result-banner__label {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #888;
-  text-transform: uppercase;
+.tp-result-banner__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tp-result-banner--win .tp-result-banner__label {
-  color: #166534;
+.tp-result-banner--win .tp-result-banner__icon {
+  background: #4ade80;
+  color: #052e16;
+}
+
+.tp-result-banner--loss .tp-result-banner__icon {
+  background: #fca5a5;
+  color: #7f1d1d;
 }
 
 .tp-result-banner__hand {
   font-family: 'Fira Code', monospace;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin-top: 2px;
 }
 
 .tp-result-banner--win .tp-result-banner__hand {
@@ -615,19 +630,27 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-result-banner--loss .tp-result-banner__hand {
-  color: #666;
+  color: #991b1b;
 }
 
 .tp-result-banner__payout {
   font-family: 'Fira Code', monospace;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 2px;
   color: #16a34a;
   margin-top: 2px;
 }
 
 .tp-result-banner__payout--loss {
-  color: #dc2626;
+  color: #991b1b;
+}
+
+.tp-result-banner__net {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #16a34a;
+  margin-left: 4px;
 }
 
 /* Hand recap steps */

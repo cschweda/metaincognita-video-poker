@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const game = useGameStore()
+const rulesOpen = ref(false)
 
 const returnColor = computed(() => {
   if (game.stats.handsPlayed === 0) return ''
@@ -18,24 +19,14 @@ const netResult = computed(() => {
   <div class="bankroll-panel">
     <!-- Bankroll -->
     <div class="bp-section">
-      <div class="bp-label">BANKROLL</div>
+      <div class="bp-label">BALANCE</div>
       <div class="bp-value bp-value--large">${{ game.creditsAsDollars }}</div>
-      <div class="bp-credits">{{ game.credits }} credits</div>
     </div>
 
     <!-- Current bet -->
     <div class="bp-section">
       <div class="bp-label">BET</div>
-      <div class="bp-value">
-        {{ game.coinsBet }} coin{{ game.coinsBet !== 1 ? 's' : '' }}
-      </div>
-      <div class="bp-credits">${{ game.betAsDollars }} per hand</div>
-    </div>
-
-    <!-- Denomination -->
-    <div class="bp-section">
-      <div class="bp-label">DENOM</div>
-      <div class="bp-value">${{ game.denomination.toFixed(2) }}</div>
+      <div class="bp-value">${{ game.betAsDollars }} / hand</div>
     </div>
 
     <div class="bp-divider" />
@@ -53,11 +44,11 @@ const netResult = computed(() => {
       </div>
       <div class="bp-row">
         <span class="bp-row-label">Wagered</span>
-        <span class="bp-row-value">{{ game.stats.totalWagered }}c</span>
+        <span class="bp-row-value">${{ (game.stats.totalWagered * game.denomination).toFixed(2) }}</span>
       </div>
       <div class="bp-row">
         <span class="bp-row-label">Returned</span>
-        <span class="bp-row-value">{{ game.stats.totalReturned }}c</span>
+        <span class="bp-row-value">${{ (game.stats.totalReturned * game.denomination).toFixed(2) }}</span>
       </div>
       <div class="bp-row">
         <span class="bp-row-label">Net</span>
@@ -116,7 +107,7 @@ const netResult = computed(() => {
           {{ game.resultHandName || 'No Win' }}
         </div>
         <div v-if="game.resultPayout > 0" class="bp-hand-payout">
-          +{{ game.resultPayout }} credits
+          +${{ (game.resultPayout * game.denomination).toFixed(2) }}
         </div>
         <div
           v-if="!game.wasOptimal"
@@ -176,6 +167,13 @@ const netResult = computed(() => {
         </div>
       </div>
     </template>
+
+    <!-- Game rules button -->
+    <div class="bp-divider" />
+    <button class="bp-rules-btn" @click="rulesOpen = true">
+      {{ game.payTable.variant }} Rules
+    </button>
+    <RulesModal v-model:open="rulesOpen" :variant="game.payTable.variant" />
   </div>
 </template>
 
@@ -315,5 +313,27 @@ const netResult = computed(() => {
   background: linear-gradient(180deg, #4a4a6e, #3a3a5e);
   border-color: #c9a227;
   color: #ffd60a;
+}
+
+.bp-rules-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+  color: #a5b4fc;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bp-rules-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #c7d2fe;
 }
 </style>

@@ -59,6 +59,26 @@ A disciplined pro stacking all of these could earn **$25–50/hour in total valu
 
 There were hundreds of others whose names are less known — couples who structured their retirement around Las Vegas VP circuits, traveling from casino to casino to chase the best promotions; software engineers who wrote their own analysis tools; math professors who used VP as a living laboratory for probability theory.
 
+### What "Full Pay" Means
+
+The term "full pay" refers to the most generous pay table commonly available for a given variant — the version that returns the highest percentage with optimal play. It's the baseline that defines the game's potential. Every other version of the same game with lower payouts is a "short pay" variant, and the difference between full pay and short pay is pure casino profit extracted from players who can't tell the machines apart.
+
+The naming convention comes from the two numbers that most affect the return percentage — typically the Full House and Flush payouts:
+
+| Variant | Full Pay | Return | Common Short Pay | Return | Difference |
+|---------|----------|--------|-----------------|--------|------------|
+| **Jacks or Better** | **9/6** (FH=9, Fl=6) | 99.54% | 8/5 | 97.30% | 2.24% |
+| **Bonus Poker** | **8/5** (FH=8, Fl=5) | 99.17% | 7/5 | 98.01% | 1.16% |
+| **Double Bonus** | **10/7** (FH=10, Fl=7) | 100.17% | 9/7 | 99.11% | 1.06% |
+| **Double Double Bonus** | **9/6** (FH=9, Fl=6) | 98.98% | 8/5 | 96.79% | 2.19% |
+| **Deuces Wild** | **25/15/9/5/3** (WR/5K/SF/4K/FH) | 100.76% | "Not So Ugly" 25/15/9/4/3 | 99.73% | 1.03% |
+
+The numbers are small — 1–2% — but the dollar impact is enormous at professional play speeds. A 9/6 Jacks or Better machine and an 8/5 machine sit side by side on the casino floor. Same cabinet. Same screen layout. Same buttons. The *only* difference is that in one row of the pay table, the number 9 has been replaced with 8, and in another row, 6 with 5. That change costs the player $28/hour at $1,000/hour throughput. Over a year of regular play (4 hours/day, 5 days/week), that's **$29,120 in lost value** — from two numbers on a screen.
+
+Deuces Wild uses a different naming convention because the Full House and Flush aren't the primary variables. Instead, pros identified Deuces Wild pay tables by five key payouts: Wild Royal (25), Five of a Kind (15), Straight Flush (9), Four of a Kind (5), Full House (3). Any reduction in any of these five numbers creates a short-pay variant. The full-pay version — sometimes called "Ugly Deuces" for its low Four of a Kind payout — is the only common VP game that returns over 100.5%.
+
+The ability to instantly identify a full-pay machine by scanning the pay table was the foundational real-world skill of professional video poker. It's what separated pros from tourists, and it's what the Machine Scout training mode in this simulator teaches.
+
 ### What They Tracked
 
 Professional VP players kept detailed records that would be familiar to any serious quantitative trader:

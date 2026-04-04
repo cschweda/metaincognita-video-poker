@@ -20,7 +20,7 @@ const isWin = computed(() => game.resultPayout > 0)
         }"
       >
         <template v-if="isWin">
-          &#9473;&#9473; {{ game.resultHandName }} &mdash; {{ game.resultPayout }} Credits &#9473;&#9473;
+          &#9473;&#9473; {{ game.resultHandName }} &mdash; ${{ (game.resultPayout * game.denomination).toFixed(2) }} &#9473;&#9473;
         </template>
         <template v-else-if="game.phase === 'result'">
           No Win

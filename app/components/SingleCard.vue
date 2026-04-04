@@ -8,6 +8,7 @@ const props = defineProps<{
   isDimmed: boolean
   isFaceDown: boolean
   canHold: boolean
+  isWild?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -21,7 +22,8 @@ const suitColor = computed(() =>
 const ariaLabel = computed(() => {
   if (!props.card) return 'Empty card slot'
   const name = `${RANK_NAMES[props.card.rank]} of ${SUIT_NAMES[props.card.suit]}`
-  return props.isHeld ? `${name}, held` : name
+  const wild = props.isWild ? ', wild' : ''
+  return props.isHeld ? `${name}, held${wild}` : `${name}${wild}`
 })
 </script>
 
@@ -48,7 +50,7 @@ const ariaLabel = computed(() => {
     >
       <div class="card__inner" :class="{ 'card__inner--flipped': isFaceDown }">
         <!-- Front face -->
-        <div class="card__front">
+        <div class="card__front" :class="{ 'card__front--wild': isWild }">
           <template v-if="card">
             <div class="card__corner card__corner--top">
               <span class="card__rank" :style="{ color: suitColor }">{{ RANK_LABELS[card.rank] }}</span>
@@ -57,6 +59,7 @@ const ariaLabel = computed(() => {
             <div class="card__center" :style="{ color: suitColor }">
               {{ SUIT_SYMBOLS[card.suit] }}
             </div>
+            <div v-if="isWild" class="card__wild-label">WILD</div>
             <div class="card__corner card__corner--bottom">
               <span class="card__rank" :style="{ color: suitColor }">{{ RANK_LABELS[card.rank] }}</span>
               <span class="card__suit-small" :style="{ color: suitColor }">{{ SUIT_SYMBOLS[card.suit] }}</span>
@@ -195,6 +198,26 @@ const ariaLabel = computed(() => {
 .card--held .card__front {
   border: 2.5px solid #c9a227;
   box-shadow: 0 0 18px rgba(201, 162, 39, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Wild card glow */
+.card__front--wild {
+  background: linear-gradient(135deg, #fff 0%, #f0fff4 40%, #ecfdf5 100%);
+  border-color: #06d6a0;
+  box-shadow: 0 0 12px rgba(6, 214, 160, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card__wild-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 8px);
+  font-family: 'Fira Code', monospace;
+  font-size: clamp(0.4rem, 1vw, 0.55rem);
+  font-weight: 800;
+  color: #06d6a0;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 /* Corner rank + suit */

@@ -43,11 +43,11 @@ const isActionDisabled = computed(() => {
       </button>
     </div>
 
-    <!-- Credit readout -->
+    <!-- Credit readout — all in dollars -->
     <div class="control-bar__credits">
-      <span>CREDITS {{ game.credits }}</span>
+      <span>BALANCE ${{ game.creditsAsDollars }}</span>
       <span>WON {{ game.stats.handsWon }}/{{ game.stats.handsPlayed }}</span>
-      <span>BET {{ game.coinsBet }}&times;${{ game.denomination.toFixed(2) }} = ${{ game.betAsDollars }}</span>
+      <span>BET ${{ game.betAsDollars }}</span>
     </div>
 
     <!-- Max coin warning -->
