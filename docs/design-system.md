@@ -1,4 +1,4 @@
-# Meta Incognita Simulator Collection — UI Design System
+# Metaincognita Simulator Collection — UI Design System
 
 > **Purpose:** Codify the shared visual language across all casino simulators (Hold'em, Video Poker, Craps, Blackjack, Roulette, Slots) so each game looks like part of the same family despite different gameplay mechanics.
 >

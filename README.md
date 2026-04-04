@@ -6,7 +6,7 @@
 
 A mathematically rigorous video poker training simulator with exhaustive hand analysis, real-time optimal play guidance, and statistical validation. Not a casino game — a casino *education tool* that teaches players to identify profitable machines, make mathematically optimal hold/discard decisions, and understand exactly how much their mistakes cost them.
 
-Part of the [Meta Incognita simulator collection](https://github.com/cschweda) alongside the [No-Limit Hold'em Simulator](https://github.com/cschweda/NLH-simulation).
+Part of the [Metaincognita Casino](https://holdem.metaincognita.com) simulator collection alongside the [No-Limit Hold'em Simulator](https://holdem.metaincognita.com) ([repo](https://github.com/cschweda/NLH-simulation)).
 
 ---
 
@@ -285,20 +285,20 @@ The only approximation in simulation: penalty card adjustments are omitted from 
 - **Stanford Wong** — *Professional Video Poker* (1991). One of the earliest rigorous treatments of VP as a beatable game.
 - **vpFREE2** — Community-maintained database of full-pay machine locations across the US. The crowd-sourced scouting network that professional VP depended on.
 
-## Meta Incognita Casino — Design System
+## Metaincognita Casino — Design System
 
-This simulator is part of the **Meta Incognita Casino** collection — a suite of mathematically rigorous casino game simulators that share a unified visual language and tech stack. Each game looks, navigates, and reports stats the same way despite fundamentally different gameplay mechanics.
+This simulator is part of the **Metaincognita Casino** collection — a suite of mathematically rigorous casino game simulators that share a unified visual language and tech stack. Each game looks, navigates, and reports stats the same way despite fundamentally different gameplay mechanics.
 
 | Simulator | Status | Repo |
 |-----------|--------|------|
-| **No-Limit Hold'em** | Live | [cschweda/NLH-simulation](https://github.com/cschweda/NLH-simulation) (canonical reference) |
+| **No-Limit Hold'em** | [Live](https://holdem.metaincognita.com) | [cschweda/NLH-simulation](https://github.com/cschweda/NLH-simulation) (canonical reference) |
 | **Video Poker** | Live | This repo |
 | **Craps** | Planned | — |
 | **Blackjack** | Planned | — |
 | **Roulette** | Planned | — |
 | **Slots** | Planned | — |
 
-The [NLH Hold'em Simulator](https://github.com/cschweda/NLH-simulation) is the canonical reference implementation. All other simulators follow its UI patterns: dark theme (`bg-gray-950`), metric cards, tab bars, tooltip-wrapped stats, profit trend bars, header info bars, analysis pages with Web Worker simulation, and consistent footer navigation.
+The [NLH Hold'em Simulator](https://holdem.metaincognita.com) ([repo](https://github.com/cschweda/NLH-simulation)) is the canonical reference implementation. All other simulators follow its UI patterns: dark theme (`bg-gray-950`), metric cards, tab bars, tooltip-wrapped stats, profit trend bars, header info bars, analysis pages with Web Worker simulation, and consistent footer navigation.
 
 The full design system specification — covering shared colors, typography, component patterns, layout conventions, accessibility baseline, and per-game accent colors — is documented in [`docs/design-system.md`](docs/design-system.md).
 
