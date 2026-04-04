@@ -285,6 +285,23 @@ The only approximation in simulation: penalty card adjustments are omitted from 
 - **Stanford Wong** — *Professional Video Poker* (1991). One of the earliest rigorous treatments of VP as a beatable game.
 - **vpFREE2** — Community-maintained database of full-pay machine locations across the US. The crowd-sourced scouting network that professional VP depended on.
 
+## Meta Incognita Casino — Design System
+
+This simulator is part of the **Meta Incognita Casino** collection — a suite of mathematically rigorous casino game simulators that share a unified visual language and tech stack. Each game looks, navigates, and reports stats the same way despite fundamentally different gameplay mechanics.
+
+| Simulator | Status | Repo |
+|-----------|--------|------|
+| **No-Limit Hold'em** | Live | [cschweda/NLH-simulation](https://github.com/cschweda/NLH-simulation) (canonical reference) |
+| **Video Poker** | Live | This repo |
+| **Craps** | Planned | — |
+| **Blackjack** | Planned | — |
+| **Roulette** | Planned | — |
+| **Slots** | Planned | — |
+
+The [NLH Hold'em Simulator](https://github.com/cschweda/NLH-simulation) is the canonical reference implementation. All other simulators follow its UI patterns: dark theme (`bg-gray-950`), metric cards, tab bars, tooltip-wrapped stats, profit trend bars, header info bars, analysis pages with Web Worker simulation, and consistent footer navigation.
+
+The full design system specification — covering shared colors, typography, component patterns, layout conventions, accessibility baseline, and per-game accent colors — is documented in [`docs/design-system.md`](docs/design-system.md).
+
 ## Tech Stack
 
 - **Nuxt 4.4** — Vue 3 SPA (`ssr: false`)
