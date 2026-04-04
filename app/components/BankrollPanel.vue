@@ -80,40 +80,55 @@ const sparklineZeroY = computed(() => {
     <!-- Session summary -->
     <div class="bp-section">
       <div class="bp-label">SESSION</div>
-      <div class="bp-row">
-        <span class="bp-row-label">Hands</span>
-        <span class="bp-row-value">{{ game.stats.handsPlayed }}</span>
-      </div>
-      <div class="bp-row">
-        <span class="bp-row-label">Won</span>
-        <span class="bp-row-value">{{ game.stats.handsWon }}</span>
-      </div>
-      <div class="bp-row">
-        <span class="bp-row-label">Wagered</span>
-        <span class="bp-row-value">${{ (game.stats.totalWagered * game.denomination).toFixed(2) }}</span>
-      </div>
-      <div class="bp-row">
-        <span class="bp-row-label">Returned</span>
-        <span class="bp-row-value">${{ (game.stats.totalReturned * game.denomination).toFixed(2) }}</span>
-      </div>
-      <div class="bp-row">
-        <span class="bp-row-label">Net</span>
-        <span
-          class="bp-row-value"
-          :class="{
-            'bp-value--good': netResult > 0,
-            'bp-value--bad': netResult < 0,
-          }"
-        >
-          {{ netResult >= 0 ? '+' : '' }}${{ netResult.toFixed(2) }}
-        </span>
-      </div>
-      <div v-if="game.stats.handsPlayed > 0" class="bp-row">
-        <span class="bp-row-label">Return</span>
-        <span class="bp-row-value" :class="returnColor">
-          {{ game.effectiveReturn.toFixed(1) }}%
-        </span>
-      </div>
+      <UTooltip text="Total hands dealt this session.">
+        <div class="bp-row">
+          <span class="bp-row-label">Hands</span>
+          <span class="bp-row-value">{{ game.stats.handsPlayed }}</span>
+        </div>
+      </UTooltip>
+      <UTooltip text="Hands where you received a payout (Jacks or Better or higher).">
+        <div class="bp-row">
+          <span class="bp-row-label">Won</span>
+          <span class="bp-row-value">{{ game.stats.handsWon }}</span>
+        </div>
+      </UTooltip>
+      <UTooltip text="Total amount bet across all hands this session.">
+        <div class="bp-row">
+          <span class="bp-row-label">Wagered</span>
+          <span class="bp-row-value">${{ (game.stats.totalWagered * game.denomination).toFixed(2) }}</span>
+        </div>
+      </UTooltip>
+      <UTooltip text="Total payouts received. Includes your original bet on winning hands (video poker pays 'for 1', not 'to 1').">
+        <div class="bp-row">
+          <span class="bp-row-label">Returned</span>
+          <span class="bp-row-value">${{ (game.stats.totalReturned * game.denomination).toFixed(2) }}</span>
+        </div>
+      </UTooltip>
+      <UTooltip text="Returned minus Wagered. Positive = you're up. Negative = you're down.">
+        <div class="bp-row">
+          <span class="bp-row-label">Net</span>
+          <span
+            class="bp-row-value"
+            :class="{
+              'bp-value--good': netResult > 0,
+              'bp-value--bad': netResult < 0,
+            }"
+          >
+            {{ netResult >= 0 ? '+' : '' }}${{ netResult.toFixed(2) }}
+          </span>
+        </div>
+      </UTooltip>
+      <UTooltip
+        v-if="game.stats.handsPlayed > 0"
+        :text="`Your actual return: ${game.effectiveReturn.toFixed(2)}%. Theoretical optimal for this pay table: ${game.payTable.returnPct}%. The gap is variance + any mistakes.`"
+      >
+        <div class="bp-row">
+          <span class="bp-row-label">Return</span>
+          <span class="bp-row-value" :class="returnColor">
+            {{ game.effectiveReturn.toFixed(1) }}%
+          </span>
+        </div>
+      </UTooltip>
     </div>
 
     <!-- Sparkline -->
@@ -138,24 +153,28 @@ const sparklineZeroY = computed(() => {
     <!-- Mistakes -->
     <div class="bp-section">
       <div class="bp-label">MISTAKES</div>
-      <div class="bp-row">
-        <span class="bp-row-label">Count</span>
-        <span
-          class="bp-row-value"
-          :class="game.stats.totalMistakes > 0 ? 'bp-value--bad' : 'bp-value--good'"
-        >
-          {{ game.stats.totalMistakes }}
-        </span>
-      </div>
-      <div class="bp-row">
-        <span class="bp-row-label">EV Lost</span>
-        <span
-          class="bp-row-value"
-          :class="game.stats.totalEVLost > 0 ? 'bp-value--bad' : 'bp-value--good'"
-        >
-          ${{ game.stats.totalEVLost.toFixed(2) }}
-        </span>
-      </div>
+      <UTooltip text="Hands where you held different cards than the mathematically optimal play. Zero mistakes = perfect play.">
+        <div class="bp-row">
+          <span class="bp-row-label">Count</span>
+          <span
+            class="bp-row-value"
+            :class="game.stats.totalMistakes > 0 ? 'bp-value--bad' : 'bp-value--good'"
+          >
+            {{ game.stats.totalMistakes }}
+          </span>
+        </div>
+      </UTooltip>
+      <UTooltip text="The cumulative dollar cost of your mistakes. This is the money you left on the table by not playing optimally — the gap between your return and Perfect Pat's.">
+        <div class="bp-row">
+          <span class="bp-row-label">EV Lost</span>
+          <span
+            class="bp-row-value"
+            :class="game.stats.totalEVLost > 0 ? 'bp-value--bad' : 'bp-value--good'"
+          >
+            ${{ game.stats.totalEVLost.toFixed(2) }}
+          </span>
+        </div>
+      </UTooltip>
     </div>
 
     <!-- Last hand result (after draw) -->
@@ -192,19 +211,23 @@ const sparklineZeroY = computed(() => {
       <div class="bp-divider" />
       <div class="bp-section">
         <div class="bp-label">PACE</div>
-        <div class="bp-row">
-          <span class="bp-row-label">Hands/hr</span>
-          <span class="bp-row-value">{{ game.handsPerHour }}</span>
-        </div>
-        <div class="bp-row">
-          <span class="bp-row-label">$/hr</span>
-          <span
-            class="bp-row-value"
-            :class="game.effectiveHourlyRate >= 0 ? 'bp-value--good' : 'bp-value--bad'"
-          >
-            {{ game.effectiveHourlyRate >= 0 ? '+' : '' }}${{ game.effectiveHourlyRate.toFixed(2) }}
-          </span>
-        </div>
+        <UTooltip text="Your play speed. Professional VP players average 600-800 hands/hour. Faster = more throughput = more comp value.">
+          <div class="bp-row">
+            <span class="bp-row-label">Hands/hr</span>
+            <span class="bp-row-value">{{ game.handsPerHour }}</span>
+          </div>
+        </UTooltip>
+        <UTooltip text="Your effective hourly rate based on session results so far. Includes wins and losses but not comp value. Professional VP pros targeted $25-50/hr including comps.">
+          <div class="bp-row">
+            <span class="bp-row-label">$/hr</span>
+            <span
+              class="bp-row-value"
+              :class="game.effectiveHourlyRate >= 0 ? 'bp-value--good' : 'bp-value--bad'"
+            >
+              {{ game.effectiveHourlyRate >= 0 ? '+' : '' }}${{ game.effectiveHourlyRate.toFixed(2) }}
+            </span>
+          </div>
+        </UTooltip>
         <div class="bp-row">
           <span class="bp-row-label">Session</span>
           <span class="bp-row-value">{{ game.sessionElapsedMinutes }}m</span>

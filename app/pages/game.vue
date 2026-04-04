@@ -177,6 +177,30 @@ onUnmounted(() => {
       </template>
     </UModal>
 
+    <!-- Info bar — matches NLH top bar pattern -->
+    <div class="vp-infobar">
+      <NuxtLink to="/" class="vp-infobar__back">
+        <span>&larr;</span> Home
+      </NuxtLink>
+      <div class="vp-infobar__center">
+        <span v-if="game.stats.handsPlayed > 0" class="vp-infobar__item">Hand #{{ game.stats.handsPlayed + (game.phase === 'dealt' || game.phase === 'dealing' || game.phase === 'drawing' ? 1 : 0) }}</span>
+        <span class="vp-infobar__item">{{ currentVariantName }} {{ game.payTable.shortName }}</span>
+        <span class="vp-infobar__phase">{{ game.phase === 'idle' ? 'ready' : game.phase }}</span>
+      </div>
+      <div class="vp-infobar__right">
+        <div class="vp-infobar__balance">
+          <span class="vp-infobar__balance-label">Balance</span>
+          <span
+            class="vp-infobar__balance-value"
+            :class="game.credits >= 100 ? 'vp-infobar__balance-value--up' : 'vp-infobar__balance-value--down'"
+          >
+            ${{ game.creditsAsDollars }}
+          </span>
+        </div>
+        <NuxtLink to="/history" class="vp-infobar__link">History</NuxtLink>
+      </div>
+    </div>
+
     <!-- MAIN: three columns -->
     <div class="vp-main">
       <div class="vp-col-left">
@@ -217,6 +241,100 @@ onUnmounted(() => {
 }
 
 /* NAV — absolutely positioned at top, full viewport width, text-align centered */
+/* Info bar — NLH-style header */
+.vp-infobar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.vp-infobar__back {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vp-infobar__back:hover {
+  color: #e5e7eb;
+}
+
+.vp-infobar__center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vp-infobar__item {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-family: 'Fira Code', monospace;
+}
+
+.vp-infobar__phase {
+  font-size: 0.65rem;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: rgba(31, 41, 55, 0.8);
+  color: #d1d5db;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Fira Code', monospace;
+}
+
+.vp-infobar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vp-infobar__balance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(31, 41, 55, 0.5);
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+
+.vp-infobar__balance-label {
+  font-size: 0.65rem;
+  color: #6b7280;
+}
+
+.vp-infobar__balance-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.vp-infobar__balance-value--up {
+  color: #4ade80;
+}
+
+.vp-infobar__balance-value--down {
+  color: #f87171;
+}
+
+.vp-infobar__link {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.vp-infobar__link:hover {
+  color: #e5e7eb;
+}
+
 .vp-nav {
   width: 100%;
   padding: 12px 16px 8px;

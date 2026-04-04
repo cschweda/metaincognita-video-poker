@@ -561,13 +561,14 @@ function describeHold(cards: Card[], indices: number[]): string {
 .training-panel {
   max-width: 740px;
   width: 100%;
-  background: #f5f5fa;
+  background: rgba(17, 24, 39, 0.6);
   border-radius: 10px;
   padding: 16px 20px;
-  color: #1a1a2e;
+  color: #e2e8f0;
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 0.82rem;
   line-height: 1.5;
+  border: 1px solid rgba(55, 65, 81, 0.6);
   border-left: 4px solid #c9a227;
   display: flex;
   flex-direction: column;
@@ -575,7 +576,7 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-section {
-  border-bottom: 1px solid #e0e0ea;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5);
   padding-bottom: 12px;
 }
 
@@ -589,13 +590,13 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-result-banner--win {
-  background: #dcfce7;
-  border: 2px solid #4ade80;
+  background: rgba(22, 101, 52, 0.2);
+  border: 2px solid rgba(74, 222, 128, 0.3);
 }
 
 .tp-result-banner--loss {
-  background: #fef2f2;
-  border: 2px solid #fca5a5;
+  background: rgba(127, 29, 29, 0.2);
+  border: 2px solid rgba(248, 113, 113, 0.3);
 }
 
 .tp-result-banner__icon {
@@ -626,11 +627,11 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-result-banner--win .tp-result-banner__hand {
-  color: #166534;
+  color: #4ade80;
 }
 
 .tp-result-banner--loss .tp-result-banner__hand {
-  color: #991b1b;
+  color: #f87171;
 }
 
 .tp-result-banner__payout {
@@ -638,18 +639,18 @@ function describeHold(cards: Card[], indices: number[]): string {
   font-size: 0.78rem;
   font-weight: 600;
   margin-top: 2px;
-  color: #16a34a;
+  color: #4ade80;
   margin-top: 2px;
 }
 
 .tp-result-banner__payout--loss {
-  color: #991b1b;
+  color: #f87171;
 }
 
 .tp-result-banner__net {
   font-size: 0.68rem;
   font-weight: 400;
-  color: #16a34a;
+  color: #4ade80;
   margin-left: 4px;
 }
 
@@ -668,8 +669,8 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-recap__step--optimal {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: rgba(127, 29, 29, 0.2);
+  border: 1px solid rgba(248, 113, 113, 0.3);
   border-radius: 6px;
   padding: 6px 8px;
   margin-left: 24px;
@@ -679,8 +680,8 @@ function describeHold(cards: Card[], indices: number[]): string {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #e8e8f0;
-  color: #555;
+  background: rgba(55, 65, 81, 0.4);
+  color: #9ca3af;
   font-size: 0.65rem;
   font-weight: 700;
   display: flex;
@@ -691,8 +692,8 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-recap__num--optimal {
-  background: #fecaca;
-  color: #991b1b;
+  background: rgba(248, 113, 113, 0.3);
+  color: #f87171;
   width: auto;
   height: auto;
   border-radius: 0;
@@ -702,37 +703,37 @@ function describeHold(cards: Card[], indices: number[]): string {
 .tp-recap__label {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #888;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .tp-recap__label--optimal {
-  color: #991b1b;
+  color: #f87171;
 }
 
 .tp-recap__cards {
   font-family: 'Fira Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #e2e8f0;
   margin-top: 1px;
   letter-spacing: 0.02em;
 }
 
 .tp-recap__cards--optimal {
-  color: #166534;
+  color: #4ade80;
 }
 
 .tp-recap__ev {
   font-family: 'Fira Code', monospace;
   font-size: 0.65rem;
-  color: #888;
+  color: #6b7280;
   margin-top: 1px;
 }
 
 .tp-recap__ev--optimal {
-  color: #166534;
+  color: #4ade80;
 }
 
 .tp-recap__result {
@@ -742,16 +743,16 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-recap__result--win {
-  color: #16a34a;
+  color: #4ade80;
 }
 
 .tp-recap__result--loss {
-  color: #888;
+  color: #6b7280;
 }
 
 .tp-recap__reason {
   font-size: 0.68rem;
-  color: #166534;
+  color: #4ade80;
   font-style: italic;
   margin-top: 3px;
   line-height: 1.4;
@@ -767,7 +768,7 @@ function describeHold(cards: Card[], indices: number[]): string {
   font-family: 'Fira Code', monospace;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #5560a0;
+  color: #818cf8;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -776,8 +777,8 @@ function describeHold(cards: Card[], indices: number[]): string {
 .tp-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid #d0d0e0;
-  border-top-color: #5560a0;
+  border: 2px solid rgba(55, 65, 81, 0.5);
+  border-top-color: #818cf8;
   border-radius: 50%;
   animation: tp-spin 0.6s linear infinite;
   flex-shrink: 0;
@@ -793,7 +794,7 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-phase-desc {
   font-size: 0.78rem;
-  color: #666;
+  color: #9ca3af;
   margin-top: 4px;
 }
 
@@ -802,7 +803,7 @@ function describeHold(cards: Card[], indices: number[]): string {
   font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.12em;
-  color: #5560a0;
+  color: #818cf8;
   text-transform: uppercase;
   margin-bottom: 6px;
 }
@@ -810,23 +811,23 @@ function describeHold(cards: Card[], indices: number[]): string {
 .tp-rec-description {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #166534;
+  color: #4ade80;
   padding: 8px 12px;
-  background: #dcfce7;
+  background: rgba(22, 101, 52, 0.2);
   border-radius: 6px;
-  border: 1px solid #bbf7d0;
+  border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
 .tp-rec-ev {
   font-family: 'Fira Code', monospace;
   font-size: 0.72rem;
-  color: #888;
+  color: #6b7280;
   margin-top: 4px;
 }
 
 .tp-rec-reason {
   font-size: 0.72rem;
-  color: #666;
+  color: #9ca3af;
   margin-top: 6px;
   line-height: 1.4;
   font-style: italic;
@@ -847,13 +848,13 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-verdict--correct {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(22, 101, 52, 0.2);
+  color: #4ade80;
 }
 
 .tp-verdict--mistake {
-  background: #fef2f2;
-  color: #991b1b;
+  background: rgba(127, 29, 29, 0.2);
+  color: #f87171;
 }
 
 .tp-comparison {
@@ -871,7 +872,7 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-play-label {
   font-size: 0.75rem;
-  color: #666;
+  color: #9ca3af;
   min-width: 72px;
 }
 
@@ -882,27 +883,27 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-play-cards--optimal {
-  color: #166534;
+  color: #4ade80;
 }
 
 .tp-play-ev {
   font-family: 'Fira Code', monospace;
   font-size: 0.72rem;
-  color: #888;
+  color: #6b7280;
 }
 
 .tp-play-ev--optimal {
-  color: #166534;
+  color: #4ade80;
 }
 
 .tp-mistake-cost {
   margin-top: 6px;
   font-size: 0.8rem;
-  color: #991b1b;
-  background: #fef2f2;
+  color: #f87171;
+  background: rgba(127, 29, 29, 0.2);
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.3);
 }
 
 .tp-mistake-cost strong {
@@ -910,7 +911,7 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-rank {
-  color: #888;
+  color: #6b7280;
   font-size: 0.72rem;
 }
 
@@ -927,21 +928,21 @@ function describeHold(cards: Card[], indices: number[]): string {
   font-family: 'Fira Code', monospace;
   font-size: 1rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #e2e8f0;
 }
 
 .tp-stat-value--bad {
-  color: #dc2626;
+  color: #f87171;
 }
 
 .tp-stat-value--good {
-  color: #16a34a;
+  color: #4ade80;
 }
 
 .tp-stat-label {
   display: block;
   font-size: 0.65rem;
-  color: #888;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -954,13 +955,13 @@ function describeHold(cards: Card[], indices: number[]): string {
   gap: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #555;
+  color: #9ca3af;
   cursor: pointer;
   padding: 4px 0;
 }
 
 .tp-toggle:hover {
-  color: #1a1a2e;
+  color: #f1f5f9;
 }
 
 .tp-toggle-arrow {
@@ -979,9 +980,9 @@ function describeHold(cards: Card[], indices: number[]): string {
   grid-template-columns: 28px 1fr 64px 52px;
   gap: 4px;
   padding: 4px 6px;
-  color: #888;
+  color: #6b7280;
   font-weight: 400;
-  border-bottom: 1px solid #e0e0ea;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5);
 }
 
 .tp-option-row {
@@ -993,22 +994,22 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-option-row--optimal {
-  background: #dcfce7;
+  background: rgba(22, 101, 52, 0.2);
   font-weight: 700;
 }
 
 .tp-option-row--player {
-  background: #fef3c7;
-  outline: 1px solid #f59e0b;
+  background: rgba(146, 112, 12, 0.2);
+  outline: 1px solid rgba(201, 162, 39, 0.3);
 }
 
 .tp-option-row--player.tp-option-row--optimal {
-  background: #dcfce7;
-  outline: 1px solid #16a34a;
+  background: rgba(22, 101, 52, 0.2);
+  outline: 1px solid rgba(74, 222, 128, 0.3);
 }
 
 .tp-opt-rank {
-  color: #888;
+  color: #6b7280;
   text-align: right;
   padding-right: 4px;
 }
@@ -1027,13 +1028,13 @@ function describeHold(cards: Card[], indices: number[]): string {
   font-family: 'Fira Code', monospace;
   font-weight: 700;
   font-size: 0.85rem;
-  color: #1a1a2e;
+  color: #e2e8f0;
 }
 
 .tp-current-hold__ev {
   font-family: 'Fira Code', monospace;
   font-size: 0.72rem;
-  color: #888;
+  color: #6b7280;
   margin-top: 2px;
 }
 
@@ -1043,16 +1044,16 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-current-hold__delta--optimal {
-  color: #16a34a;
+  color: #4ade80;
 }
 
 .tp-current-hold__delta--sub {
-  color: #dc2626;
+  color: #f87171;
 }
 
 .tp-current-hold__empty {
   font-size: 0.78rem;
-  color: #888;
+  color: #6b7280;
   font-style: italic;
 }
 
@@ -1064,7 +1065,7 @@ function describeHold(cards: Card[], indices: number[]): string {
 .tp-dist__title {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #888;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 4px;
@@ -1081,7 +1082,7 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-dist__hand {
   font-family: 'Fira Code', monospace;
-  color: #444;
+  color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1089,14 +1090,14 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-dist__bar-bg {
   height: 10px;
-  background: #e8e8f0;
+  background: rgba(55, 65, 81, 0.4);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .tp-dist__bar {
   height: 100%;
-  background: #aab0d8;
+  background: rgba(129, 140, 248, 0.4);
   border-radius: 3px;
   min-width: 1px;
   transition: width 0.2s ease;
@@ -1108,20 +1109,20 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-dist__pct {
   font-family: 'Fira Code', monospace;
-  color: #666;
+  color: #9ca3af;
   text-align: right;
   font-size: 0.62rem;
 }
 
 /* Current hold row highlight in options list */
 .tp-option-row--current {
-  background: #e0f2fe;
-  outline: 1px solid #38bdf8;
+  background: rgba(30, 64, 175, 0.2);
+  outline: 1px solid rgba(96, 165, 250, 0.3);
 }
 
 .tp-option-row--current.tp-option-row--optimal {
-  background: #dcfce7;
-  outline: 1px solid #16a34a;
+  background: rgba(22, 101, 52, 0.2);
+  outline: 1px solid rgba(74, 222, 128, 0.3);
 }
 
 /* Hand history */
@@ -1136,14 +1137,14 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-history-entry {
   padding: 6px 8px;
-  background: #fff;
+  background: rgba(31, 41, 55, 0.4);
   border-radius: 4px;
-  border: 1px solid #e8e8f0;
+  border: 1px solid rgba(55, 65, 81, 0.4);
 }
 
 .tp-history-entry--mistake {
-  border-color: #fecaca;
-  background: #fff5f5;
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(127, 29, 29, 0.15);
 }
 
 .tp-history-header {
@@ -1155,23 +1156,23 @@ function describeHold(cards: Card[], indices: number[]): string {
 
 .tp-history-num {
   font-family: 'Fira Code', monospace;
-  color: #888;
+  color: #6b7280;
   font-size: 0.7rem;
 }
 
 .tp-history-result {
   font-weight: 700;
-  color: #1a1a2e;
+  color: #e2e8f0;
 }
 
 .tp-history-result--loss {
-  color: #888;
+  color: #6b7280;
   font-weight: 400;
 }
 
 .tp-history-payout {
   font-family: 'Fira Code', monospace;
-  color: #16a34a;
+  color: #4ade80;
   font-weight: 700;
   font-size: 0.72rem;
 }
@@ -1179,23 +1180,23 @@ function describeHold(cards: Card[], indices: number[]): string {
 .tp-history-cards {
   font-family: 'Fira Code', monospace;
   font-size: 0.68rem;
-  color: #666;
+  color: #9ca3af;
   margin-top: 2px;
 }
 
 .tp-history-mistake {
   font-size: 0.72rem;
-  color: #991b1b;
+  color: #f87171;
   margin-top: 4px;
   padding: 3px 6px;
-  background: #fef2f2;
+  background: rgba(127, 29, 29, 0.2);
   border-radius: 3px;
 }
 
 /* Persona comparison */
 .tp-persona-intro {
   font-size: 0.75rem;
-  color: #666;
+  color: #9ca3af;
   margin-bottom: 10px;
   line-height: 1.4;
 }
@@ -1207,26 +1208,26 @@ function describeHold(cards: Card[], indices: number[]): string {
   padding: 6px 8px;
   border-radius: 4px;
   margin-bottom: 3px;
-  background: #fff;
-  border: 1px solid #e8e8f0;
+  background: rgba(31, 41, 55, 0.4);
+  border: 1px solid rgba(55, 65, 81, 0.4);
 }
 
 .tp-persona-row--you {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: rgba(30, 58, 138, 0.2);
+  border-color: rgba(96, 165, 250, 0.3);
 }
 
 .tp-persona-name {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #e2e8f0;
 }
 
 .tp-persona-style {
   display: block;
   font-size: 0.6rem;
   font-weight: 400;
-  color: #888;
+  color: #6b7280;
 }
 
 .tp-persona-stats {
@@ -1241,21 +1242,21 @@ function describeHold(cards: Card[], indices: number[]): string {
   font-weight: 700;
 }
 
-.tp-persona-return--good { color: #16a34a; }
-.tp-persona-return--ok { color: #d97706; }
-.tp-persona-return--bad { color: #dc2626; }
+.tp-persona-return--good { color: #4ade80; }
+.tp-persona-return--ok { color: #fbbf24; }
+.tp-persona-return--bad { color: #f87171; }
 
 .tp-persona-net {
   font-size: 0.7rem;
   font-weight: 600;
 }
 
-.tp-persona-net--up { color: #16a34a; }
-.tp-persona-net--down { color: #dc2626; }
+.tp-persona-net--up { color: #4ade80; }
+.tp-persona-net--down { color: #f87171; }
 
 .tp-persona-note {
   font-size: 0.68rem;
-  color: #888;
+  color: #6b7280;
   margin-top: 10px;
   line-height: 1.4;
   font-style: italic;
@@ -1269,8 +1270,8 @@ function describeHold(cards: Card[], indices: number[]): string {
   margin-top: 10px;
   padding: 8px;
   border-radius: 6px;
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(22, 101, 52, 0.2);
+  color: #4ade80;
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
@@ -1278,6 +1279,6 @@ function describeHold(cards: Card[], indices: number[]): string {
 }
 
 .tp-new-session:hover {
-  background: #bbf7d0;
+  background: rgba(74, 222, 128, 0.3);
 }
 </style>
