@@ -2,14 +2,6 @@
   <img src="public/hero.png" alt="Video Poker Trainer" width="100%">
 </p>
 
-<p align="center">
-  <img src="public/pay-table-comparison.png" alt="Pay table comparison: 9/6 full pay vs 8/5 short pay" width="100%">
-</p>
-
-<p align="center">
-  <img src="public/variance-curve.png" alt="Variance convergence over 100,000 hands" width="100%">
-</p>
-
 # Video Poker Trainer
 
 A mathematically rigorous video poker training simulator with exhaustive hand analysis, real-time optimal play guidance, and statistical validation. Not a casino game — a casino *education tool* that teaches players to identify profitable machines, make mathematically optimal hold/discard decisions, and understand exactly how much their mistakes cost them.
