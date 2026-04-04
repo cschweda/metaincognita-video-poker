@@ -27,9 +27,9 @@ But certain video poker machines, with specific pay tables, when played with mat
 The math was brutally thin. Full-pay Deuces Wild — the most favorable common variant — returns 100.76% with optimal play. That's a +0.76% player edge. Sounds good until you do the arithmetic:
 
 - **$0.25 denomination × 5 coins = $1.25 per hand**
-- **800 hands per hour** (a fast, experienced player hitting buttons without hesitation)
-- **$1,000/hour in total throughput**
-- **$1,000 × 0.76% = $7.60/hour from the mathematical edge alone**
+- **600–800 hands per hour** (600 for a careful player; 800+ for an experienced pro hitting buttons without hesitation)
+- **$750–$1,000/hour in total throughput**
+- **At 800 hands/hr: $1,000 × 0.76% = $7.60/hour from the mathematical edge alone**
 
 Seven dollars and sixty cents an hour. Below minimum wage. For work that required absolute concentration, hours of daily practice, thousands of dollars at risk, and the social environment of sitting alone in front of a flickering screen in a casino that reeked of cigarette smoke.
 
@@ -51,13 +51,15 @@ A disciplined pro stacking all of these could earn **$25–50/hour in total valu
 
 ### The People
 
-**Bob Dancer** is probably the most well-known figure. A former computer programmer, Dancer applied rigorous analytical methods to video poker strategy and became its most prominent evangelist. His software *Video Poker for Winners* became the standard training tool — a desktop application that dealt hands, analyzed plays, and tracked mistake rates. His book *Million Dollar Video Poker* documented his journey to hitting multiple Royal Flushes at high stakes, but the real substance was the math: the hand-rank tables, the EV calculations, the pay table analysis that let players identify beatable machines in seconds.
+**Bob Dancer** is probably the most well-known figure. A former computer programmer and tax attorney, Dancer applied rigorous analytical methods to video poker strategy and became its most prominent evangelist. His software *Video Poker for Winners* (later *WinPoker*) became the standard training tool — a desktop application that dealt hands, analyzed plays, and tracked mistake rates. His book *Million Dollar Video Poker* documented his high-stakes journey, but the real substance was always the math: the hand-rank tables, the EV calculations, the pay table analysis. Dancer notably played at higher denominations ($5 and $25 machines) than most pros, which amplified both the edge and the variance. He was also instrumental in popularizing the concept of "penalty cards" — situations where a discarded card reduces the probability of completing a straight or flush in the remaining deck, subtly shifting which hold pattern is optimal.
 
-**Jean Scott**, who wrote under the name "The Frugal Gambler," approached VP from the comp optimization angle. Her books weren't really about gambling — they were about extracting maximum value from casino loyalty programs. She documented how to get free hotel rooms, meals, and show tickets while playing a mathematically sound game. Her readers weren't risk-seekers; they were bargain hunters who happened to have learned optimal Jacks or Better strategy.
+**Jean Scott**, who wrote under the name "The Frugal Gambler," approached VP from the comp optimization angle. Her books weren't really about gambling — they were about extracting maximum value from casino loyalty programs while playing a mathematically sound game. She documented how to get free hotel rooms, meals, and show tickets, and was particularly meticulous about tracking the total value of casino offers. Her readers weren't risk-seekers; they were retirees and bargain hunters who happened to have learned optimal Jacks or Better strategy. Scott's key insight was that even -EV video poker (like 8/5 JoB at 97.30%) could be +EV when combined with sufficient comp value — you didn't need a beatable game if the comps made up the difference.
 
 **Skip Hughes** was one of the few pros who documented the daily reality of the lifestyle in detail. The picture he painted was not romantic: hours alone at a machine, the psychological weight of variance (long losing streaks are mathematically inevitable even with perfect play), the physical toll of sitting in a casino for 6–8 hours a day, and the constant low-grade anxiety that the casinos would tighten their pay tables — which they eventually did.
 
-There were hundreds of others whose names are less known — couples who structured their retirement around Las Vegas VP circuits, traveling from casino to casino to chase the best promotions; software engineers who wrote their own analysis tools; math professors who used VP as a living laboratory for probability theory.
+**Liam W. Daily** (pseudonym), who wrote *Video Poker, Optimum Play*, provided one of the most technically rigorous treatments of bankroll requirements and risk of ruin calculations. His work formalized what intuitive players knew: that the bankroll needed to survive variance was far larger than most aspiring pros assumed, and that "risk of ruin" — the probability of going broke before the math had time to work — was the actual threat, not the house edge.
+
+There were hundreds of others whose names are less known — couples who structured their retirement around Las Vegas VP circuits, traveling from casino to casino to chase the best promotions; software engineers who wrote their own analysis tools; math professors who used VP as a living laboratory for probability theory. The community communicated through forums like *VideoPoker.com* and *vpFREE2* (a mailing list and later website that tracked full-pay machine locations across the country — an invaluable resource that functioned like a crowd-sourced scouting network).
 
 <p align="center">
   <img src="public/pay-table-comparison.png" alt="Pay table comparison: 9/6 full pay vs 8/5 short pay" width="100%">
@@ -87,7 +89,7 @@ The ability to instantly identify a full-pay machine by scanning the pay table w
 
 Professional VP players kept detailed records that would be familiar to any serious quantitative trader:
 
-- **Bankroll requirements** — A $1.25/hand Deuces Wild player needed a minimum bankroll of **$10,000–20,000** to survive the variance. The Royal Flush — which accounts for approximately 2% of total return — hits once every ~40,000 hands. That's roughly **50 hours of play** between Royals. During those 50 hours, you're losing steadily. Without adequate bankroll, a normal (and statistically expected) dry spell could wipe you out before the math had time to work.
+- **Bankroll requirements** — A $1.25/hand Deuces Wild player needed a minimum bankroll of **$6,000–8,000** to keep their risk of ruin below 5%, or **$10,000–15,000** for a more conservative 1% risk of ruin. (At $5/hand, multiply by 4.) The key driver: Royal Flushes and Four Deuces account for a disproportionate share of total return but hit infrequently — a Natural Royal once every ~40,000–45,000 hands (~50 hours), Four Deuces roughly once every 4,900 hands (~6 hours). Between these big hands, you're grinding at a net loss. Without adequate bankroll, a normal (and statistically expected) dry spell could wipe you out before the law of large numbers had time to work. Pros calculated their specific "risk of ruin" — the mathematical probability of going broke given their bankroll, game edge, and variance — and wouldn't play unless it was below their threshold.
 - **Pay table scouting** — This was a critical real-world skill. Pros walked casino floors scanning the pay tables on every video poker machine. A 9/6 Jacks or Better machine sitting next to an 8/5 machine looks physically identical — same cabinet, same screen, same buttons. The only difference is two numbers in two rows of the pay table. That difference: 99.54% return vs 97.30%. At 800 hands/hour and $1.25/hand, playing the wrong machine costs **$28/hour**. Over a year of regular play, that's the difference between a living and a slow bleed. The "Machine Scout" mode in this simulator teaches exactly this skill.
 - **Comp rate per property** — Pros maintained spreadsheets tracking their comp rate at every casino they played. Station Casinos might offer 0.5% cashback + generous food comps; Wynn might offer 0.25% cashback but comp premium hotel rooms; downtown properties might run aggressive 3x point promotions to compete with the Strip. Selecting the right casino on the right day was as important as selecting the right machine.
 - **Theoretical loss ("theo")** — Casinos tracked each player's "theo" — what the house expected to win from them based on average play. This number determined comp levels. Since casinos assumed every player had negative expectation, a pro playing a +EV game generated positive theo while actually having an edge. This was the information asymmetry that made the whole enterprise work.
@@ -104,7 +106,7 @@ Even with perfect play and a positive mathematical edge, most video poker sessio
 
 The positive EV in Deuces Wild depends heavily on hitting rare, high-value hands. Four Deuces (200 coins) hits roughly once every 4,900 hands. A Natural Royal Flush (4,000 coins at max bet) hits once every ~40,000–45,000 hands. These hands account for a disproportionate share of the total return. In their absence, the game's return on the remaining hands is significantly below 100%.
 
-A typical 4-hour session (about 3,200 hands) has roughly a **55% chance of ending at a loss**, even with perfect play on a +EV machine. Over a week of daily play, the probability of a net-positive week is around 60–65%. It's only over hundreds of hours — thousands of sessions — that the law of large numbers pulls the actual return toward the theoretical value. The convergence viewer in this simulator's analysis page demonstrates this vividly: at 100 hands, the return might be anywhere from 80% to 120%; at 10,000 hands, it's within a few percent; at 100,000 hands, it locks in.
+A typical 4-hour session on full-pay Deuces Wild (about 3,200 hands at 800/hour) has roughly a **55–60% chance of ending at a loss**, even with perfect play. The median session result is slightly negative — you need to hit a Four Deuces or better to push a session positive, and that's a ~48% chance in 3,200 hands. Over a week of daily play, the probability of a net-positive week is around 60–65%. It's only over hundreds of hours — thousands of sessions — that the law of large numbers pulls the actual return toward the theoretical value. The convergence viewer in this simulator's analysis page demonstrates this vividly: at 100 hands, the return might be anywhere from 80% to 120%; at 10,000 hands, it's within a few percent; at 100,000 hands, it locks in.
 
 Living with this variance required a specific temperament. Pros talked about "emotional bankroll" alongside financial bankroll. The math says you'll win in the long run, but the long run can be very, very long, and the short run can be brutal. Many aspiring pros washed out not because they couldn't learn the strategy, but because they couldn't tolerate weeks of losing while knowing they were playing perfectly.
 
@@ -275,10 +277,13 @@ The only approximation in simulation: penalty card adjustments are omitted from 
 ## Reference Sources
 
 - **Ethier, S.N.** — *The Doctrine of Chances* (2010), Chapter 17: Video Poker. Full mathematical treatment including the complete Jacks or Better hand-rank table (Table 17.5).
-- **Wizard of Odds** — Optimal strategy tables for all variants, theoretical return calculations, hand frequency data.
+- **Wizard of Odds** (Michael Shackleford) — Optimal strategy tables for all variants, theoretical return calculations, hand frequency data. The most comprehensive free online VP resource.
 - **Illinois Gaming Board** — *Technical Standards for Video Gaming Terminals v1.5* (2024). RNG requirements, payout regulations, game cycle definitions.
-- **Bob Dancer** — *Video Poker for Winners*. Strategy cards and training methodology.
-- **Jean Scott** — *The Frugal Gambler*. Casino comp optimization and advantage play.
+- **Bob Dancer** — *Million Dollar Video Poker* (2003); *Video Poker for Winners* (software). Strategy cards, penalty card analysis, and training methodology.
+- **Jean Scott** — *The Frugal Gambler* (2005). Casino comp optimization and advantage play economics.
+- **Liam W. Daily** — *Video Poker, Optimum Play* (2003). Bankroll requirements, risk of ruin calculations, variance analysis.
+- **Stanford Wong** — *Professional Video Poker* (1991). One of the earliest rigorous treatments of VP as a beatable game.
+- **vpFREE2** — Community-maintained database of full-pay machine locations across the US. The crowd-sourced scouting network that professional VP depended on.
 
 ## Tech Stack
 

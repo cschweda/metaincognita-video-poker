@@ -13,6 +13,52 @@ const netResult = computed(() => {
   const net = game.stats.totalReturned - game.stats.totalWagered
   return net * game.denomination
 })
+
+// Sparkline: running balance after each hand
+const sparklinePoints = computed(() => {
+  if (game.handHistory.length < 2) return ''
+  const history = [...game.handHistory].reverse() // oldest first
+  const startBalance = 100 // starting credits
+  let balance = startBalance
+  const balances: number[] = [balance]
+
+  for (const h of history) {
+    balance = balance - game.coinsBet + h.payout
+    balances.push(balance)
+  }
+
+  const min = Math.min(...balances)
+  const max = Math.max(...balances)
+  const range = max - min || 1
+  const width = 240
+  const height = 40
+  const step = width / (balances.length - 1)
+
+  return balances
+    .map((b, i) => `${(i * step).toFixed(1)},${(height - ((b - min) / range) * height).toFixed(1)}`)
+    .join(' ')
+})
+
+const sparklineColor = computed(() => {
+  return netResult.value >= 0 ? '#4ade80' : '#f87171'
+})
+
+// Zero line Y position for the sparkline
+const sparklineZeroY = computed(() => {
+  if (game.handHistory.length < 2) return '20'
+  const history = [...game.handHistory].reverse()
+  const startBalance = 100
+  let balance = startBalance
+  const balances: number[] = [balance]
+  for (const h of history) {
+    balance = balance - game.coinsBet + h.payout
+    balances.push(balance)
+  }
+  const min = Math.min(...balances)
+  const max = Math.max(...balances)
+  const range = max - min || 1
+  return (40 - ((startBalance - min) / range) * 40).toFixed(1)
+})
 </script>
 
 <template>
@@ -68,6 +114,23 @@ const netResult = computed(() => {
           {{ game.effectiveReturn.toFixed(1) }}%
         </span>
       </div>
+    </div>
+
+    <!-- Sparkline -->
+    <div v-if="game.handHistory.length >= 2" class="bp-sparkline">
+      <svg viewBox="0 0 240 40" preserveAspectRatio="none" class="bp-sparkline__svg">
+        <!-- Zero/starting line -->
+        <line x1="0" :y1="sparklineZeroY" x2="240" :y2="sparklineZeroY" stroke="#334155" stroke-width="0.5" stroke-dasharray="3 2"/>
+        <!-- Balance line -->
+        <polyline
+          :points="sparklinePoints"
+          :stroke="sparklineColor"
+          stroke-width="1.5"
+          fill="none"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </svg>
     </div>
 
     <div class="bp-divider" />
@@ -313,6 +376,17 @@ const netResult = computed(() => {
   background: linear-gradient(180deg, #4a4a6e, #3a3a5e);
   border-color: #c9a227;
   color: #ffd60a;
+}
+
+/* Sparkline */
+.bp-sparkline {
+  padding: 4px 0;
+}
+
+.bp-sparkline__svg {
+  width: 100%;
+  height: 40px;
+  display: block;
 }
 
 .bp-rules-btn {
