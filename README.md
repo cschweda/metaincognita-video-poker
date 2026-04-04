@@ -154,6 +154,44 @@ The regulatory landscape varies dramatically by state, and the gaps in oversight
 
 **The regulatory gap that matters:** Every state regulates the machine's *integrity* (certified RNG, minimum payout, tamper detection) but no state actively monitors for *excessive generosity*. Regulators care that you're not being cheated below the legal minimum. They do not care if the machine is overly generous to the player. A full-pay Deuces Wild at 100.76% isn't a regulatory violation in Nevada — it's just a bad business decision by the operator. And if the operator doesn't realize they made it, nobody is going to tell them.
 
+### The Online Angle
+
+The strangest twist in the full-pay story: the machines migrated from casino floors to bars to truck stops to... apps.
+
+**Michigan** legalized online casino gaming in 2019, and multiple licensed platforms (BetMGM, FanDuel Casino, DraftKings Casino, PointsBet) now offer video poker. The pay tables are published in the game rules — you can check them before you play a single hand. And some are surprisingly generous. Online operators compete for market share in ways that physical casinos don't: their overhead is a fraction of a brick-and-mortar property (no machine maintenance, no floor space, no electricity, no cocktail waitresses), so they can afford to run tighter margins. Some Michigan online VP offerings have approached 99%+ returns on JoB. The pay table isn't hidden — it's right there in the help menu. The question is whether anyone bothers to check.
+
+**Illinois** legalized online sports betting but has been slower on online casino games. As of the mid-2020s, full online casino gaming (including VP) hasn't been authorized, though legislation has been proposed. If it happens, the same competitive dynamics that improved Michigan's online pay tables would likely apply. Illinois already has the regulatory infrastructure (the Gaming Board, the CCS monitoring system) — the question is political will.
+
+**Iowa** authorized online sports betting through its casinos in 2019 but has not legalized standalone online casino gaming. Iowa's tribal casinos could potentially offer online VP under their compacts, but none have done so at scale. The conservative gaming culture in Iowa makes broad online VP legalization unlikely in the near term.
+
+The online pattern across all three states is the same: sports betting arrives first (politically easier, culturally mainstream), online casino games follow 2-5 years later (if at all), and VP is a niche offering within online casino that operators include but don't heavily promote. The advantage for a knowledgeable player: because online VP is a low-priority offering, operators may not optimize the pay tables with the same aggression they apply to slots. The pay table might be set once at launch and never revisited — the digital equivalent of the forgotten Game King in a truck stop.
+
+### Where to Actually Look
+
+If you wanted to mount a serious search for hidden full-pay machines in the physical world, here's where the probability is highest, ranked by likelihood:
+
+**Tier 1 — Most Likely:**
+- **Rural Nevada bars** (the Tonopah-to-Ely corridor along Highway 93, the small towns north of Reno along I-80). These are the last strongholds of route gaming with minimal oversight. Machines placed 10-15 years ago, managed by route operators who service hundreds of locations and can't audit every pay table.
+- **Montana small-town bars and VFW halls.** Montana allows VP in virtually any establishment with a liquor license. The machines are everywhere — laundromats, bowling alleys, convenience stores — and the state's gaming division is small relative to the number of machines.
+- **Downtown Las Vegas (Fremont Street and surrounding).** The El Cortez, Main Street Station, and a few other old-school properties deliberately maintain full-pay machines to attract knowledgeable players. These aren't hidden — they're the last intentional full-pay holdouts.
+
+**Tier 2 — Plausible:**
+- **Illinois truck stops and VFW halls along I-80, I-55, and I-57.** The rural corridor from Joliet south through Bloomington to Springfield has thousands of VGTs in gas stations, truck stops, and fraternal organizations. The further from Chicago, the less sophisticated the operation. A Pilot Travel Center or Love's truck stop with a gaming parlor attached is managed by a route operator whose primary concern is slot revenue — the VP machine in the corner is an afterthought.
+- **Smaller tribal casinos in Michigan, Iowa, Wisconsin, Minnesota.** The mid-tier properties — not the mega-casinos, but the ones with 500-800 machines that bought a mixed batch of used equipment. The VP section of the floor is typically 3-5% of total machines, generating a proportionally tiny share of revenue. Nobody's optimizing it.
+- **South Dakota (Deadwood and statewide bar gaming).** Similar dynamics to Montana — VP in bars across the state, minimal ongoing pay table oversight, small regulatory staff.
+
+**Tier 3 — Long Shot but Not Impossible:**
+- **Louisiana video poker parlors.** Louisiana has a unique system where VP-only establishments are licensed separately from casinos. These standalone VP rooms, often in strip malls and gas stations, are run by small operators who may not have the analytics sophistication of a casino.
+- **Oregon video lottery terminals.** Oregon's lottery operates VP machines in bars statewide. The lottery commission sets the pay tables centrally, which *should* mean consistency — but legacy machines transitioning between configurations could have gaps.
+- **Buc-ee's and mega truck stops** along I-10 and I-20 in the Gulf states. These massive travel centers in Louisiana and Mississippi sometimes have gaming sections operated by third-party companies. The gaming is incidental to the business (the real revenue is beaver nuggets and clean bathrooms), and the VP machines are managed by a route operator who may have configured them once and moved on.
+
+**Tier 4 — The Digital Frontier:**
+- **Michigan online casinos** — check every licensed platform's VP pay tables. They're published. Some are generous.
+- **New Jersey and Pennsylvania online casinos** — these states have had online gaming longer than Michigan. Their VP offerings are mature and the pay tables are documented.
+- **West Virginia online casinos** — smaller market, less competition, possibly less-optimized pay tables.
+
+**The universal tell:** Look for old IGT Game King machines (the tall, beige or gray cabinets with a CRT or early LCD screen). These are the workhorses that ran full-pay tables for 20 years. If you see one in a bar, check the pay table. It takes 10 seconds. If the Full House pays 9 and the Flush pays 6, you've found one. Buy a drink, sit down, and play perfectly. And maybe don't post about it on the internet.
+
 ### What Remains
 
 What remains is the mathematics. The hand rankings, the EV calculations, the strategy tables, the pay table analysis — all of it is as valid today as it was in 1995. The game hasn't changed; only the casino's willingness to offer beatable pay tables has changed.
