@@ -2,6 +2,11 @@
 const game = useGameStore()
 const rulesOpen = ref(false)
 
+function scrollToComparison() {
+  const el = document.getElementById('bot-comparison')
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 const returnColor = computed(() => {
   if (game.stats.handsPlayed === 0) return ''
   if (game.effectiveReturn >= 99) return 'bp-value--good'
@@ -14,50 +19,66 @@ const netResult = computed(() => {
   return net * game.denomination
 })
 
-// Sparkline: running balance after each hand
-const sparklinePoints = computed(() => {
-  if (game.handHistory.length < 2) return ''
-  const history = [...game.handHistory].reverse() // oldest first
-  const startBalance = 100 // starting credits
-  let balance = startBalance
-  const balances: number[] = [balance]
+interface SparkPoint {
+  x: number
+  y: number
+  balance: number
+  handNum: number
+  payout: number
+  handResult: string | null
+  isWin: boolean
+}
 
-  for (const h of history) {
-    balance = balance - game.coinsBet + h.payout
-    balances.push(balance)
-  }
+const WIDTH = 240
+const HEIGHT = 40
 
-  const min = Math.min(...balances)
-  const max = Math.max(...balances)
-  const range = max - min || 1
-  const width = 240
-  const height = 40
-  const step = width / (balances.length - 1)
-
-  return balances
-    .map((b, i) => `${(i * step).toFixed(1)},${(height - ((b - min) / range) * height).toFixed(1)}`)
-    .join(' ')
-})
-
-const sparklineColor = computed(() => {
-  return netResult.value >= 0 ? '#4ade80' : '#f87171'
-})
-
-// Zero line Y position for the sparkline
-const sparklineZeroY = computed(() => {
-  if (game.handHistory.length < 2) return '20'
+const sparkData = computed<SparkPoint[]>(() => {
+  if (game.handHistory.length < 2) return []
   const history = [...game.handHistory].reverse()
   const startBalance = 100
   let balance = startBalance
-  const balances: number[] = [balance]
+  const points: { balance: number, handNum: number, payout: number, handResult: string | null }[] = [
+    { balance, handNum: 0, payout: 0, handResult: null }
+  ]
+
   for (const h of history) {
     balance = balance - game.coinsBet + h.payout
-    balances.push(balance)
+    points.push({ balance, handNum: h.handNumber, payout: h.payout, handResult: h.handResult })
   }
+
+  const balances = points.map(p => p.balance)
   const min = Math.min(...balances)
   const max = Math.max(...balances)
   const range = max - min || 1
-  return (40 - ((startBalance - min) / range) * 40).toFixed(1)
+  const step = WIDTH / (points.length - 1)
+
+  return points.map((p, i) => ({
+    x: i * step,
+    y: HEIGHT - ((p.balance - min) / range) * HEIGHT,
+    balance: p.balance,
+    handNum: p.handNum,
+    payout: p.payout,
+    handResult: p.handResult,
+    isWin: p.payout > 0
+  }))
+})
+
+const sparklinePoints = computed(() =>
+  sparkData.value.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+)
+
+const sparklineColor = computed(() =>
+  netResult.value >= 0 ? '#4ade80' : '#f87171'
+)
+
+const sparklineZeroY = computed(() => {
+  if (sparkData.value.length === 0) return '20'
+  const startBalance = 100
+  const balances = sparkData.value.map(p => p.balance)
+  const min = Math.min(...balances)
+  const max = Math.max(...balances)
+  const range = max - min || 1
+  return (HEIGHT - ((startBalance - min) / range) * HEIGHT).toFixed(1)
 })
 </script>
 
@@ -131,11 +152,11 @@ const sparklineZeroY = computed(() => {
       </UTooltip>
     </div>
 
-    <!-- Sparkline -->
-    <div v-if="game.handHistory.length >= 2" class="bp-sparkline">
-      <svg viewBox="0 0 240 40" preserveAspectRatio="none" class="bp-sparkline__svg">
+    <!-- Sparkline with interactive dots -->
+    <div v-if="sparkData.length >= 2" class="bp-sparkline">
+      <svg :viewBox="`0 -4 ${WIDTH} ${HEIGHT + 8}`" preserveAspectRatio="none" class="bp-sparkline__svg">
         <!-- Zero/starting line -->
-        <line x1="0" :y1="sparklineZeroY" x2="240" :y2="sparklineZeroY" stroke="#334155" stroke-width="0.5" stroke-dasharray="3 2"/>
+        <line x1="0" :y1="sparklineZeroY" :x2="WIDTH" :y2="sparklineZeroY" stroke="#334155" stroke-width="0.5" stroke-dasharray="3 2"/>
         <!-- Balance line -->
         <polyline
           :points="sparklinePoints"
@@ -146,6 +167,29 @@ const sparklineZeroY = computed(() => {
           stroke-linecap="round"
         />
       </svg>
+      <!-- Dots overlay (HTML for UTooltip support) -->
+      <div class="bp-sparkline__dots">
+        <UTooltip
+          v-for="(pt, i) in sparkData"
+          :key="i"
+          :text="pt.handNum === 0
+            ? `Start: $${(pt.balance * game.denomination).toFixed(2)}`
+            : `#${pt.handNum}: ${pt.handResult || 'No Win'} ${pt.isWin ? '+' : '-'}$${((pt.isWin ? pt.payout : game.coinsBet) * game.denomination).toFixed(2)} → $${(pt.balance * game.denomination).toFixed(2)}`"
+        >
+          <div
+            class="bp-sparkline__dot"
+            :class="{
+              'bp-sparkline__dot--win': pt.isWin && pt.handNum > 0,
+              'bp-sparkline__dot--loss': !pt.isWin && pt.handNum > 0,
+              'bp-sparkline__dot--start': pt.handNum === 0,
+            }"
+            :style="{
+              left: `${(pt.x / WIDTH) * 100}%`,
+              top: `${((pt.y + 4) / (HEIGHT + 8)) * 100}%`,
+            }"
+          />
+        </UTooltip>
+      </div>
     </div>
 
     <div class="bp-divider" />
@@ -248,9 +292,12 @@ const sparklineZeroY = computed(() => {
       <div class="bp-divider" />
       <div class="bp-section">
         <div class="bp-label" style="color: #4ade80">SESSION COMPLETE</div>
-        <div class="bp-row-value" style="font-size: 0.65rem; color: #8890b8">
-          Bot comparison ready — see training panel
+        <div style="font-size: 0.65rem; color: #8890b8; margin-bottom: 6px">
+          Bot comparison ready. See how Perfect Pat, Almost Alice, and Gut-Feel Gary would have played your hands.
         </div>
+        <a href="#bot-comparison" class="bp-link-btn" @click.prevent="scrollToComparison">
+          View Bot Comparison &#x2192;
+        </a>
       </div>
     </template>
 
@@ -404,12 +451,76 @@ const sparklineZeroY = computed(() => {
 /* Sparkline */
 .bp-sparkline {
   padding: 4px 0;
+  position: relative;
 }
 
 .bp-sparkline__svg {
   width: 100%;
-  height: 40px;
+  height: 48px;
   display: block;
+}
+
+.bp-sparkline__dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bp-sparkline__dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  opacity: 0.7;
+}
+
+.bp-sparkline__dot:hover {
+  transform: translate(-50%, -50%) scale(1.8);
+  opacity: 1;
+  z-index: 10;
+}
+
+.bp-sparkline__dot--win {
+  background: #4ade80;
+  box-shadow: 0 0 4px rgba(74, 222, 128, 0.4);
+}
+
+.bp-sparkline__dot--loss {
+  background: #f87171;
+  box-shadow: 0 0 4px rgba(248, 113, 113, 0.4);
+}
+
+.bp-sparkline__dot--start {
+  background: #6b7280;
+  width: 5px;
+  height: 5px;
+}
+
+.bp-link-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.08);
+  color: #4ade80;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: 'Fira Code', monospace;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
+}
+
+.bp-link-btn:hover {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.5);
 }
 
 .bp-rules-btn {

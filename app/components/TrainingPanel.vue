@@ -480,14 +480,21 @@ function describeHold(cards: Card[], indices: number[]): string {
             <span class="tp-history-num">#{{ entry.handNumber }}</span>
             <span v-if="entry.handResult" class="tp-history-result">{{ entry.handResult }}</span>
             <span v-else class="tp-history-result tp-history-result--loss">No Win</span>
-            <span v-if="entry.payout > 0" class="tp-history-payout">+{{ entry.payout }}</span>
+            <span
+              class="tp-history-payout"
+              :class="entry.payout > 0 ? '' : 'tp-history-payout--loss'"
+            >
+              {{ entry.payout > 0 ? '+' : '-' }}${{ ((entry.payout > 0 ? entry.payout : game.coinsBet) * game.denomination).toFixed(2) }}
+            </span>
           </div>
           <div class="tp-history-cards">
             Dealt: {{ entry.dealtCards.map(c => cardLabel(c)).join(' ') }}
           </div>
+          <div class="tp-history-cards">
+            Held: {{ entry.playerHeld.length > 0 ? entry.playerHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') : 'nothing' }}
+          </div>
           <div v-if="entry.mistakeCost > 0.001" class="tp-history-mistake">
-            Held: {{ entry.playerHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') || 'nothing' }}
-            &rarr; Optimal: {{ entry.optimalHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') || 'nothing' }}
+            Optimal: {{ entry.optimalHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') || 'nothing' }}
             &middot; Cost: ${{ entry.mistakeCost.toFixed(2) }}
           </div>
         </div>
@@ -495,7 +502,7 @@ function describeHold(cards: Card[], indices: number[]): string {
     </div>
 
     <!-- PERSONA COMPARISON — shown after End Session -->
-    <div v-if="game.sessionEnded && game.personaResults.length > 0" class="tp-section">
+    <div v-if="game.sessionEnded && game.personaResults.length > 0" id="bot-comparison" class="tp-section">
       <div class="tp-rec-label">BOT COMPARISON</div>
       <p class="tp-persona-intro">
         Your {{ game.stats.handsPlayed }} dealt hands replayed through 4 player personas.
@@ -1175,6 +1182,11 @@ function describeHold(cards: Card[], indices: number[]): string {
   color: #4ade80;
   font-weight: 700;
   font-size: 0.72rem;
+  margin-left: auto;
+}
+
+.tp-history-payout--loss {
+  color: #f87171;
 }
 
 .tp-history-cards {
