@@ -49,6 +49,33 @@ const rules = computed(() => VARIANT_RULES[props.variant])
           </ol>
         </section>
 
+        <!-- Pay table variants (JoB has multiple) -->
+        <section v-if="rules.payTableVariants?.length" class="rules-section">
+          <h3 class="rules-heading">Pay Table Variants</h3>
+          <div class="rules-ptv">
+            <div
+              v-for="(ptv, i) in rules.payTableVariants"
+              :key="i"
+              class="rules-ptv__item"
+            >
+              <div class="rules-ptv__header">
+                <span class="rules-ptv__name">{{ ptv.name }}</span>
+                <span
+                  class="rules-ptv__return"
+                  :class="{
+                    'rules-ptv__return--good': ptv.returnPct >= 99,
+                    'rules-ptv__return--ok': ptv.returnPct >= 97 && ptv.returnPct < 99,
+                    'rules-ptv__return--bad': ptv.returnPct < 97,
+                  }"
+                >
+                  {{ ptv.returnPct }}%
+                </span>
+              </div>
+              <p class="rules-ptv__desc">{{ ptv.description }}</p>
+            </div>
+          </div>
+        </section>
+
         <!-- Strategy notes -->
         <section class="rules-section">
           <h3 class="rules-heading">Strategy Notes</h3>
@@ -173,6 +200,51 @@ const rules = computed(() => VARIANT_RULES[props.variant])
 .rules-strategy-item {
   color: #c8c8da;
   font-size: 0.82rem;
+}
+
+/* Pay table variants */
+.rules-ptv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rules-ptv__item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.rules-ptv__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.rules-ptv__name {
+  font-family: 'Fira Code', monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #e0e0ee;
+}
+
+.rules-ptv__return {
+  font-family: 'Fira Code', monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.rules-ptv__return--good { color: #4ade80; }
+.rules-ptv__return--ok { color: #fbbf24; }
+.rules-ptv__return--bad { color: #f87171; }
+
+.rules-ptv__desc {
+  font-size: 0.78rem;
+  color: #a0a0b8;
+  line-height: 1.5;
+  margin: 0;
 }
 
 .rules-section--diff {

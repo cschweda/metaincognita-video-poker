@@ -164,7 +164,8 @@ onUnmounted(() => {
 }
 
 .vp-nav__sub {
-  margin-top: 6px;
+  display: block;
+  margin-top: 8px;
 }
 
 .vp-nav__tab {
@@ -172,7 +173,7 @@ onUnmounted(() => {
   border-radius: 6px;
   border: 1px solid rgba(51, 51, 88, 1);
   background: rgba(20, 20, 40, 0.9);
-  color: #6666aa;
+  color: #c0c4e8;
   font-size: 0.68rem;
   font-family: 'Fira Code', monospace;
   cursor: pointer;
@@ -195,7 +196,7 @@ onUnmounted(() => {
   border-radius: 4px;
   border: 1px solid rgba(40, 40, 74, 1);
   background: rgba(20, 20, 40, 0.7);
-  color: #5560a0;
+  color: #b0b8d8;
   font-size: 0.6rem;
   font-family: 'Fira Code', monospace;
   cursor: pointer;

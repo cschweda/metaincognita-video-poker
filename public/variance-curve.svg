@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a14"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f87171"/>
+      <stop offset="30%" stop-color="#fbbf24"/>
+      <stop offset="70%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <linearGradient id="fillGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f87171" stop-opacity="0.1"/>
+      <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="400" fill="url(#bg2)"/>
+
+  <!-- Title -->
+  <text x="600" y="32" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="14" text-anchor="middle" font-weight="600" letter-spacing="2">THE VARIANCE PROBLEM — WHY +EV GAMES ARE HARD TO PROFIT FROM</text>
+
+  <!-- Chart area -->
+  <g transform="translate(80, 50)">
+    <!-- Y axis -->
+    <line x1="0" y1="0" x2="0" y2="280" stroke="#1e293b" stroke-width="1"/>
+    <text x="-8" y="10" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="end">120%</text>
+    <text x="-8" y="80" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="end">110%</text>
+    <text x="-8" y="150" fill="#4ade80" font-family="'Fira Code', monospace" font-size="9" text-anchor="end" font-weight="700">99.54%</text>
+    <text x="-8" y="220" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="end">90%</text>
+    <text x="-8" y="280" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="end">80%</text>
+
+    <!-- X axis -->
+    <line x1="0" y1="280" x2="1060" y2="280" stroke="#1e293b" stroke-width="1"/>
+    <text x="50" y="298" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="middle">100</text>
+    <text x="220" y="298" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="middle">1,000</text>
+    <text x="500" y="298" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="middle">10,000</text>
+    <text x="800" y="298" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="middle">50,000</text>
+    <text x="1020" y="298" fill="#475569" font-family="'Fira Code', monospace" font-size="9" text-anchor="middle">100,000</text>
+    <text x="530" y="318" fill="#64748b" font-family="system-ui" font-size="11" text-anchor="middle">hands played</text>
+
+    <!-- Theoretical return line -->
+    <line x1="0" y1="145" x2="1060" y2="145" stroke="#4ade80" stroke-width="1" stroke-dasharray="8 4" opacity="0.4"/>
+
+    <!-- Variance envelope (shaded area showing possible range) -->
+    <path d="M 20,30 Q 100,60 200,90 Q 350,110 500,125 Q 700,135 850,140 Q 950,142 1060,143 L 1060,147 Q 950,148 850,150 Q 700,155 500,165 Q 350,180 200,210 Q 100,240 20,270 Z" fill="url(#fillGrad)"/>
+
+    <!-- Upper envelope -->
+    <path d="M 20,30 Q 100,60 200,90 Q 350,110 500,125 Q 700,135 850,140 Q 950,142 1060,143" stroke="#4ade80" stroke-width="0.5" fill="none" opacity="0.3" stroke-dasharray="4 3"/>
+
+    <!-- Lower envelope -->
+    <path d="M 20,270 Q 100,240 200,210 Q 350,180 500,165 Q 700,155 850,150 Q 950,148 1060,147" stroke="#f87171" stroke-width="0.5" fill="none" opacity="0.3" stroke-dasharray="4 3"/>
+
+    <!-- Actual return line (wobbling, converging) -->
+    <polyline
+      points="20,80 40,210 60,120 80,190 100,160 130,180 160,135 190,165 220,150 260,158 300,142 340,152 380,148 420,143 460,147 500,145 550,146 600,144 650,145.5 700,145 750,145.2 800,144.8 850,145 900,145.1 950,144.9 1000,145 1060,145"
+      stroke="url(#lineGrad)"
+      stroke-width="2.5"
+      fill="none"
+      filter="url(#glow2)"
+    />
+
+    <!-- Annotations -->
+    <!-- Early chaos zone -->
+    <rect x="10" y="55" width="140" height="24" rx="4" fill="rgba(248, 113, 113, 0.15)" stroke="rgba(248, 113, 113, 0.3)" stroke-width="0.5"/>
+    <text x="80" y="71" fill="#f87171" font-family="system-ui" font-size="10" text-anchor="middle" font-weight="600">Variance zone</text>
+
+    <!-- Mid settling -->
+    <rect x="380" y="108" width="120" height="24" rx="4" fill="rgba(251, 191, 36, 0.1)" stroke="rgba(251, 191, 36, 0.3)" stroke-width="0.5"/>
+    <text x="440" y="124" fill="#fbbf24" font-family="system-ui" font-size="10" text-anchor="middle" font-weight="600">Settling...</text>
+
+    <!-- Converged -->
+    <rect x="850" y="108" width="120" height="24" rx="4" fill="rgba(74, 222, 128, 0.1)" stroke="rgba(74, 222, 128, 0.3)" stroke-width="0.5"/>
+    <text x="910" y="124" fill="#4ade80" font-family="system-ui" font-size="10" text-anchor="middle" font-weight="600">Converged</text>
+
+    <!-- Session length indicator -->
+    <line x1="160" y1="0" x2="160" y2="280" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+    <text x="160" y="-6" fill="#fbbf24" font-family="system-ui" font-size="9" text-anchor="middle" opacity="0.7">typical 4-hr session</text>
+    <text x="160" y="3" fill="#fbbf24" font-family="system-ui" font-size="9" text-anchor="middle" opacity="0.7">(~500 hands)</text>
+  </g>
+
+  <!-- Bottom insight -->
+  <text x="600" y="386" fill="#64748b" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">
+    Most sessions end at a loss even with perfect play on a +EV game. The math needs 50,000+ hands to converge.
+  </text>
+</svg>

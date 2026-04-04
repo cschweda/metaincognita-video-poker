@@ -1,3 +1,9 @@
+export interface PayTableVariant {
+  name: string
+  returnPct: number
+  description: string
+}
+
 export interface VariantRules {
   variant: string
   overview: string
@@ -8,6 +14,7 @@ export interface VariantRules {
   strategyNotes: string[]
   strategyDifferences: string[]
   strategyComplexity: string
+  payTableVariants?: PayTableVariant[]
   payTableTip: string
 }
 
@@ -45,6 +52,33 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'Three to a royal flush beats everything except a made paying hand or four to a straight flush.'
     ],
     strategyComplexity: 'Beginner-friendly. ~30 ranked entries in the full strategy, but a simplified 15-entry "simple strategy" captures 99.46% return (only 0.08% less than perfect). The most learnable variant.',
+    payTableVariants: [
+      {
+        name: '9/6 (Full Pay)',
+        returnPct: 99.54,
+        description: 'The gold standard. Full House pays 9, Flush pays 6. The house edge is only 0.46% — lower than most table games. This was the machine professional VP players sought out. Once common in Las Vegas; now increasingly rare on the Strip but still found at some downtown and locals casinos. The "9/6" is the single most important number in video poker — if you learn nothing else, learn to spot it.'
+      },
+      {
+        name: '8/6 (Short Pay)',
+        returnPct: 98.39,
+        description: 'Full House drops to 8, Flush stays at 6. Costs the player 1.15% vs full-pay — about $14/hour at typical speed. Casinos introduced this as a stealth downgrade: players who only checked the Flush payout (still 6) didn\'t notice the Full House dropped. A common bait-and-switch on the Strip.'
+      },
+      {
+        name: '8/5 (Short Pay)',
+        returnPct: 97.30,
+        description: 'Full House 8, Flush 5. The most common JoB variant in modern casinos. Costs 2.24% vs 9/6 — that\'s $28/hour at $1,000 throughput, or $5,600/year for a regular player. The difference between 9/6 and 8/5 is invisible to most players but worth more than many people\'s car payment. This is the machine that teaches pay table literacy: two numbers, $5,600/year.'
+      },
+      {
+        name: '7/5 (Short Pay)',
+        returnPct: 96.15,
+        description: 'Full House 7, Flush 5. Below-average payout found in captive-audience locations: airports, hotel lobbies, cruise ships. The house edge (3.85%) approaches slot machine territory. A player who can\'t tell this from 9/6 is giving up $42/hour. The casino is counting on you not checking.'
+      },
+      {
+        name: '6/5 (Short Pay)',
+        returnPct: 95.00,
+        description: 'Full House 6, Flush 5. The worst common JoB pay table. House edge: 5% — worse than roulette (2.7% European, 5.26% American). Found in tourist traps, bars, and gas station VGTs. At this point you\'re playing a slot machine with extra steps. The only educational value: it demonstrates how far a pay table can degrade while still looking like "video poker."'
+      }
+    ],
     payTableTip: 'Look for 9/6 machines — they return 99.54% with optimal play. An 8/5 machine looks almost identical but returns only 97.30%. That 2.24% difference costs about $28/hour at typical play speed.'
   },
 

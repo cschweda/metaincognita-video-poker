@@ -59,6 +59,10 @@ A disciplined pro stacking all of these could earn **$25–50/hour in total valu
 
 There were hundreds of others whose names are less known — couples who structured their retirement around Las Vegas VP circuits, traveling from casino to casino to chase the best promotions; software engineers who wrote their own analysis tools; math professors who used VP as a living laboratory for probability theory.
 
+<p align="center">
+  <img src="public/pay-table-comparison.png" alt="Pay table comparison: 9/6 full pay vs 8/5 short pay" width="100%">
+</p>
+
 ### What "Full Pay" Means
 
 The term "full pay" refers to the most generous pay table commonly available for a given variant — the version that returns the highest percentage with optimal play. It's the baseline that defines the game's potential. Every other version of the same game with lower payouts is a "short pay" variant, and the difference between full pay and short pay is pure casino profit extracted from players who can't tell the machines apart.
@@ -89,6 +93,10 @@ Professional VP players kept detailed records that would be familiar to any seri
 - **Theoretical loss ("theo")** — Casinos tracked each player's "theo" — what the house expected to win from them based on average play. This number determined comp levels. Since casinos assumed every player had negative expectation, a pro playing a +EV game generated positive theo while actually having an edge. This was the information asymmetry that made the whole enterprise work.
 - **Mistake rate and error cost** — Using training software, pros tracked their error frequency and the cumulative EV cost of their mistakes. A 0.1% mistake rate on $1,000/hour throughput costs $1/hour — a significant fraction of the total edge. The best players aimed for zero mistakes per session. This simulator's per-hand mistake tracking and session-end comparison against Perfect Pat is modeled directly on this discipline.
 - **Hours played and effective hourly rate** — Like any self-employment, the calculation included non-playing hours: travel to casinos, scouting machines, reviewing play, tracking promotions. A pro earning $40/hour at the machine who spent 2 hours daily on overhead was really earning $40 × 6 / 8 = $30/hour adjusted.
+
+<p align="center">
+  <img src="public/variance-curve.png" alt="Variance convergence: return percentage settling over 100,000 hands" width="100%">
+</p>
 
 ### The Variance Problem
 
