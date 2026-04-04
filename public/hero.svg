@@ -1,8 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
   <defs>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    <!-- ═══ METAINCOGNITA BRANDED BACKGROUND ═══ -->
+    <!-- Shared across all simulator og:images -->
+
+    <!-- Base gradient: deep navy to near-black -->
+    <linearGradient id="mc-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0c1a"/>
+      <stop offset="50%" stop-color="#080a16"/>
+      <stop offset="100%" stop-color="#060810"/>
+    </linearGradient>
+
+    <!-- Technical graph paper: fine grid -->
+    <pattern id="mc-grid-fine" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#141830" stroke-width="0.4"/>
     </pattern>
+
+    <!-- Technical graph paper: major grid -->
+    <pattern id="mc-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#1a1e38" stroke-width="0.8"/>
+    </pattern>
+
+    <!-- Dot grid overlay (engineering paper feel) -->
+    <pattern id="mc-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.5" fill="#1e2240" opacity="0.6"/>
+    </pattern>
+
+    <!-- Subtle radial vignette -->
+    <radialGradient id="mc-vignette" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.4"/>
+    </radialGradient>
+
+    <!-- Corner accent marks (technical drawing feel) -->
+    <symbol id="mc-corner" viewBox="0 0 30 30">
+      <path d="M 0 10 L 0 0 L 10 0" fill="none" stroke="#252a48" stroke-width="1.2"/>
+      <circle cx="0" cy="0" r="2" fill="#252a48"/>
+    </symbol>
+
+    <!-- Metaincognita wordmark positioning line -->
+    <linearGradient id="mc-wordmark-line" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="15%" stop-color="#252a48"/>
+      <stop offset="85%" stop-color="#252a48"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+
+    <!-- ═══ GAME-SPECIFIC DEFS ═══ -->
+
     <filter id="glow">
       <feGaussianBlur stdDeviation="3" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -19,23 +63,30 @@
       <stop offset="0%" stop-color="#4ade80" stop-opacity="0.8"/>
       <stop offset="100%" stop-color="#22c55e" stop-opacity="0.4"/>
     </linearGradient>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0a0a14"/>
-      <stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
     <linearGradient id="cardFace" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="100%" stop-color="#f0f0f5"/>
     </linearGradient>
-    <linearGradient id="heldGlow" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#c9a227" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#c9a227" stop-opacity="0"/>
-    </linearGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  <rect width="1200" height="630" fill="url(#grid)" opacity="0.3"/>
+  <!-- ═══ BRANDED BACKGROUND LAYERS ═══ -->
+  <rect width="1200" height="630" fill="url(#mc-bg)"/>
+  <rect width="1200" height="630" fill="url(#mc-grid-fine)" opacity="0.5"/>
+  <rect width="1200" height="630" fill="url(#mc-grid-major)" opacity="0.5"/>
+  <rect width="1200" height="630" fill="url(#mc-dots)" opacity="0.4"/>
+  <rect width="1200" height="630" fill="url(#mc-vignette)"/>
+
+  <!-- Corner registration marks -->
+  <use href="#mc-corner" x="16" y="16" width="30" height="30"/>
+  <use href="#mc-corner" x="1184" y="16" width="30" height="30" transform="scale(-1,1) translate(-1200,0)"/>
+  <use href="#mc-corner" x="16" y="614" width="30" height="30" transform="scale(1,-1) translate(0,-630)"/>
+  <use href="#mc-corner" x="1184" y="614" width="30" height="30" transform="scale(-1,-1) translate(-1200,-630)"/>
+
+  <!-- Bottom branding line -->
+  <line x1="0" y1="600" x2="1200" y2="600" stroke="url(#mc-wordmark-line)" stroke-width="0.5"/>
+  <text x="600" y="618" fill="#2a3050" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" letter-spacing="4" font-weight="300">METAINCOGNITA</text>
+
+  <!-- ═══ GAME-SPECIFIC CONTENT ═══ -->
 
   <!-- Convergence chart (right side, subtle) -->
   <g opacity="0.25" transform="translate(0, 40)">
@@ -56,25 +107,19 @@
     Exhaustive EV analysis for every hand, every hold, every draw
   </text>
 
-  <!-- Five cards: Full House (A A A K K) — three Aces + two Kings -->
+  <!-- Five cards: Full House (A A A K K) -->
   <g transform="translate(80, 160)" filter="url(#cardShadow)">
-
     <!-- Card 1: Ace of Spades (HELD) -->
     <g transform="translate(0, -12)">
-      <!-- Held glow -->
       <rect x="-4" y="-4" width="108" height="158" rx="12" fill="none" stroke="#c9a227" stroke-width="2" opacity="0.6"/>
       <rect x="0" y="0" width="100" height="150" rx="10" fill="url(#cardFace)" stroke="#d0d0d8" stroke-width="1"/>
-      <!-- Top corner -->
       <text x="10" y="28" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
       <text x="12" y="44" fill="#1a1a2e" font-family="serif" font-size="16">&#x2660;</text>
-      <!-- Center suit -->
       <text x="50" y="90" fill="#1a1a2e" font-family="serif" font-size="44" text-anchor="middle">&#x2660;</text>
-      <!-- Bottom corner (inverted) -->
       <g transform="translate(100, 150) rotate(180)">
         <text x="10" y="28" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="24" font-weight="700">A</text>
         <text x="12" y="44" fill="#1a1a2e" font-family="serif" font-size="16">&#x2660;</text>
       </g>
-      <!-- HELD badge -->
       <rect x="18" y="-22" width="64" height="18" rx="4" fill="#c9a227"/>
       <text x="50" y="-9" fill="#1a1a2e" font-family="'Fira Code', monospace" font-size="10" font-weight="800" text-anchor="middle" letter-spacing="1.5">HELD</text>
     </g>
@@ -142,7 +187,7 @@
 
   <!-- Result display -->
   <text x="355" y="365" fill="#ffd60a" font-family="'Fira Code', monospace" font-size="22" font-weight="700" text-anchor="middle" filter="url(#glow)">
-    &#x2501;&#x2501;  FULL HOUSE &#x2014; 45 Credits  &#x2501;&#x2501;
+    &#x2501;&#x2501;  FULL HOUSE &#x2014; $11.25  &#x2501;&#x2501;
   </text>
 
   <!-- EV analysis data -->
@@ -156,7 +201,7 @@
 
   <!-- Stats badge (bottom right) -->
   <g transform="translate(750, 440)">
-    <rect x="0" y="0" width="380" height="130" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" opacity="0.9"/>
+    <rect x="0" y="0" width="380" height="130" rx="10" fill="rgba(10, 12, 26, 0.85)" stroke="#1a1e38" stroke-width="1"/>
     <text x="20" y="24" fill="#64748b" font-family="'Fira Code', monospace" font-size="9" font-weight="700" letter-spacing="1.5">SESSION</text>
     <text x="20" y="48" fill="#e2e8f0" font-family="'Fira Code', monospace" font-size="13">Hands: <tspan fill="#ffd60a">147</tspan>   Mistakes: <tspan fill="#4ade80">3</tspan></text>
     <text x="20" y="68" fill="#e2e8f0" font-family="'Fira Code', monospace" font-size="13">EV Lost: <tspan fill="#f87171">$4.20</tspan>   Return: <tspan fill="#4ade80">99.1%</tspan></text>
@@ -164,6 +209,6 @@
     <text x="20" y="116" fill="#94a3b8" font-family="'Fira Code', monospace" font-size="11">You: <tspan fill="#fbbf24">99.1%</tspan>  Pat: <tspan fill="#4ade80">99.5%</tspan>  Gary: <tspan fill="#f87171">96.3%</tspan></text>
   </g>
 
-  <!-- Bottom accent line -->
-  <rect x="0" y="624" width="1200" height="6" fill="url(#gold)" opacity="0.5"/>
+  <!-- Bottom accent line (game-specific color: gold for VP) -->
+  <rect x="0" y="594" width="1200" height="4" fill="url(#gold)" opacity="0.4"/>
 </svg>

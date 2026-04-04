@@ -2,6 +2,41 @@
 
 All notable changes to the Video Poker Trainer will be documented in this file.
 
+## [0.2.0] - 2026-04-03
+
+### UI Unification & Design System
+
+#### Metaincognita Branded Background
+- Standardized og:image background for all simulators in the collection
+- 5-layer technical graph-paper aesthetic: fine grid, major grid, dot overlay, radial vignette, base gradient
+- Corner registration marks (engineering drawing feel)
+- Bottom branding line with "METAINCOGNITA" letterspaced wordmark
+- Per-game accent bar (gold for VP, green for Hold'em, etc.)
+- Full specification and SVG defs documented in design-system.md
+
+#### Design System Document
+- `docs/design-system.md`: comprehensive UI specification for the simulator collection
+- Shared color palette, typography scale, layout patterns
+- Per-game accent colors (Hold'em green, VP amber, Craps red, Blackjack emerald, Roulette rose, Slots purple)
+- Component patterns with exact Tailwind classes
+- Game area vs chrome separation principle
+- Hero image creation guide with SVG defs and PNG conversion
+
+#### UI Improvements
+- Game page header info bar (NLH pattern): back button, hand #, variant, phase, balance, history link
+- UTooltip on all bankroll panel metrics with contextual explanations
+- Training panel converted from light to dark theme (matches NLH stats panel)
+- Interactive sparkline dots with hover tooltips (hand #, result, +/- dollars, balance)
+- "View Bot Comparison" scroll link replaces "training panel" jargon
+- Hand history shows all hands with held cards and +/- dollars (not just mistakes)
+- Variant switch confirmation modal when mid-session
+- Sub-tab reserved height slot (no layout shift)
+- Rules modal: strategy differences section, complexity rating, JoB pay table variants
+- Wild card highlighting (green glow + WILD label on deuces)
+- All currency in dollars (no credits anywhere)
+
+---
+
 ## [0.1.0] - 2026-04-03
 
 ### Initial Build
