@@ -335,11 +335,13 @@ The background is built from 5 SVG layers that create a technical graph-paper ae
 
 ```
 1. mc-bg          Deep navy-to-black diagonal gradient (#0a0c1a → #060810)
-2. mc-grid-fine   20px fine grid lines (#141830, 0.4px, 50% opacity)
-3. mc-grid-major  100px major grid lines (#1a1e38, 0.8px, 50% opacity)
-4. mc-dots        20px dot grid overlay (#1e2240, 0.5r circles, 40% opacity)
+2. mc-grid-fine   20px fine grid lines (#1e2848, 0.6px stroke, 75% opacity)
+3. mc-grid-major  100px major grid lines (#283458, 1.2px stroke, 80% opacity)
+4. mc-dots        20px dot grid overlay (#2a3460, 0.7r circles, 70% opacity)
 5. mc-vignette    Radial vignette darkening the edges
 ```
+
+The grid should be clearly visible — not just a subtle texture, but recognizably graph paper. It evokes technical analysis, mathematical rigor, and the engineering-paper feel of EV calculations.
 
 Plus structural elements:
 - **Corner registration marks** — small L-shaped marks at all 4 corners (engineering drawing style)

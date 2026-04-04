@@ -12,17 +12,17 @@
 
     <!-- Technical graph paper: fine grid -->
     <pattern id="mc-grid-fine" width="20" height="20" patternUnits="userSpaceOnUse">
-      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#141830" stroke-width="0.4"/>
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e2848" stroke-width="0.6"/>
     </pattern>
 
     <!-- Technical graph paper: major grid -->
     <pattern id="mc-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
-      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#1a1e38" stroke-width="0.8"/>
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#283458" stroke-width="1.2"/>
     </pattern>
 
     <!-- Dot grid overlay (engineering paper feel) -->
     <pattern id="mc-dots" width="20" height="20" patternUnits="userSpaceOnUse">
-      <circle cx="10" cy="10" r="0.5" fill="#1e2240" opacity="0.6"/>
+      <circle cx="10" cy="10" r="0.7" fill="#2a3460" opacity="0.8"/>
     </pattern>
 
     <!-- Subtle radial vignette -->
@@ -33,7 +33,7 @@
 
     <!-- Corner accent marks (technical drawing feel) -->
     <symbol id="mc-corner" viewBox="0 0 30 30">
-      <path d="M 0 10 L 0 0 L 10 0" fill="none" stroke="#252a48" stroke-width="1.2"/>
+      <path d="M 0 10 L 0 0 L 10 0" fill="none" stroke="#354068" stroke-width="1.2"/>
       <circle cx="0" cy="0" r="2" fill="#252a48"/>
     </symbol>
 
@@ -71,9 +71,9 @@
 
   <!-- ═══ BRANDED BACKGROUND LAYERS ═══ -->
   <rect width="1200" height="630" fill="url(#mc-bg)"/>
-  <rect width="1200" height="630" fill="url(#mc-grid-fine)" opacity="0.5"/>
-  <rect width="1200" height="630" fill="url(#mc-grid-major)" opacity="0.5"/>
-  <rect width="1200" height="630" fill="url(#mc-dots)" opacity="0.4"/>
+  <rect width="1200" height="630" fill="url(#mc-grid-fine)" opacity="0.75"/>
+  <rect width="1200" height="630" fill="url(#mc-grid-major)" opacity="0.8"/>
+  <rect width="1200" height="630" fill="url(#mc-dots)" opacity="0.7"/>
   <rect width="1200" height="630" fill="url(#mc-vignette)"/>
 
   <!-- Corner registration marks -->
@@ -84,7 +84,7 @@
 
   <!-- Bottom branding line -->
   <line x1="0" y1="600" x2="1200" y2="600" stroke="url(#mc-wordmark-line)" stroke-width="0.5"/>
-  <text x="600" y="618" fill="#2a3050" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" letter-spacing="4" font-weight="300">METAINCOGNITA</text>
+  <text x="600" y="618" fill="#3a4570" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" letter-spacing="4" font-weight="300">METAINCOGNITA</text>
 
   <!-- ═══ GAME-SPECIFIC CONTENT ═══ -->
 
