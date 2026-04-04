@@ -135,8 +135,17 @@ export const useGameStore = defineStore('game', () => {
   function setPayTable(id: string) {
     if (!canBet.value) return
     if (!PAY_TABLES[id]) return
+    const oldId = payTableId.value
     payTableId.value = id
-    resetGame()
+    // If the variant changed (not just a pay table within the same variant),
+    // reset the entire session — different game, fresh start
+    const oldVariant = PAY_TABLES[oldId]?.variant
+    const newVariant = PAY_TABLES[id]!.variant
+    if (oldVariant !== newVariant) {
+      resetSession()
+    } else {
+      resetGame()
+    }
   }
 
   function setCoinsBet(coins: number) {

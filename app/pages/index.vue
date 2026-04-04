@@ -30,8 +30,11 @@ function openRules(variant: string) {
 function startGame(tableId?: string) {
   const id = tableId || selectedTable.value
   selectedTable.value = id
-  game.setPayTable(id)
+  // Reset FIRST so phase is idle, then set pay table
   game.resetSession()
+  game.setPayTable(id)
+  // Clear any stale localStorage from a previous variant
+  game.clearLocalStorage()
   router.push('/game')
 }
 </script>
@@ -192,6 +195,8 @@ function startGame(tableId?: string) {
         <NuxtLink to="/game" class="hover:text-gray-300 transition-colors">Game</NuxtLink>
         <span>&middot;</span>
         <NuxtLink to="/analysis" class="hover:text-gray-300 transition-colors">Analysis</NuxtLink>
+        <span>&middot;</span>
+        <NuxtLink to="/history" class="hover:text-gray-300 transition-colors">History</NuxtLink>
         <AnalysisStatus />
         <span>&middot;</span>
         <a href="https://github.com/cschweda/metaincognita-video-poker" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors flex items-center gap-1">

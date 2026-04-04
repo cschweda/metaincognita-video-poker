@@ -3,6 +3,36 @@ import { PAY_TABLES, PAY_TABLE_GROUPS } from '~/utils/payTables'
 
 const game = useGameStore()
 const rulesOpen = ref(false)
+const confirmVariantOpen = ref(false)
+const pendingVariantTableId = ref<string | null>(null)
+
+function requestVariantChange(tableId: string) {
+  const newVariant = PAY_TABLES[tableId]?.variant
+  const currentVariant = game.payTable.variant
+
+  // Same variant (or no session to lose) — just switch
+  if (newVariant === currentVariant || game.stats.handsPlayed === 0) {
+    game.setPayTable(tableId)
+    return
+  }
+
+  // Different variant with active session — confirm first
+  pendingVariantTableId.value = tableId
+  confirmVariantOpen.value = true
+}
+
+function confirmVariantChange() {
+  if (pendingVariantTableId.value) {
+    game.setPayTable(pendingVariantTableId.value)
+  }
+  confirmVariantOpen.value = false
+  pendingVariantTableId.value = null
+}
+
+function cancelVariantChange() {
+  confirmVariantOpen.value = false
+  pendingVariantTableId.value = null
+}
 
 const currentGroup = computed(() =>
   PAY_TABLE_GROUPS.find(g => g.tables.includes(game.payTableId))
@@ -59,8 +89,8 @@ onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChange)
   resetTimeout()
 
-  // Try to restore previous session
-  game.loadFromLocalStorage()
+  // No session restore — every page load starts fresh
+  game.clearLocalStorage()
 })
 
 onUnmounted(() => {
@@ -84,7 +114,7 @@ onUnmounted(() => {
           class="vp-nav__tab"
           :class="{ 'vp-nav__tab--active': group.tables.includes(game.payTableId) }"
           :disabled="!game.canBet"
-          @click="game.setPayTable(group.tables[0]!)"
+          @click="requestVariantChange(group.tables[0]!)"
         >
           {{ group.variant }}
         </button>
@@ -92,25 +122,60 @@ onUnmounted(() => {
           {{ currentVariantName }} Rules
         </button>
       </div>
-      <div
-        v-if="currentGroup && currentGroup.tables.length > 1"
-        class="vp-nav__inner vp-nav__sub"
-      >
-        <button
-          v-for="tableId in currentGroup.tables"
-          :key="tableId"
-          class="vp-nav__subtab"
-          :class="{ 'vp-nav__subtab--active': game.payTableId === tableId }"
-          :disabled="!game.canBet"
-          @click="game.setPayTable(tableId)"
+      <!-- Reserved space for sub-tabs — prevents layout shift -->
+      <div class="vp-nav__sub-slot">
+        <div
+          v-if="currentGroup && currentGroup.tables.length > 1"
+          class="vp-nav__inner"
         >
-          {{ PAY_TABLES[tableId]!.shortName }}
-          ({{ PAY_TABLES[tableId]!.returnPct }}%)
-        </button>
+          <button
+            v-for="tableId in currentGroup.tables"
+            :key="tableId"
+            class="vp-nav__subtab"
+            :class="{ 'vp-nav__subtab--active': game.payTableId === tableId }"
+            :disabled="!game.canBet"
+            @click="game.setPayTable(tableId)"
+          >
+            {{ PAY_TABLES[tableId]!.shortName }}
+            ({{ PAY_TABLES[tableId]!.returnPct }}%)
+          </button>
+        </div>
       </div>
     </div>
 
     <RulesModal v-model:open="rulesOpen" :variant="currentVariantName" />
+
+    <!-- Variant change confirmation -->
+    <UModal v-model:open="confirmVariantOpen" title="Switch Game?" close-icon="i-lucide-x">
+      <template #body>
+        <div class="space-y-3 text-sm">
+          <p class="text-gray-300">
+            Switching to <strong class="text-white">{{ PAY_TABLES[pendingVariantTableId!]?.variant }}</strong> will reset your current session.
+          </p>
+          <div class="bg-gray-800/60 rounded-lg p-3 text-xs font-mono space-y-1">
+            <div class="flex justify-between">
+              <span class="text-gray-400">Hands played</span>
+              <span class="text-white">{{ game.stats.handsPlayed }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">Mistakes</span>
+              <span :class="game.stats.totalMistakes > 0 ? 'text-red-400' : 'text-green-400'">{{ game.stats.totalMistakes }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">EV lost</span>
+              <span class="text-amber-400">${{ game.stats.totalEVLost.toFixed(2) }}</span>
+            </div>
+          </div>
+          <p class="text-gray-500 text-xs">
+            Tip: Use "End Session" first to see how your play compared to the bot personas before switching.
+          </p>
+          <div class="flex gap-2 justify-end pt-2">
+            <UButton variant="ghost" color="neutral" @click="cancelVariantChange">Cancel</UButton>
+            <UButton color="primary" @click="confirmVariantChange">Switch Game</UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
 
     <!-- MAIN: three columns -->
     <div class="vp-main">
@@ -131,6 +196,8 @@ onUnmounted(() => {
         <NuxtLink to="/" class="vp-footer__link">Home</NuxtLink>
         <span class="vp-footer__dot">&middot;</span>
         <NuxtLink to="/analysis" class="vp-footer__link">Analysis</NuxtLink>
+        <span class="vp-footer__dot">&middot;</span>
+        <NuxtLink to="/history" class="vp-footer__link">History</NuxtLink>
         <AnalysisStatus />
         <span class="vp-footer__dot">&middot;</span>
         <a href="https://github.com/cschweda/metaincognita-video-poker" target="_blank" rel="noopener" class="vp-footer__link vp-footer__link--gh">
@@ -163,9 +230,11 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.vp-nav__sub {
+.vp-nav__sub-slot {
   display: block;
   margin-top: 8px;
+  min-height: 26px; /* reserves space even when empty */
+  text-align: center;
 }
 
 .vp-nav__tab {
