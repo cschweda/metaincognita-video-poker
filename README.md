@@ -190,6 +190,16 @@ If you wanted to mount a serious search for hidden full-pay machines in the phys
 - **New Jersey and Pennsylvania online casinos** — these states have had online gaming longer than Michigan. Their VP offerings are mature and the pay tables are documented.
 - **West Virginia online casinos** — smaller market, less competition, possibly less-optimized pay tables.
 
+**The VFW on a Wednesday night:** Picture this. It's Queen of Hearts raffle night at VFW Post 1776 in a small Illinois town. The pot's up to $47,000. The whole town shows up — 300 people packed into a hall that seats 200, drinking domestic beer, waiting for the weekly card draw. The energy is electric. The raffle is pure negative expectation gambling dressed up as community fundraising (the house keeps 50% of ticket sales), but nobody cares because the pot is life-changing and the evening is social.
+
+Past the pull-tab booth, in the corner by the emergency exit, there's a dusty IGT Game King. It's been there since 2009. The post commander's wife plays it sometimes when the raffle crowd thins out. The route operator last visited in 2019 to replace the bill acceptor. The pay table hasn't been checked since installation.
+
+It's 9/6 Jacks or Better. 99.54% return. The only mathematically beatable game in the building.
+
+Everyone in the room is excited about the Queen of Hearts — which the Illinois Gaming Board doesn't even regulate (that's the county) — and ignoring the one game that actually favors the player. Two different games, two different oversight regimes, same Wednesday night, same building. The raffle takes your money with a smile. The Game King in the corner would give it back, one hand at a time, if anyone in the room knew what they were looking at.
+
+The Queen of Hearts raffle has been a cultural phenomenon in Illinois small towns since the 2010s. Some pots have hit six figures. Towns have had actual traffic problems on drawing nights. People drive an hour for the weekly draw. Meanwhile, the VGTs in the same building sit quietly, configured once by a route operator who manages 200 locations and hasn't thought about VFW Post 1776 since the Obama administration. That Game King in the corner might be the most valuable machine in the county, and nobody in the room — not the post commander, not the bartender, not the route operator, not the Gaming Board — has any reason to check.
+
 **The universal tell:** Look for old IGT Game King machines (the tall, beige or gray cabinets with a CRT or early LCD screen). These are the workhorses that ran full-pay tables for 20 years. If you see one in a bar, check the pay table. It takes 10 seconds. If the Full House pays 9 and the Flush pays 6, you've found one. Buy a drink, sit down, and play perfectly. And maybe don't post about it on the internet.
 
 ### What Remains
