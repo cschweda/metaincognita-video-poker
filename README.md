@@ -218,7 +218,7 @@ Most video poker trainers tell you what to hold. This one tells you **why**, sho
 
 ### Exhaustive EV Analysis
 
-Every dealt hand is analyzed against all 32 possible hold combinations. For each combination, every possible draw outcome is enumerated (up to C(47,5) = 1,533,939 combinations) and classified. The resulting expected values are **mathematically exact** — not sampled, not estimated, not looked up from a table.
+Every dealt hand is analyzed against all 32 possible hold combinations. For each combination, every possible draw outcome is enumerated (up to C(47,5) = 1,533,939 combinations) and classified. The resulting expected values are **mathematically exact** — not sampled, not estimated, not looked up from a table. The computation runs in a dedicated Web Worker, so the deal animation and UI never block while ~2.6 million draws are evaluated.
 
 When you're dealt A♣-Q♦-J♣-T♣-9♣ in Jacks or Better, the trainer evaluates:
 - Hold the four-card flush → EV: 1.2766
@@ -255,7 +255,7 @@ End a session and your dealt hands are replayed through four player archetypes:
 
 | Persona | Strategy | Typical Return |
 |---------|----------|---------------|
-| **Perfect Pat** | Brute-force optimal | 99.5% |
+| **Perfect Pat** | Brute-force optimal (replays the exact optimal hold recorded for each hand you played) | 99.5% |
 | **Almost Alice** | Simplified strategy | 99.4% |
 | **Gut-Feel Gary** | Common recreational mistakes | 96-97% |
 | **Superstitious Sam** | Pattern-chasing (effectively random) | 94-95% |
@@ -331,8 +331,8 @@ All four 2s are wild cards. Minimum paying hand: Three of a Kind (pairs are too 
 
 The `/analysis` page runs batch simulations across all variants with optimal play:
 
-- Strategy lookup tables (published Wizard of Odds strategies) for fast execution
-- Variant-specific strategies: JoB (~30 entries), Deuces Wild (5-branch by deuce count), DDB (kicker-aware)
+- Condensed strategy lookup tables (based on published Wizard of Odds strategies) for fast execution — in-game training always uses exact brute-force EV instead
+- Variant-specific strategies: JoB, Deuces Wild (5-branch by deuce count), DDB (kicker-aware)
 - Web Worker execution — UI stays responsive during simulation
 - Configurable: 500–10,000 hands per run, 1–5 runs per variant
 - Per-variant metrics: theoretical vs actual return, deviation, range
@@ -394,17 +394,33 @@ The full design system specification — covering shared colors, typography, com
 ```bash
 pnpm install
 pnpm dev        # http://localhost:3000
-pnpm build      # Production build (SSR)
-pnpm generate   # Static SPA build → .output/public
+pnpm test       # Run the vitest suite (shuffle statistics, classifiers, store)
+pnpm lint       # ESLint
+pnpm typecheck  # vue-tsc
+pnpm generate   # Static SPA build → dist
 pnpm preview    # Preview production build
 ```
+
+`./start-dev-server.sh` kills any stray dev servers, clears build caches (`.nuxt`, `.output`, `dist`, vite), and starts fresh. Use `--clean-only` to skip the server start.
+
+### Testing
+
+The vitest suite (`tests/`) covers the parts where correctness is the product:
+
+- **Shuffle statistics** — chi-squared positional uniformity over 50k shuffles, suit-fairness in dealt hands, adjacent-card independence
+- **Deuces Wild classifier** — including the ace-low wheel edge cases (A-2-3-4-5 requires a wild for the 2; A-3-4-5-6 is not a straight)
+- **Persona replay** — Perfect Pat uses recorded exact-optimal holds
+- **Async EV analysis** — worker race handling: drawing before the analysis lands back-fills mistake stats when it arrives
+
+CI runs lint → typecheck → test → build on every push.
 
 ## Deployment
 
 Static SPA deployed to **Netlify**. The `netlify.toml` configures:
 
 - **Build command:** `pnpm generate` (Nuxt static generation with `ssr: false`)
-- **Publish directory:** `.output/public`
+- **Publish directory:** `dist`
+- **No serverless functions** — the build is plain HTML/JS/CSS; nothing invokes Netlify Functions or edge functions
 - **SPA fallback:** All routes redirect to `/index.html` (client-side routing)
 - **Node 22** build environment
 
@@ -429,10 +445,9 @@ The only CSP relaxation: `'unsafe-inline'` in `script-src` and `style-src` is re
 
 ## Session Features
 
-- **localStorage persistence** — session survives page refresh, browser close
+- **Fresh start by design** — every page load begins a new session (no cross-session carryover yet)
 - **5-minute inactivity timeout** — auto-ends session and triggers persona comparison
-- **Tab close / minimize** — saves session state automatically
-- **Session restore** — previous session loaded on page mount
+- **Tab close / minimize** — saves a session snapshot to localStorage automatically
 
 ## Accessibility
 

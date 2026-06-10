@@ -2,6 +2,35 @@
 
 All notable changes to the Video Poker Trainer will be documented in this file.
 
+## [0.3.0] - 2026-06-09
+
+### Correctness, Performance & Testing
+
+#### Fixed
+- **Deuces Wild classifier paid impossible ace-low straights.** A-3-4-5-6 was classified as a Straight, and suited A-4-5-6 + deuce as a Straight Flush (9x overpay). The wheel A-2-3-4-5 requires a wild for the 2 slot, since every 2 in Deuces Wild is wild. This affected real game payouts, the EV trainer's recommendations, and simulation results.
+- **Perfect Pat is now actually optimal.** The game store records the brute-force optimal hold for every dealt hand (`optimalHeld` on the replay deck), and the session-end persona replay uses those exact holds. Previously Pat used the condensed strategy table, which made measurable errors (e.g. holding a 4-card inside straight over a lone high card, EV 0.3404 vs 0.4724; standing pat on quads-with-junk in Deuces Wild instead of drawing for Five of a Kind, EV 5.00 vs 5.85).
+- Template type fixes surfaced by Vue 3.5.35: the setup page's PLAY button passed its MouseEvent as a pay-table id; card hold/face-down props could receive `undefined`.
+
+#### Performance
+- **Per-hand EV analysis moved to a Web Worker** (`app/utils/evWorker.ts` + `evAnalysisClient.ts`). The exhaustive 32-hold evaluation (~2.6M draw classifications, ~1.7s) previously ran on the main thread inside a `setTimeout(0)`, freezing the deal animation on every hand. The client falls back to synchronous analysis when Workers are unavailable (tests, worker failure).
+- Draw-before-analysis race handled: if the player draws before the worker responds, the result records immediately and mistake stats/history back-fill on arrival; stale analyses are dropped after deals/resets via a token guard.
+
+#### Testing & CI
+- vitest suite — 39 tests across 6 files: statistical shuffle validation (chi-squared positional uniformity at 50k shuffles, suit-deal fairness, adjacent-card independence, first-card uniformity), Deuces Wild classifier including all ace-low wheel edge cases, persona replay (exact-optimal Pat, fallback, non-Pat independence), store async-analysis flows (normal, race reconcile, stale-drop)
+- `pnpm test`, `test:watch`, `test:coverage` scripts; `vue` added as a direct devDependency so store tests resolve under pnpm
+- CI pipeline extended from lint + typecheck to lint + typecheck + **test + build** (`pnpm generate`)
+
+#### UI
+- **Game page is now responsive.** Below 1100px the three columns stack vertically with the machine first; sidebars expand to full width (max 740px) and sticky positioning is disabled. Previously the fixed 280px sidebars forced ~1330px minimum width.
+- History page lists hands chronologically (oldest first) in the Hands tab
+
+#### Tooling & Housekeeping
+- `start-dev-server.sh` — kills stray dev servers and port-3000 listeners, clears `.nuxt`/`.output`/`dist`/vite caches, starts `pnpm dev` (`--clean-only` to skip the start)
+- Repo-wide lint cleanup (stylistic auto-fixes plus manual: unused vars, `any` casts in history page now typed as `Card`); `docs/` excluded from linting as reference artifacts
+- `Machine.vue` renamed to `GameMachine.vue` (vue/multi-word-component-names)
+
+---
+
 ## [0.2.0] - 2026-04-03
 
 ### UI Unification & Design System
