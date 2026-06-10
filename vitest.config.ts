@@ -8,6 +8,9 @@ export default defineConfig({
     }
   },
   test: {
-    include: ['tests/**/*.test.ts']
+    include: ['tests/**/*.test.ts'],
+    // The statistical shuffle tests run 50k shuffles each — well over the
+    // 5s default on slower CI runners
+    testTimeout: 60_000
   }
 })
