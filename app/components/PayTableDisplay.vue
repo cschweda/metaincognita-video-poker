@@ -6,16 +6,26 @@ const tableFlash = ref(false)
 // Watch for pay table changes and trigger flash
 watch(() => game.payTableId, () => {
   tableFlash.value = true
-  setTimeout(() => { tableFlash.value = false }, 500)
+  setTimeout(() => {
+    tableFlash.value = false
+  }, 500)
 })
 </script>
 
 <template>
-  <div class="pay-table-wrapper" :class="{ 'pay-table-wrapper--flash': tableFlash }">
-    <table class="pay-table" aria-label="Pay table">
+  <div
+    class="pay-table-wrapper"
+    :class="{ 'pay-table-wrapper--flash': tableFlash }"
+  >
+    <table
+      class="pay-table"
+      aria-label="Pay table"
+    >
       <thead>
         <tr>
-          <th class="pay-table__hand-header">HAND</th>
+          <th class="pay-table__hand-header">
+            HAND
+          </th>
           <th
             v-for="c in [1, 2, 3, 4, 5]"
             :key="c"
@@ -34,14 +44,16 @@ watch(() => game.payTableId, () => {
           :class="{ 'pay-table__row--winner': game.winningRowIndex === i }"
           :aria-current="game.winningRowIndex === i ? 'true' : undefined"
         >
-          <td class="pay-table__hand-name">{{ hand.name }}</td>
+          <td class="pay-table__hand-name">
+            {{ hand.name }}
+          </td>
           <td
             v-for="(pay, j) in hand.pays"
             :key="j"
             class="pay-table__pay"
             :class="{
               'pay-table__pay--active-col': j + 1 === game.coinsBet,
-              'pay-table__pay--winner': game.winningRowIndex === i && j + 1 === game.coinsBet,
+              'pay-table__pay--winner': game.winningRowIndex === i && j + 1 === game.coinsBet
             }"
           >
             {{ pay }}
@@ -55,7 +67,10 @@ watch(() => game.payTableId, () => {
         Return: {{ game.payTable.returnPct }}%
         <template v-if="game.payTable.returnPct >= 100"> &#10022; Player Advantage</template>
       </span>
-      <span v-if="game.coinsBet < 5" class="pay-table__return--warning">
+      <span
+        v-if="game.coinsBet < 5"
+        class="pay-table__return--warning"
+      >
         &#9888; Royal Flush bonus requires max coins
       </span>
     </div>

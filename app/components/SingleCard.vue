@@ -32,7 +32,10 @@ const ariaLabel = computed(() => {
     <!-- HELD badge -->
     <div class="held-badge-area">
       <Transition name="held-pop">
-        <span v-if="isHeld" class="held-badge">HELD</span>
+        <span
+          v-if="isHeld"
+          class="held-badge"
+        >HELD</span>
       </Transition>
     </div>
 
@@ -41,28 +44,54 @@ const ariaLabel = computed(() => {
       class="card"
       :class="{
         'card--held': isHeld,
-        'card--dimmed': isDimmed,
+        'card--dimmed': isDimmed
       }"
       :aria-pressed="isHeld"
       :aria-label="ariaLabel"
       :disabled="!canHold"
       @click="emit('toggleHold')"
     >
-      <div class="card__inner" :class="{ 'card__inner--flipped': isFaceDown }">
+      <div
+        class="card__inner"
+        :class="{ 'card__inner--flipped': isFaceDown }"
+      >
         <!-- Front face -->
-        <div class="card__front" :class="{ 'card__front--wild': isWild }">
+        <div
+          class="card__front"
+          :class="{ 'card__front--wild': isWild }"
+        >
           <template v-if="card">
             <div class="card__corner card__corner--top">
-              <span class="card__rank" :style="{ color: suitColor }">{{ RANK_LABELS[card.rank] }}</span>
-              <span class="card__suit-small" :style="{ color: suitColor }">{{ SUIT_SYMBOLS[card.suit] }}</span>
+              <span
+                class="card__rank"
+                :style="{ color: suitColor }"
+              >{{ RANK_LABELS[card.rank] }}</span>
+              <span
+                class="card__suit-small"
+                :style="{ color: suitColor }"
+              >{{ SUIT_SYMBOLS[card.suit] }}</span>
             </div>
-            <div class="card__center" :style="{ color: suitColor }">
+            <div
+              class="card__center"
+              :style="{ color: suitColor }"
+            >
               {{ SUIT_SYMBOLS[card.suit] }}
             </div>
-            <div v-if="isWild" class="card__wild-label">WILD</div>
+            <div
+              v-if="isWild"
+              class="card__wild-label"
+            >
+              WILD
+            </div>
             <div class="card__corner card__corner--bottom">
-              <span class="card__rank" :style="{ color: suitColor }">{{ RANK_LABELS[card.rank] }}</span>
-              <span class="card__suit-small" :style="{ color: suitColor }">{{ SUIT_SYMBOLS[card.suit] }}</span>
+              <span
+                class="card__rank"
+                :style="{ color: suitColor }"
+              >{{ RANK_LABELS[card.rank] }}</span>
+              <span
+                class="card__suit-small"
+                :style="{ color: suitColor }"
+              >{{ SUIT_SYMBOLS[card.suit] }}</span>
             </div>
           </template>
         </div>
@@ -82,7 +111,7 @@ const ariaLabel = computed(() => {
       class="hold-btn"
       :class="{
         'hold-btn--active': isHeld,
-        'hold-btn--disabled': !canHold,
+        'hold-btn--disabled': !canHold
       }"
       :disabled="!canHold"
       :aria-pressed="isHeld"

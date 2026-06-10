@@ -16,7 +16,7 @@ const isWin = computed(() => game.resultPayout > 0)
         class="result-display__text"
         :class="{
           'result-display__text--win': isWin,
-          'result-display__text--loss': !isWin && game.phase === 'result',
+          'result-display__text--loss': !isWin && game.phase === 'result'
         }"
       >
         <template v-if="isWin">

@@ -1,3 +1,4 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Card } from '~/utils/cards'
 import { createDeck, shuffle } from '~/utils/cards'
@@ -5,10 +6,10 @@ import { classifyHand, classifyBonusHand, classifyDDBHand } from '~/utils/handCl
 import { classifyDeucesWild } from '~/utils/wildClassifier'
 import { PAY_TABLES, getPayForHand } from '~/utils/payTables'
 import type { PayTableDef } from '~/utils/payTables'
-import { analyzeHand } from '~/utils/evCalculator'
 import type { HoldAnalysis } from '~/utils/evCalculator'
+import { analyzeHandAsync } from '~/utils/evAnalysisClient'
 import { replayHandsThroughPersona, PERSONAS } from '~/utils/botPersonas'
-import type { PersonaResult } from '~/utils/botPersonas'
+import type { DealtHand, PersonaResult } from '~/utils/botPersonas'
 
 export type GamePhase = 'idle' | 'dealing' | 'dealt' | 'drawing' | 'result'
 
@@ -59,12 +60,18 @@ export const useGameStore = defineStore('game', () => {
   const playerAnalysis = ref<HoldAnalysis | null>(null)
   const lastMistakeCost = ref<number>(0)
   const wasOptimal = ref<boolean>(true)
+  const analysisPending = ref<boolean>(false)
+
+  // Guards against stale worker responses (new deal / reset supersedes old analysis)
+  let analysisToken = 0
+  // Set when the player draws before the analysis arrives; reconciled on arrival
+  let pendingDrawReconcile: { playerHeldIndices: number[], handNumber: number } | null = null
 
   // --- Hand history ---
   const handHistory = ref<HandHistoryEntry[]>([])
 
   // --- Dealt decks for persona replay ---
-  const dealtDecks = ref<{ cards: Card[], remaining: Card[] }[]>([])
+  const dealtDecks = ref<DealtHand[]>([])
 
   // --- Session timing ---
   const sessionStartTime = ref<number>(Date.now())
@@ -124,11 +131,15 @@ export const useGameStore = defineStore('game', () => {
     const heldIndices = held.value
       .map((h, i) => h ? i : -1)
       .filter(i => i >= 0)
+    return findHoldOption(heldIndices)
+  })
+
+  function findHoldOption(heldIndices: number[]): HoldAnalysis | null {
     return allHoldOptions.value.find(opt =>
       opt.heldIndices.length === heldIndices.length
       && opt.heldIndices.every(idx => heldIndices.includes(idx))
     ) ?? null
-  })
+  }
 
   // --- Actions ---
 
@@ -220,16 +231,32 @@ export const useGameStore = defineStore('game', () => {
     const dealtCards = fullDeck.slice(0, 5)
     const remainingCards = fullDeck.slice(5)
     dealtDecks.value.push({ cards: [...dealtCards], remaining: [...remainingCards] })
+    const deckEntryIndex = dealtDecks.value.length - 1
 
-    // Start EV computation immediately in parallel with the deal animation
+    // Start EV computation in the worker, in parallel with the deal animation
     const pt = payTable.value
     const coins = coinsBet.value
+    const token = ++analysisToken
+    pendingDrawReconcile = null
+    analysisPending.value = true
 
-    setTimeout(() => {
-      const options = analyzeHand(dealtCards, pt, remainingCards, coins)
+    analyzeHandAsync(dealtCards, pt.id, remainingCards, coins).then((options) => {
+      if (token !== analysisToken) return // superseded by a newer deal or a reset
+
+      analysisPending.value = false
       allHoldOptions.value = options
       optimalPlay.value = options[0] || null
-    }, 0)
+
+      // Record the exact optimal hold so Perfect Pat replays true optimal
+      // (guard against the session having been reset in the meantime)
+      const entry = dealtDecks.value[deckEntryIndex]
+      if (entry && entry.cards.every((cd, i) => cd.id === dealtCards[i]!.id)) {
+        entry.optimalHeld = options[0]?.heldIndices ?? []
+      }
+
+      // If the player already drew this hand, back-fill mistake tracking
+      reconcilePendingDraw()
+    })
 
     for (let i = 0; i < 5; i++) {
       setTimeout(() => {
@@ -252,21 +279,6 @@ export const useGameStore = defineStore('game', () => {
     const playerHeldIndices = held.value
       .map((h, i) => h ? i : -1)
       .filter(i => i >= 0)
-
-    // Find player's analysis from the 32 options
-    const playerOption = allHoldOptions.value.find(opt =>
-      opt.heldIndices.length === playerHeldIndices.length
-      && opt.heldIndices.every(idx => playerHeldIndices.includes(idx))
-    )
-    playerAnalysis.value = playerOption || null
-
-    // Calculate mistake cost
-    const optimal = optimalPlay.value
-    if (optimal && playerOption) {
-      const evDiff = optimal.expectedValue - playerOption.expectedValue
-      wasOptimal.value = evDiff < 0.0001 // floating point tolerance
-      lastMistakeCost.value = evDiff * coinsBet.value * denomination.value
-    }
 
     // Capture dealt hand for history
     const dealtCards = [...hand.value] as Card[]
@@ -327,9 +339,27 @@ export const useGameStore = defineStore('game', () => {
         stats.value.handsPlayed++
         stats.value.totalWagered += coinsBet.value
 
-        if (!wasOptimal.value) {
-          stats.value.totalMistakes++
-          stats.value.totalEVLost += lastMistakeCost.value
+        // Evaluate the player's decision against optimal. The analysis runs
+        // in a worker, so a fast player can reach the result before it lands;
+        // in that case the hand is reconciled when the analysis arrives.
+        const optimal = optimalPlay.value
+        const playerOption = findHoldOption(playerHeldIndices)
+        const analysisReady = optimal !== null && playerOption !== null
+
+        if (analysisReady) {
+          playerAnalysis.value = playerOption
+          const evDiff = optimal.expectedValue - playerOption.expectedValue
+          wasOptimal.value = evDiff < 0.0001 // floating point tolerance
+          lastMistakeCost.value = evDiff * coinsBet.value * denomination.value
+          if (!wasOptimal.value) {
+            stats.value.totalMistakes++
+            stats.value.totalEVLost += lastMistakeCost.value
+          }
+        } else {
+          pendingDrawReconcile = {
+            playerHeldIndices,
+            handNumber: stats.value.handsPlayed
+          }
         }
 
         // Add to hand history
@@ -338,10 +368,10 @@ export const useGameStore = defineStore('game', () => {
           dealtCards: dealtCards.filter((c): c is Card => c !== null),
           finalCards: [...finalCards],
           playerHeld: playerHeldIndices,
-          optimalHeld: optimal?.heldIndices || [],
-          playerEV: playerOption?.expectedValue || 0,
-          optimalEV: optimal?.expectedValue || 0,
-          mistakeCost: lastMistakeCost.value,
+          optimalHeld: analysisReady ? optimal.heldIndices : [],
+          playerEV: analysisReady ? playerOption.expectedValue : 0,
+          optimalEV: analysisReady ? optimal.expectedValue : 0,
+          mistakeCost: analysisReady ? lastMistakeCost.value : 0,
           handResult: handName,
           payout: resultPayout.value
         })
@@ -349,6 +379,38 @@ export const useGameStore = defineStore('game', () => {
         phase.value = 'result'
       }, delay + 400)
     }, 400)
+  }
+
+  /**
+   * The player drew before the worker finished analyzing the deal.
+   * Back-fill mistake tracking for that hand now that the analysis is in.
+   */
+  function reconcilePendingDraw() {
+    if (!pendingDrawReconcile) return
+    const { playerHeldIndices, handNumber } = pendingDrawReconcile
+    pendingDrawReconcile = null
+
+    const optimal = optimalPlay.value
+    const playerOption = findHoldOption(playerHeldIndices)
+    if (!optimal || !playerOption) return
+
+    playerAnalysis.value = playerOption
+    const evDiff = optimal.expectedValue - playerOption.expectedValue
+    wasOptimal.value = evDiff < 0.0001 // floating point tolerance
+    lastMistakeCost.value = evDiff * coinsBet.value * denomination.value
+
+    const entry = handHistory.value.find(h => h.handNumber === handNumber)
+    if (entry) {
+      entry.optimalHeld = optimal.heldIndices
+      entry.playerEV = playerOption.expectedValue
+      entry.optimalEV = optimal.expectedValue
+      entry.mistakeCost = lastMistakeCost.value
+    }
+
+    if (!wasOptimal.value) {
+      stats.value.totalMistakes++
+      stats.value.totalEVLost += lastMistakeCost.value
+    }
   }
 
   function dealOrDraw() {
@@ -367,6 +429,11 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetGame() {
+    // Invalidate any in-flight worker analysis — it belongs to a cleared hand
+    analysisToken++
+    analysisPending.value = false
+    pendingDrawReconcile = null
+
     phase.value = 'idle'
     hand.value = [null, null, null, null, null]
     held.value = [false, false, false, false, false]
@@ -480,6 +547,7 @@ export const useGameStore = defineStore('game', () => {
     playerAnalysis,
     lastMistakeCost,
     wasOptimal,
+    analysisPending,
     handHistory,
 
     // Persona comparison

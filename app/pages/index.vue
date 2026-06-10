@@ -43,7 +43,9 @@ function startGame(tableId?: string) {
   <div class="min-h-screen bg-gray-950 text-white">
     <div class="max-w-4xl mx-auto p-6 space-y-6">
       <div class="text-center space-y-1">
-        <h1 class="text-3xl font-bold text-white">Video Poker Trainer</h1>
+        <h1 class="text-3xl font-bold text-white">
+          Video Poker Trainer
+        </h1>
         <p class="text-gray-400 text-sm">
           Choose your variant, pay table, and denomination to begin
         </p>
@@ -78,7 +80,9 @@ function startGame(tableId?: string) {
               {{ PAY_TABLES[group.tables[0]!]!.returnPct }}%
             </span>
           </div>
-          <p class="text-[0.7rem] text-gray-500 leading-snug">{{ group.description }}</p>
+          <p class="text-[0.7rem] text-gray-500 leading-snug">
+            {{ group.description }}
+          </p>
           <div class="text-[0.6rem] text-gray-600">
             {{ PAY_TABLES[group.tables[0]!]!.classifier === 'deucesWild' ? 'Wild cards' : 'Standard deck' }}
             &middot; {{ group.tables.length }} pay table{{ group.tables.length > 1 ? 's' : '' }}
@@ -104,7 +108,10 @@ function startGame(tableId?: string) {
       </div>
 
       <!-- Pay table sub-selection (if variant has multiple) -->
-      <div v-if="selectedGroup && selectedGroup.tables.length > 1" class="bg-gray-800/40 border border-gray-700/30 rounded-lg px-4 py-3 space-y-2">
+      <div
+        v-if="selectedGroup && selectedGroup.tables.length > 1"
+        class="bg-gray-800/40 border border-gray-700/30 rounded-lg px-4 py-3 space-y-2"
+      >
         <label class="text-sm font-medium text-gray-300 block">
           {{ selectedGroup.variant }} Pay Tables
         </label>
@@ -144,7 +151,10 @@ function startGame(tableId?: string) {
               <span class="text-primary-400 font-mono ml-1">{{ selectedPayTable.shortName }}</span>
             </div>
             <div class="text-xs text-gray-400 mt-0.5">
-              Return: <span class="font-mono tabular-nums" :class="selectedPayTable.returnPct >= 100 ? 'text-green-400' : 'text-gray-300'">{{ selectedPayTable.returnPct }}%</span>
+              Return: <span
+                class="font-mono tabular-nums"
+                :class="selectedPayTable.returnPct >= 100 ? 'text-green-400' : 'text-gray-300'"
+              >{{ selectedPayTable.returnPct }}%</span>
               <span class="mx-1.5 text-gray-600">&middot;</span>
               {{ selectedPayTable.classifier === 'deucesWild' ? 'Wild card game' : 'Standard deck' }}
               <span class="mx-1.5 text-gray-600">&middot;</span>
@@ -158,13 +168,19 @@ function startGame(tableId?: string) {
             View Rules
           </button>
         </div>
-        <p v-if="selectedRules" class="text-xs text-gray-500 leading-relaxed">
+        <p
+          v-if="selectedRules"
+          class="text-xs text-gray-500 leading-relaxed"
+        >
           {{ selectedRules.overview.slice(0, 200) }}{{ selectedRules.overview.length > 200 ? '...' : '' }}
         </p>
       </div>
 
       <!-- Rules modal (can open for any variant) -->
-      <RulesModal v-model:open="rulesOpen" :variant="rulesVariant" />
+      <RulesModal
+        v-model:open="rulesOpen"
+        :variant="rulesVariant"
+      />
 
       <!-- Denomination selector -->
       <div class="bg-gray-800/40 border border-gray-700/30 rounded-lg px-4 py-3">
@@ -185,22 +201,45 @@ function startGame(tableId?: string) {
       </div>
 
       <!-- Start button -->
-      <UButton size="xl" color="primary" block @click="startGame">
+      <UButton
+        size="xl"
+        color="primary"
+        block
+        @click="startGame()"
+      >
         PLAY {{ selectedPayTable.variant }}
         ({{ selectedPayTable.shortName }})
       </UButton>
 
       <!-- Footer nav -->
       <div class="border-t border-gray-800 pt-4 flex items-center justify-center gap-4 text-xs text-gray-500">
-        <NuxtLink to="/game" class="hover:text-gray-300 transition-colors">Game</NuxtLink>
+        <NuxtLink
+          to="/game"
+          class="hover:text-gray-300 transition-colors"
+        >Game</NuxtLink>
         <span>&middot;</span>
-        <NuxtLink to="/analysis" class="hover:text-gray-300 transition-colors">Analysis</NuxtLink>
+        <NuxtLink
+          to="/analysis"
+          class="hover:text-gray-300 transition-colors"
+        >Analysis</NuxtLink>
         <span>&middot;</span>
-        <NuxtLink to="/history" class="hover:text-gray-300 transition-colors">History</NuxtLink>
+        <NuxtLink
+          to="/history"
+          class="hover:text-gray-300 transition-colors"
+        >History</NuxtLink>
         <AnalysisStatus />
         <span>&middot;</span>
-        <a href="https://github.com/cschweda/metaincognita-video-poker" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors flex items-center gap-1">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <a
+          href="https://github.com/cschweda/metaincognita-video-poker"
+          target="_blank"
+          rel="noopener"
+          class="hover:text-gray-300 transition-colors flex items-center gap-1"
+        >
+          <svg
+            class="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          ><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
           GitHub
         </a>
       </div>

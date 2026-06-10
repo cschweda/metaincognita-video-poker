@@ -9,6 +9,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
@@ -22,8 +25,11 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
+    "@vitest/coverage-v8": "^4.1.2",
     "eslint": "^10.1.0",
     "typescript": "^6.0.2",
+    "vitest": "^4.1.2",
+    "vue": "^3.5.35",
     "vue-tsc": "^3.2.6"
   },
   "packageManager": "pnpm@10.33.0"

@@ -35,7 +35,10 @@ const isActionDisabled = computed(() => {
     </div>
 
     <!-- Insert credits -->
-    <div v-if="game.credits < game.coinsBet" class="control-bar__insert">
+    <div
+      v-if="game.credits < game.coinsBet"
+      class="control-bar__insert"
+    >
       <button
         class="ctrl-btn"
         @click="game.insertCredits()"

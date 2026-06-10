@@ -118,7 +118,10 @@ onUnmounted(() => {
         >
           {{ group.variant }}
         </button>
-        <button class="vp-nav__tab" @click="rulesOpen = true">
+        <button
+          class="vp-nav__tab"
+          @click="rulesOpen = true"
+        >
           {{ currentVariantName }} Rules
         </button>
       </div>
@@ -143,10 +146,17 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <RulesModal v-model:open="rulesOpen" :variant="currentVariantName" />
+    <RulesModal
+      v-model:open="rulesOpen"
+      :variant="currentVariantName"
+    />
 
     <!-- Variant change confirmation -->
-    <UModal v-model:open="confirmVariantOpen" title="Switch Game?" close-icon="i-lucide-x">
+    <UModal
+      v-model:open="confirmVariantOpen"
+      title="Switch Game?"
+      close-icon="i-lucide-x"
+    >
       <template #body>
         <div class="space-y-3 text-sm">
           <p class="text-gray-300">
@@ -170,8 +180,19 @@ onUnmounted(() => {
             Tip: Use "End Session" first to see how your play compared to the bot personas before switching.
           </p>
           <div class="flex gap-2 justify-end pt-2">
-            <UButton variant="ghost" color="neutral" @click="cancelVariantChange">Cancel</UButton>
-            <UButton color="primary" @click="confirmVariantChange">Switch Game</UButton>
+            <UButton
+              variant="ghost"
+              color="neutral"
+              @click="cancelVariantChange"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              color="primary"
+              @click="confirmVariantChange"
+            >
+              Switch Game
+            </UButton>
           </div>
         </div>
       </template>
@@ -179,11 +200,17 @@ onUnmounted(() => {
 
     <!-- Info bar — matches NLH top bar pattern -->
     <div class="vp-infobar">
-      <NuxtLink to="/" class="vp-infobar__back">
+      <NuxtLink
+        to="/"
+        class="vp-infobar__back"
+      >
         <span>&larr;</span> Home
       </NuxtLink>
       <div class="vp-infobar__center">
-        <span v-if="game.stats.handsPlayed > 0" class="vp-infobar__item">Hand #{{ game.stats.handsPlayed + (game.phase === 'dealt' || game.phase === 'dealing' || game.phase === 'drawing' ? 1 : 0) }}</span>
+        <span
+          v-if="game.stats.handsPlayed > 0"
+          class="vp-infobar__item"
+        >Hand #{{ game.stats.handsPlayed + (game.phase === 'dealt' || game.phase === 'dealing' || game.phase === 'drawing' ? 1 : 0) }}</span>
         <span class="vp-infobar__item">{{ currentVariantName }} {{ game.payTable.shortName }}</span>
         <span class="vp-infobar__phase">{{ game.phase === 'idle' ? 'ready' : game.phase }}</span>
       </div>
@@ -197,7 +224,10 @@ onUnmounted(() => {
             ${{ game.creditsAsDollars }}
           </span>
         </div>
-        <NuxtLink to="/history" class="vp-infobar__link">History</NuxtLink>
+        <NuxtLink
+          to="/history"
+          class="vp-infobar__link"
+        >History</NuxtLink>
       </div>
     </div>
 
@@ -207,7 +237,7 @@ onUnmounted(() => {
         <BankrollPanel />
       </div>
       <div class="vp-col-center">
-        <Machine />
+        <GameMachine />
       </div>
       <div class="vp-col-right">
         <TrainingPanel />
@@ -217,15 +247,33 @@ onUnmounted(() => {
     <!-- BOTTOM FOOTER -->
     <div class="vp-footer">
       <div class="vp-footer__inner">
-        <NuxtLink to="/" class="vp-footer__link">Home</NuxtLink>
+        <NuxtLink
+          to="/"
+          class="vp-footer__link"
+        >Home</NuxtLink>
         <span class="vp-footer__dot">&middot;</span>
-        <NuxtLink to="/analysis" class="vp-footer__link">Analysis</NuxtLink>
+        <NuxtLink
+          to="/analysis"
+          class="vp-footer__link"
+        >Analysis</NuxtLink>
         <span class="vp-footer__dot">&middot;</span>
-        <NuxtLink to="/history" class="vp-footer__link">History</NuxtLink>
+        <NuxtLink
+          to="/history"
+          class="vp-footer__link"
+        >History</NuxtLink>
         <AnalysisStatus />
         <span class="vp-footer__dot">&middot;</span>
-        <a href="https://github.com/cschweda/metaincognita-video-poker" target="_blank" rel="noopener" class="vp-footer__link vp-footer__link--gh">
-          <svg class="vp-footer__gh-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <a
+          href="https://github.com/cschweda/metaincognita-video-poker"
+          target="_blank"
+          rel="noopener"
+          class="vp-footer__link vp-footer__link--gh"
+        >
+          <svg
+            class="vp-footer__gh-icon"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          ><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
           GitHub
         </a>
       </div>
@@ -422,6 +470,38 @@ onUnmounted(() => {
 
 .vp-col-center {
   flex-shrink: 0;
+}
+
+/* Narrow viewports — stack the three columns, machine first */
+@media (max-width: 1100px) {
+  .vp-main {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .vp-col-left,
+  .vp-col-right {
+    width: 100%;
+    max-width: 740px;
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .vp-col-center {
+    order: -1;
+    width: 100%;
+    max-width: 740px;
+    flex-shrink: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .vp-infobar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    padding: 6px 12px;
+  }
 }
 
 /* FOOTER — full viewport width, text-align centered. NOT inside any flex container. */

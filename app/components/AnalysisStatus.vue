@@ -13,7 +13,7 @@ const store = useAnalysisStore()
       class="w-2 h-2 rounded-full"
       :class="{
         'bg-amber-400 animate-pulse': store.status === 'running',
-        'bg-green-400': store.status === 'done',
+        'bg-green-400': store.status === 'done'
       }"
     />
     <span v-if="store.status === 'running'">

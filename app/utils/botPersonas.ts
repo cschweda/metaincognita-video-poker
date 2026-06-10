@@ -76,7 +76,7 @@ function perfectPatHold(cards: Card[], payTable: PayTableDef): number[] {
  * - Doesn't differentiate suited vs unsuited high cards
  * - Simpler straight draw rules
  */
-function almostAliceHold(cards: Card[], payTable: PayTableDef): number[] {
+function almostAliceHold(cards: Card[]): number[] {
   const rc = new Map<number, number>()
   for (const c of cards) rc.set(c.rank, (rc.get(c.rank) || 0) + 1)
   const counts = [...rc.values()].sort((a, b) => b - a)
@@ -86,11 +86,11 @@ function almostAliceHold(cards: Card[], payTable: PayTableDef): number[] {
   const st = uniqueRanks.length === 5 && (uniqueRanks[4]! - uniqueRanks[0]! === 4 || uniqueRanks.join(',') === '2,3,4,5,14')
 
   // Pat hands
-  if (fl && st) return [0,1,2,3,4]
-  if (counts[0]! >= 4) return [0,1,2,3,4]
-  if (counts[0] === 3 && counts[1] === 2) return [0,1,2,3,4]
-  if (fl) return [0,1,2,3,4]
-  if (st) return [0,1,2,3,4]
+  if (fl && st) return [0, 1, 2, 3, 4]
+  if (counts[0]! >= 4) return [0, 1, 2, 3, 4]
+  if (counts[0] === 3 && counts[1] === 2) return [0, 1, 2, 3, 4]
+  if (fl) return [0, 1, 2, 3, 4]
+  if (st) return [0, 1, 2, 3, 4]
 
   // Three of a kind
   if (counts[0] === 3) {
@@ -120,7 +120,7 @@ function almostAliceHold(cards: Card[], payTable: PayTableDef): number[] {
   for (const [, suited] of suitCounts) {
     if (suited.length >= 4) {
       const used = new Set<number>()
-      return suited.slice(0, 4).map(sc => {
+      return suited.slice(0, 4).map((sc) => {
         for (let i = 0; i < cards.length; i++) {
           if (!used.has(i) && cards[i]!.rank === sc.rank && cards[i]!.suit === sc.suit) {
             used.add(i)
@@ -162,11 +162,11 @@ function gutFeelGaryHold(cards: Card[]): number[] {
   const st = uniqueRanks.length === 5 && (uniqueRanks[4]! - uniqueRanks[0]! === 4 || uniqueRanks.join(',') === '2,3,4,5,14')
 
   // Gary never breaks a paying hand
-  if (fl && st) return [0,1,2,3,4]
-  if (counts[0]! >= 4) return [0,1,2,3,4]
-  if (counts[0] === 3 && counts[1] === 2) return [0,1,2,3,4]
-  if (fl) return [0,1,2,3,4]
-  if (st) return [0,1,2,3,4]
+  if (fl && st) return [0, 1, 2, 3, 4]
+  if (counts[0]! >= 4) return [0, 1, 2, 3, 4]
+  if (counts[0] === 3 && counts[1] === 2) return [0, 1, 2, 3, 4]
+  if (fl) return [0, 1, 2, 3, 4]
+  if (st) return [0, 1, 2, 3, 4]
 
   // Three of a kind — Gary holds a kicker too (mistake!)
   if (counts[0] === 3) {
@@ -221,7 +221,7 @@ function superstitiousSamHold(cards: Card[]): number[] {
   const seed = cards.reduce((s, c) => s + c.rank * 17 + (c.suit === 'hearts' ? 1 : c.suit === 'diamonds' ? 2 : c.suit === 'clubs' ? 3 : 4), 0)
 
   // 10% chance: hold all 5 ("hot hand")
-  if (seed % 10 === 0) return [0,1,2,3,4]
+  if (seed % 10 === 0) return [0, 1, 2, 3, 4]
 
   // 8% chance: discard all ("clean slate")
   if (seed % 13 === 0) return []
@@ -262,13 +262,20 @@ export interface PersonaResult {
   handResults: { handName: string | null, payout: number }[]
 }
 
+export interface DealtHand {
+  cards: Card[]
+  remaining: Card[]
+  /** Exact-optimal hold indices recorded by the brute-force EV analysis during play */
+  optimalHeld?: number[]
+}
+
 /**
  * Replay a set of dealt hands through a persona's strategy.
  * Returns what the persona would have earned.
  */
 export function replayHandsThroughPersona(
   personaId: string,
-  dealtHands: { cards: Card[], remaining: Card[] }[],
+  dealtHands: DealtHand[],
   payTable: PayTableDef,
   coins: number
 ): PersonaResult {
@@ -277,15 +284,17 @@ export function replayHandsThroughPersona(
   const totalWagered = dealtHands.length * coins
   const handResults: { handName: string | null, payout: number }[] = []
 
-  for (const { cards, remaining } of dealtHands) {
+  for (const { cards, remaining, optimalHeld } of dealtHands) {
     // Get persona's hold decision
     let heldIndices: number[]
     switch (personaId) {
       case 'perfect-pat':
-        heldIndices = perfectPatHold(cards, payTable)
+        // Prefer the exact brute-force-optimal hold recorded during play;
+        // the strategy table is only a fallback approximation.
+        heldIndices = optimalHeld ?? perfectPatHold(cards, payTable)
         break
       case 'almost-alice':
-        heldIndices = almostAliceHold(cards, payTable)
+        heldIndices = almostAliceHold(cards)
         break
       case 'gut-feel-gary':
         heldIndices = gutFeelGaryHold(cards)

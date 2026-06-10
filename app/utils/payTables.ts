@@ -14,11 +14,6 @@ export interface PayTableDef {
 
 // --- Jacks or Better pay tables ---
 
-const JOB_HANDS = [
-  'Royal Flush', 'Straight Flush', 'Four of a Kind', 'Full House',
-  'Flush', 'Straight', 'Three of a Kind', 'Two Pair', 'Jacks or Better'
-]
-
 function jobTable(id: string, shortName: string, returnPct: number, fh: number, fl: number): PayTableDef {
   return {
     id,

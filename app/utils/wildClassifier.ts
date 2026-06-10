@@ -9,18 +9,18 @@ import type { Card } from './cards'
  * not O(52^W) brute-force card assignment.
  */
 
-export type DeucesWildHandRank =
-  | 'Natural Royal Flush'
-  | 'Four Deuces'
-  | 'Wild Royal Flush'
-  | 'Five of a Kind'
-  | 'Straight Flush'
-  | 'Four of a Kind'
-  | 'Full House'
-  | 'Flush'
-  | 'Straight'
-  | 'Three of a Kind'
-  | 'Nothing'
+export type DeucesWildHandRank
+  = | 'Natural Royal Flush'
+    | 'Four Deuces'
+    | 'Wild Royal Flush'
+    | 'Five of a Kind'
+    | 'Straight Flush'
+    | 'Four of a Kind'
+    | 'Full House'
+    | 'Flush'
+    | 'Straight'
+    | 'Three of a Kind'
+    | 'Nothing'
 
 export function classifyDeucesWild(cards: Card[]): DeucesWildHandRank {
   if (cards.length !== 5) return 'Nothing'
@@ -103,10 +103,10 @@ function classifyNoWilds(cards: Card[]): DeucesWildHandRank {
   for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1
   const counts = Object.values(rankCounts).sort((a, b) => b - a)
 
+  // No ace-low straight is possible without wilds: the wheel A-2-3-4-5
+  // needs a 2, and every 2 in Deuces Wild is a wild card.
   const uniqueRanks = [...new Set(ranks)].sort((a, b) => a - b)
-  const isRegularStraight = uniqueRanks.length === 5 && uniqueRanks[4]! - uniqueRanks[0]! === 4
-  const isAceLow = uniqueRanks.join(',') === '3,4,5,6,14' // no 2s in a no-wild hand
-  const isStraight = isRegularStraight || isAceLow
+  const isStraight = uniqueRanks.length === 5 && uniqueRanks[4]! - uniqueRanks[0]! === 4
 
   // Natural Royal Flush
   if (isFlush && uniqueRanks.join(',') === '10,11,12,13,14') return 'Natural Royal Flush'
@@ -143,28 +143,25 @@ function canMakeRoyal(uniqueRanks: number[], numWild: number): boolean {
  * Checks all possible straight windows.
  */
 function canMakeStraight(uniqueRanks: number[], numWild: number): boolean {
-  // Possible straights: A-2-3-4-5 through 10-J-Q-K-A
-  // But in Deuces Wild, 2s are wild, so straights use 3-14 for naturals
-  // Ace-low: A-3-4-5-6 (with 2 being wild, ace-low is A,3,4,5,6 effectively)
-  // Actually in Deuces Wild the ace-low straight would be A-2-3-4-5 but 2s are wild
-  // So natural cards would be A,3,4,5 and one wild fills the 2 spot
-  // Let's check all windows
+  // Possible straights: A-2-3-4-5 through 10-J-Q-K-A.
+  // Natural cards are never 2s (2s are wild), so the regular windows
+  // span 3-7 through 10-A. Windows containing a 2 (2-3-4-5-6) are
+  // equivalent to a shifted window with the same gap count, so they
+  // are covered by 3-4-5-6-7.
 
   const straightWindows = [
-    [3, 4, 5, 6, 7],    // lowest without 2
+    [3, 4, 5, 6, 7],
     [4, 5, 6, 7, 8],
     [5, 6, 7, 8, 9],
     [6, 7, 8, 9, 10],
     [7, 8, 9, 10, 11],
     [8, 9, 10, 11, 12],
     [9, 10, 11, 12, 13],
-    [10, 11, 12, 13, 14],
-    [14, 3, 4, 5, 6],   // ace-low (A,3,4,5,6 with a wild for the 2)
+    [10, 11, 12, 13, 14]
   ]
 
   for (const window of straightWindows) {
-    // How many of the window ranks are missing from natural ranks?
-    let gaps = 0
+    // Every natural rank must belong to the window (all 5 cards form the straight)
     let hasExtraRank = false
     for (const r of uniqueRanks) {
       if (!window.includes(r)) {
@@ -174,15 +171,24 @@ function canMakeStraight(uniqueRanks: number[], numWild: number): boolean {
     }
     if (hasExtraRank) continue
 
+    // How many of the window ranks are missing from natural ranks?
+    let gaps = 0
     for (const r of window) {
       if (!uniqueRanks.includes(r)) gaps++
     }
     if (gaps <= numWild) return true
   }
 
-  // Also check the standard A-2-3-4-5 straight where 2 is used as a value 2
-  // But in Deuces Wild, 2s are always wild, so the lowest non-wild straight component is 3
-  // An ace-low straight needs: A, (wild for 2), 3, 4, 5
+  // Ace-low wheel A-2-3-4-5: the 2 slot can only ever be a wild,
+  // so one wild is consumed by the 2 and the rest fill A-3-4-5 gaps.
+  const wheelNaturals = [14, 3, 4, 5]
+  if (uniqueRanks.every(r => wheelNaturals.includes(r))) {
+    let gaps = 0
+    for (const r of wheelNaturals) {
+      if (!uniqueRanks.includes(r)) gaps++
+    }
+    if (gaps + 1 <= numWild) return true
+  }
 
   return false
 }

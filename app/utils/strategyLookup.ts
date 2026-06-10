@@ -109,12 +109,11 @@ function findFlushDraw(cards: Card[], n: number): Card[] | null {
 
 /** Find N cards forming an open-ended or inside straight */
 function findStraightDraw(cards: Card[], n: number): Card[] | null {
-  const unique = [...new Set(cards.map(c => c.rank))].sort((a, b) => a - b)
   // Check all possible 5-card straight windows
   const windows = [
-    [2,3,4,5,6],[3,4,5,6,7],[4,5,6,7,8],[5,6,7,8,9],[6,7,8,9,10],
-    [7,8,9,10,11],[8,9,10,11,12],[9,10,11,12,13],[10,11,12,13,14],
-    [14,2,3,4,5] // ace-low
+    [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10],
+    [7, 8, 9, 10, 11], [8, 9, 10, 11, 12], [9, 10, 11, 12, 13], [10, 11, 12, 13, 14],
+    [14, 2, 3, 4, 5] // ace-low
   ]
   for (const w of windows) {
     const matching = cards.filter(c => w.includes(c.rank))
@@ -146,18 +145,18 @@ function jobStrategy(cards: Card[]): number[] {
   const highCards = cards.filter(c => c.rank >= 11)
 
   // 1. Pat hands: Royal, SF, 4K, FH, Flush, Straight
-  if (fl && [...new Set(ranks)].sort((a,b)=>a-b).join(',') === '10,11,12,13,14') return [0,1,2,3,4]
-  if (fl && st) return [0,1,2,3,4]
-  if (counts[0] === 4) return [0,1,2,3,4]
+  if (fl && [...new Set(ranks)].sort((a, b) => a - b).join(',') === '10,11,12,13,14') return [0, 1, 2, 3, 4]
+  if (fl && st) return [0, 1, 2, 3, 4]
+  if (counts[0] === 4) return [0, 1, 2, 3, 4]
 
   // 2. 4 to a Royal
   const r4 = findRoyalDraw(cards, 4)
   if (r4) return indicesOfSubset(cards, r4)
 
   // 3. Pat FH, Flush, Straight
-  if (counts[0] === 3 && counts[1] === 2) return [0,1,2,3,4]
-  if (fl) return [0,1,2,3,4]
-  if (st) return [0,1,2,3,4]
+  if (counts[0] === 3 && counts[1] === 2) return [0, 1, 2, 3, 4]
+  if (fl) return [0, 1, 2, 3, 4]
+  if (st) return [0, 1, 2, 3, 4]
 
   // 4. Three of a kind
   if (counts[0] === 3) {
@@ -282,7 +281,7 @@ function deucesWildStrategy(cards: Card[]): number[] {
   const deuceIndices = indicesOf(cards, c => c.rank === 2)
 
   // RULE: Never discard a deuce
-  if (numDeuces === 4) return [0,1,2,3,4] // Four deuces = hold all
+  if (numDeuces === 4) return [0, 1, 2, 3, 4] // Four deuces = hold all
   if (numDeuces === 3) {
     // Hold 3 deuces + any natural pair (makes 5 of a kind)
     const natRC = getRankCounts(naturals)
@@ -297,15 +296,14 @@ function deucesWildStrategy(cards: Card[]): number[] {
 
   if (numDeuces === 2) {
     // Check for made hands with 2 wilds
-    const natRanks = naturals.map(c => c.rank).sort((a, b) => a - b)
     const natRC = getRankCounts(naturals)
     const natCounts = getSortedCounts(natRC)
 
     // Pat four of a kind or better: hold all 5
-    if (natCounts[0]! >= 3) return [0,1,2,3,4] // 3 naturals same rank + 2 wilds = 5K
+    if (natCounts[0]! >= 3) return [0, 1, 2, 3, 4] // 3 naturals same rank + 2 wilds = 5K
     if (natCounts[0]! >= 2) {
       // Pair + 2 wilds = 4K — hold all
-      return [0,1,2,3,4]
+      return [0, 1, 2, 3, 4]
     }
 
     // 4 to a royal (2 deuces + 2 royal cards same suit)
@@ -338,9 +336,9 @@ function deucesWildStrategy(cards: Card[]): number[] {
 
     // Pat hands: hold all if made hand is good
     // 4 naturals same rank + wild = 5K
-    if (natCounts[0]! >= 4) return [0,1,2,3,4]
+    if (natCounts[0]! >= 4) return [0, 1, 2, 3, 4]
     // 3 naturals same rank + wild = 4K
-    if (natCounts[0]! >= 3) return [0,1,2,3,4]
+    if (natCounts[0]! >= 3) return [0, 1, 2, 3, 4]
 
     // 4 to a royal
     for (const [, suited] of sg) {
@@ -351,7 +349,7 @@ function deucesWildStrategy(cards: Card[]): number[] {
     }
 
     // 2 pair + wild = FH
-    if (natCounts[0] === 2 && natCounts[1] === 2) return [0,1,2,3,4]
+    if (natCounts[0] === 2 && natCounts[1] === 2) return [0, 1, 2, 3, 4]
 
     // Pair + wild = 3K
     if (natCounts[0]! >= 2) {
@@ -401,12 +399,12 @@ function deucesWildStrategy(cards: Card[]): number[] {
     const st = isStraight(ranks)
 
     // Pat hands
-    if (fl && [...new Set(ranks)].sort((a,b)=>a-b).join(',') === '10,11,12,13,14') return [0,1,2,3,4]
-    if (fl && st) return [0,1,2,3,4]
-    if (counts[0] === 4) return [0,1,2,3,4]
-    if (counts[0] === 3 && counts[1] === 2) return [0,1,2,3,4]
-    if (fl) return [0,1,2,3,4]
-    if (st) return [0,1,2,3,4]
+    if (fl && [...new Set(ranks)].sort((a, b) => a - b).join(',') === '10,11,12,13,14') return [0, 1, 2, 3, 4]
+    if (fl && st) return [0, 1, 2, 3, 4]
+    if (counts[0] === 4) return [0, 1, 2, 3, 4]
+    if (counts[0] === 3 && counts[1] === 2) return [0, 1, 2, 3, 4]
+    if (fl) return [0, 1, 2, 3, 4]
+    if (st) return [0, 1, 2, 3, 4]
 
     // 4 to a Royal
     const r4 = findRoyalDraw(cards, 4)

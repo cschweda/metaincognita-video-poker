@@ -11,18 +11,31 @@ const rules = computed(() => VARIANT_RULES[props.variant])
 </script>
 
 <template>
-  <UModal v-model:open="open" :title="rules?.variant + ' — Rules & Strategy'" close-icon="i-lucide-x">
+  <UModal
+    v-model:open="open"
+    :title="rules?.variant + ' — Rules & Strategy'"
+    close-icon="i-lucide-x"
+  >
     <template #body>
-      <div v-if="rules" class="rules-body">
+      <div
+        v-if="rules"
+        class="rules-body"
+      >
         <!-- Overview -->
         <section class="rules-section">
-          <h3 class="rules-heading">Overview</h3>
-          <p class="rules-text">{{ rules.overview }}</p>
+          <h3 class="rules-heading">
+            Overview
+          </h3>
+          <p class="rules-text">
+            {{ rules.overview }}
+          </p>
         </section>
 
         <!-- Quick facts -->
         <section class="rules-section">
-          <h3 class="rules-heading">Quick Facts</h3>
+          <h3 class="rules-heading">
+            Quick Facts
+          </h3>
           <div class="rules-facts">
             <div class="rules-fact">
               <span class="rules-fact__label">Deck</span>
@@ -41,17 +54,28 @@ const rules = computed(() => VARIANT_RULES[props.variant])
 
         <!-- Hand rankings -->
         <section class="rules-section">
-          <h3 class="rules-heading">Hand Rankings (highest to lowest)</h3>
+          <h3 class="rules-heading">
+            Hand Rankings (highest to lowest)
+          </h3>
           <ol class="rules-rankings">
-            <li v-for="(hand, i) in rules.handRankings" :key="i" class="rules-ranking">
+            <li
+              v-for="(hand, i) in rules.handRankings"
+              :key="i"
+              class="rules-ranking"
+            >
               {{ hand }}
             </li>
           </ol>
         </section>
 
         <!-- Pay table variants (JoB has multiple) -->
-        <section v-if="rules.payTableVariants?.length" class="rules-section">
-          <h3 class="rules-heading">Pay Table Variants</h3>
+        <section
+          v-if="rules.payTableVariants?.length"
+          class="rules-section"
+        >
+          <h3 class="rules-heading">
+            Pay Table Variants
+          </h3>
           <div class="rules-ptv">
             <div
               v-for="(ptv, i) in rules.payTableVariants"
@@ -65,47 +89,75 @@ const rules = computed(() => VARIANT_RULES[props.variant])
                   :class="{
                     'rules-ptv__return--good': ptv.returnPct >= 99,
                     'rules-ptv__return--ok': ptv.returnPct >= 97 && ptv.returnPct < 99,
-                    'rules-ptv__return--bad': ptv.returnPct < 97,
+                    'rules-ptv__return--bad': ptv.returnPct < 97
                   }"
                 >
                   {{ ptv.returnPct }}%
                 </span>
               </div>
-              <p class="rules-ptv__desc">{{ ptv.description }}</p>
+              <p class="rules-ptv__desc">
+                {{ ptv.description }}
+              </p>
             </div>
           </div>
         </section>
 
         <!-- Strategy notes -->
         <section class="rules-section">
-          <h3 class="rules-heading">Strategy Notes</h3>
+          <h3 class="rules-heading">
+            Strategy Notes
+          </h3>
           <ul class="rules-strategy">
-            <li v-for="(note, i) in rules.strategyNotes" :key="i" class="rules-strategy-item">
+            <li
+              v-for="(note, i) in rules.strategyNotes"
+              :key="i"
+              class="rules-strategy-item"
+            >
               {{ note }}
             </li>
           </ul>
         </section>
 
         <!-- How this differs from other variants -->
-        <section v-if="rules.strategyDifferences?.length" class="rules-section rules-section--diff">
-          <h3 class="rules-heading">How Strategy Differs from Other Variants</h3>
+        <section
+          v-if="rules.strategyDifferences?.length"
+          class="rules-section rules-section--diff"
+        >
+          <h3 class="rules-heading">
+            How Strategy Differs from Other Variants
+          </h3>
           <ul class="rules-strategy">
-            <li v-for="(diff, i) in rules.strategyDifferences" :key="i" class="rules-strategy-item rules-strategy-item--diff">
+            <li
+              v-for="(diff, i) in rules.strategyDifferences"
+              :key="i"
+              class="rules-strategy-item rules-strategy-item--diff"
+            >
               {{ diff }}
             </li>
           </ul>
         </section>
 
         <!-- Strategy complexity -->
-        <section v-if="rules.strategyComplexity" class="rules-section">
-          <h3 class="rules-heading">Strategy Complexity</h3>
-          <p class="rules-text">{{ rules.strategyComplexity }}</p>
+        <section
+          v-if="rules.strategyComplexity"
+          class="rules-section"
+        >
+          <h3 class="rules-heading">
+            Strategy Complexity
+          </h3>
+          <p class="rules-text">
+            {{ rules.strategyComplexity }}
+          </p>
         </section>
 
         <!-- Pay table tip -->
         <section class="rules-section rules-section--tip">
-          <h3 class="rules-heading">Pay Table Tip</h3>
-          <p class="rules-text">{{ rules.payTableTip }}</p>
+          <h3 class="rules-heading">
+            Pay Table Tip
+          </h3>
+          <p class="rules-text">
+            {{ rules.payTableTip }}
+          </p>
         </section>
       </div>
     </template>

@@ -40,7 +40,6 @@ const optimalReason = computed(() => {
     .sort((a, b) => b[1] - a[1])
 
   const totalWinPct = payingHands.reduce((sum, [, p]) => sum + p, 0) * 100
-  const nothingPct = (dist['Nothing'] || 0) * 100
 
   if (payingHands.length === 0) {
     return 'No realistic winning draws — minimize losses.'
@@ -90,10 +89,10 @@ const optimalDescription = computed(() => {
   if (cards.length === 0) return 'Discard everything — draw 5 new cards'
   if (cards.length === 5) return 'Hold all 5 cards — pat hand'
 
-  return describeHold(cards, opt.heldIndices)
+  return describeHold(cards)
 })
 
-function describeHold(cards: Card[], indices: number[]): string {
+function describeHold(cards: Card[]): string {
   // Detect deuces (wild cards in Deuces Wild)
   const deuces = cards.filter(c => c.rank === 2)
   const naturals = cards.filter(c => c.rank !== 2)
@@ -145,7 +144,9 @@ function describeHold(cards: Card[], indices: number[]): string {
     <!-- PHASE: idle — waiting for deal -->
     <template v-if="game.phase === 'idle'">
       <div class="tp-section">
-        <div class="tp-phase-title">Ready to Play</div>
+        <div class="tp-phase-title">
+          Ready to Play
+        </div>
         <div class="tp-phase-desc">
           Click <strong>DEAL</strong> or <strong>BET MAX</strong> to begin.
           The optimal play will be shown after each deal.
@@ -169,32 +170,44 @@ function describeHold(cards: Card[], indices: number[]): string {
     <!-- PHASE: dealt — show optimal play + live analysis -->
     <template v-if="game.phase === 'dealt'">
       <!-- Show spinner if EV not ready yet -->
-      <div v-if="!game.optimalPlay" class="tp-section">
+      <div
+        v-if="!game.optimalPlay"
+        class="tp-section"
+      >
         <div class="tp-phase-title">
           <span class="tp-spinner" />
           Computing optimal play...
         </div>
-        <div class="tp-phase-desc">Analyzing all 32 hold combinations</div>
+        <div class="tp-phase-desc">
+          Analyzing all 32 hold combinations
+        </div>
       </div>
 
       <!-- EV results ready -->
       <template v-else>
         <div class="tp-section">
-          <div class="tp-rec-label">OPTIMAL PLAY</div>
+          <div class="tp-rec-label">
+            OPTIMAL PLAY
+          </div>
           <div class="tp-rec-description">
             {{ optimalDescription }}
           </div>
           <div class="tp-rec-ev">
             EV: {{ game.optimalPlay?.expectedValue.toFixed(4) ?? '—' }}
           </div>
-          <div v-if="optimalReason" class="tp-rec-reason">
+          <div
+            v-if="optimalReason"
+            class="tp-rec-reason"
+          >
             {{ optimalReason }}
           </div>
         </div>
 
         <!-- Live outcome distribution for current hold selection -->
         <div class="tp-section">
-          <div class="tp-rec-label">YOUR CURRENT SELECTION</div>
+          <div class="tp-rec-label">
+            YOUR CURRENT SELECTION
+          </div>
           <template v-if="game.currentHoldAnalysis">
             <div class="tp-current-hold">
               <div class="tp-current-hold__cards">
@@ -207,7 +220,7 @@ function describeHold(cards: Card[], indices: number[]): string {
                   class="tp-current-hold__delta"
                   :class="{
                     'tp-current-hold__delta--optimal': Math.abs(game.currentHoldAnalysis.expectedValue - game.optimalPlay.expectedValue) < 0.0001,
-                    'tp-current-hold__delta--sub': Math.abs(game.currentHoldAnalysis.expectedValue - game.optimalPlay.expectedValue) >= 0.0001,
+                    'tp-current-hold__delta--sub': Math.abs(game.currentHoldAnalysis.expectedValue - game.optimalPlay.expectedValue) >= 0.0001
                   }"
                 >
                   <template v-if="Math.abs(game.currentHoldAnalysis.expectedValue - game.optimalPlay.expectedValue) < 0.0001">
@@ -222,7 +235,9 @@ function describeHold(cards: Card[], indices: number[]): string {
 
             <!-- Outcome probabilities -->
             <div class="tp-dist">
-              <div class="tp-dist__title">Draw Outcomes</div>
+              <div class="tp-dist__title">
+                Draw Outcomes
+              </div>
               <div
                 v-for="(prob, handName) in sortedDistribution"
                 :key="handName"
@@ -240,14 +255,19 @@ function describeHold(cards: Card[], indices: number[]): string {
               </div>
             </div>
           </template>
-          <div v-else class="tp-current-hold__empty">
+          <div
+            v-else
+            class="tp-current-hold__empty"
+          >
             No cards held — will draw 5 new cards
           </div>
         </div>
 
         <!-- Top options during hold phase -->
         <div class="tp-section">
-          <div class="tp-rec-label">TOP HOLD OPTIONS</div>
+          <div class="tp-rec-label">
+            TOP HOLD OPTIONS
+          </div>
           <div class="tp-options-list">
             <div class="tp-options-header">
               <span class="tp-opt-rank">#</span>
@@ -263,7 +283,7 @@ function describeHold(cards: Card[], indices: number[]): string {
                 'tp-option-row--optimal': i === 0,
                 'tp-option-row--current': game.currentHoldAnalysis
                   && opt.heldIndices.length === game.currentHoldAnalysis.heldIndices.length
-                  && opt.heldIndices.every(idx => game.currentHoldAnalysis!.heldIndices.includes(idx)),
+                  && opt.heldIndices.every(idx => game.currentHoldAnalysis!.heldIndices.includes(idx))
               }"
             >
               <span class="tp-opt-rank">{{ i + 1 }}</span>
@@ -281,7 +301,9 @@ function describeHold(cards: Card[], indices: number[]): string {
     <!-- PHASE: drawing — cards being replaced -->
     <template v-if="game.phase === 'drawing'">
       <div class="tp-section">
-        <div class="tp-phase-title">Drawing...</div>
+        <div class="tp-phase-title">
+          Drawing...
+        </div>
       </div>
     </template>
 
@@ -300,11 +322,17 @@ function describeHold(cards: Card[], indices: number[]): string {
             <div class="tp-result-banner__hand">
               {{ game.resultHandName || 'No Win' }}
             </div>
-            <div v-if="game.resultPayout > 0" class="tp-result-banner__payout">
+            <div
+              v-if="game.resultPayout > 0"
+              class="tp-result-banner__payout"
+            >
               Won ${{ (game.resultPayout * game.denomination).toFixed(2) }}
               <span class="tp-result-banner__net">(net +${{ ((game.resultPayout - game.coinsBet) * game.denomination).toFixed(2) }})</span>
             </div>
-            <div v-else class="tp-result-banner__payout tp-result-banner__payout--loss">
+            <div
+              v-else
+              class="tp-result-banner__payout tp-result-banner__payout--loss"
+            >
               Lost ${{ game.betAsDollars }}
             </div>
           </div>
@@ -312,14 +340,21 @@ function describeHold(cards: Card[], indices: number[]): string {
       </div>
 
       <!-- Hand recap — step by step -->
-      <div v-if="game.handHistory.length > 0" class="tp-section">
-        <div class="tp-rec-label">HAND RECAP</div>
+      <div
+        v-if="game.handHistory.length > 0"
+        class="tp-section"
+      >
+        <div class="tp-rec-label">
+          HAND RECAP
+        </div>
         <div class="tp-recap">
           <!-- Step 1: Dealt -->
           <div class="tp-recap__step">
             <span class="tp-recap__num">1</span>
             <div>
-              <div class="tp-recap__label">Dealt</div>
+              <div class="tp-recap__label">
+                Dealt
+              </div>
               <div class="tp-recap__cards">
                 {{ game.handHistory[0]!.dealtCards.map(c => cardLabel(c)).join('  ') }}
               </div>
@@ -330,28 +365,44 @@ function describeHold(cards: Card[], indices: number[]): string {
           <div class="tp-recap__step">
             <span class="tp-recap__num">2</span>
             <div>
-              <div class="tp-recap__label">You held</div>
+              <div class="tp-recap__label">
+                You held
+              </div>
               <div class="tp-recap__cards">
                 {{ game.handHistory[0]!.playerHeld.length > 0
                   ? game.handHistory[0]!.playerHeld.map(i => cardLabel(game.handHistory[0]!.dealtCards[i]!)).join('  ')
                   : 'Nothing (drew 5 new cards)' }}
               </div>
-              <div class="tp-recap__ev">EV: {{ game.handHistory[0]!.playerEV.toFixed(4) }}</div>
+              <div class="tp-recap__ev">
+                EV: {{ game.handHistory[0]!.playerEV.toFixed(4) }}
+              </div>
             </div>
           </div>
 
           <!-- Step 2b: Optimal (if different) -->
-          <div v-if="!game.wasOptimal" class="tp-recap__step tp-recap__step--optimal">
+          <div
+            v-if="!game.wasOptimal"
+            class="tp-recap__step tp-recap__step--optimal"
+          >
             <span class="tp-recap__num tp-recap__num--optimal">&#10148;</span>
             <div>
-              <div class="tp-recap__label tp-recap__label--optimal">Optimal was</div>
+              <div class="tp-recap__label tp-recap__label--optimal">
+                Optimal was
+              </div>
               <div class="tp-recap__cards tp-recap__cards--optimal">
                 {{ game.handHistory[0]!.optimalHeld.length > 0
                   ? game.handHistory[0]!.optimalHeld.map(i => cardLabel(game.handHistory[0]!.dealtCards[i]!)).join('  ')
                   : 'Nothing (draw 5 new cards)' }}
               </div>
-              <div class="tp-recap__ev tp-recap__ev--optimal">EV: {{ game.handHistory[0]!.optimalEV.toFixed(4) }}</div>
-              <div v-if="optimalReason" class="tp-recap__reason">{{ optimalReason }}</div>
+              <div class="tp-recap__ev tp-recap__ev--optimal">
+                EV: {{ game.handHistory[0]!.optimalEV.toFixed(4) }}
+              </div>
+              <div
+                v-if="optimalReason"
+                class="tp-recap__reason"
+              >
+                {{ optimalReason }}
+              </div>
             </div>
           </div>
 
@@ -359,7 +410,9 @@ function describeHold(cards: Card[], indices: number[]): string {
           <div class="tp-recap__step">
             <span class="tp-recap__num">3</span>
             <div>
-              <div class="tp-recap__label">Final hand</div>
+              <div class="tp-recap__label">
+                Final hand
+              </div>
               <div class="tp-recap__cards">
                 {{ game.handHistory[0]!.finalCards.map(c => cardLabel(c)).join('  ') }}
               </div>
@@ -375,13 +428,19 @@ function describeHold(cards: Card[], indices: number[]): string {
         </div>
 
         <!-- Mistake cost -->
-        <div v-if="!game.wasOptimal" class="tp-mistake-cost">
+        <div
+          v-if="!game.wasOptimal"
+          class="tp-mistake-cost"
+        >
           Cost of mistake: <strong>${{ game.lastMistakeCost.toFixed(2) }}</strong>
           <span class="tp-rank">(your play ranked #{{ playerRank }} of 32)</span>
         </div>
 
         <!-- Verdict badge -->
-        <div class="tp-header" style="margin-top: 8px">
+        <div
+          class="tp-header"
+          style="margin-top: 8px"
+        >
           <span
             class="tp-verdict"
             :class="game.wasOptimal ? 'tp-verdict--correct' : 'tp-verdict--mistake'"
@@ -393,12 +452,18 @@ function describeHold(cards: Card[], indices: number[]): string {
 
       <!-- All 32 options -->
       <div class="tp-section">
-        <button class="tp-toggle" @click="showAllOptions = !showAllOptions">
+        <button
+          class="tp-toggle"
+          @click="showAllOptions = !showAllOptions"
+        >
           {{ showAllOptions ? 'Hide' : 'Show all' }} 32 options
           <span class="tp-toggle-arrow">{{ showAllOptions ? '&#9650;' : '&#9660;' }}</span>
         </button>
 
-        <div v-if="showAllOptions" class="tp-options-list">
+        <div
+          v-if="showAllOptions"
+          class="tp-options-list"
+        >
           <div class="tp-options-header">
             <span class="tp-opt-rank">#</span>
             <span class="tp-opt-hold">Hold</span>
@@ -413,7 +478,7 @@ function describeHold(cards: Card[], indices: number[]): string {
               'tp-option-row--optimal': i === 0,
               'tp-option-row--player': game.playerAnalysis
                 && opt.heldIndices.length === game.playerAnalysis.heldIndices.length
-                && opt.heldIndices.every(idx => game.playerAnalysis!.heldIndices.includes(idx)),
+                && opt.heldIndices.every(idx => game.playerAnalysis!.heldIndices.includes(idx))
             }"
           >
             <span class="tp-opt-rank">{{ i + 1 }}</span>
@@ -428,8 +493,13 @@ function describeHold(cards: Card[], indices: number[]): string {
     </template>
 
     <!-- Session stats — always visible when hands have been played -->
-    <div v-if="game.stats.handsPlayed > 0" class="tp-section tp-session">
-      <div class="tp-rec-label">SESSION</div>
+    <div
+      v-if="game.stats.handsPlayed > 0"
+      class="tp-section tp-session"
+    >
+      <div class="tp-rec-label">
+        SESSION
+      </div>
       <div class="tp-session-grid">
         <div class="tp-stat">
           <span class="tp-stat-value">{{ game.stats.handsPlayed }}</span>
@@ -463,13 +533,22 @@ function describeHold(cards: Card[], indices: number[]): string {
     </div>
 
     <!-- Hand history — always available when hands have been played -->
-    <div v-if="game.handHistory.length > 0" class="tp-section">
-      <button class="tp-toggle" @click="showHistory = !showHistory">
+    <div
+      v-if="game.handHistory.length > 0"
+      class="tp-section"
+    >
+      <button
+        class="tp-toggle"
+        @click="showHistory = !showHistory"
+      >
         Hand History ({{ game.handHistory.length }})
         <span class="tp-toggle-arrow">{{ showHistory ? '&#9650;' : '&#9660;' }}</span>
       </button>
 
-      <div v-if="showHistory" class="tp-history">
+      <div
+        v-if="showHistory"
+        class="tp-history"
+      >
         <div
           v-for="entry in game.handHistory"
           :key="entry.handNumber"
@@ -478,8 +557,14 @@ function describeHold(cards: Card[], indices: number[]): string {
         >
           <div class="tp-history-header">
             <span class="tp-history-num">#{{ entry.handNumber }}</span>
-            <span v-if="entry.handResult" class="tp-history-result">{{ entry.handResult }}</span>
-            <span v-else class="tp-history-result tp-history-result--loss">No Win</span>
+            <span
+              v-if="entry.handResult"
+              class="tp-history-result"
+            >{{ entry.handResult }}</span>
+            <span
+              v-else
+              class="tp-history-result tp-history-result--loss"
+            >No Win</span>
             <span
               class="tp-history-payout"
               :class="entry.payout > 0 ? '' : 'tp-history-payout--loss'"
@@ -493,7 +578,10 @@ function describeHold(cards: Card[], indices: number[]): string {
           <div class="tp-history-cards">
             Held: {{ entry.playerHeld.length > 0 ? entry.playerHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') : 'nothing' }}
           </div>
-          <div v-if="entry.mistakeCost > 0.001" class="tp-history-mistake">
+          <div
+            v-if="entry.mistakeCost > 0.001"
+            class="tp-history-mistake"
+          >
             Optimal: {{ entry.optimalHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') || 'nothing' }}
             &middot; Cost: ${{ entry.mistakeCost.toFixed(2) }}
           </div>
@@ -502,8 +590,14 @@ function describeHold(cards: Card[], indices: number[]): string {
     </div>
 
     <!-- PERSONA COMPARISON — shown after End Session -->
-    <div v-if="game.sessionEnded && game.personaResults.length > 0" id="bot-comparison" class="tp-section">
-      <div class="tp-rec-label">BOT COMPARISON</div>
+    <div
+      v-if="game.sessionEnded && game.personaResults.length > 0"
+      id="bot-comparison"
+      class="tp-section"
+    >
+      <div class="tp-rec-label">
+        BOT COMPARISON
+      </div>
       <p class="tp-persona-intro">
         Your {{ game.stats.handsPlayed }} dealt hands replayed through 4 player personas.
         Same cards, different strategies — same luck, different skill.
@@ -516,10 +610,16 @@ function describeHold(cards: Card[], indices: number[]): string {
           <span class="tp-persona-style">Your actual plays</span>
         </div>
         <div class="tp-persona-stats">
-          <span class="tp-persona-return" :class="game.effectiveReturn >= 99 ? 'tp-persona-return--good' : game.effectiveReturn >= 96 ? 'tp-persona-return--ok' : 'tp-persona-return--bad'">
+          <span
+            class="tp-persona-return"
+            :class="game.effectiveReturn >= 99 ? 'tp-persona-return--good' : game.effectiveReturn >= 96 ? 'tp-persona-return--ok' : 'tp-persona-return--bad'"
+          >
             {{ game.effectiveReturn.toFixed(2) }}%
           </span>
-          <span class="tp-persona-net" :class="(game.stats.totalReturned - game.stats.totalWagered) >= 0 ? 'tp-persona-net--up' : 'tp-persona-net--down'">
+          <span
+            class="tp-persona-net"
+            :class="(game.stats.totalReturned - game.stats.totalWagered) >= 0 ? 'tp-persona-net--up' : 'tp-persona-net--down'"
+          >
             {{ (game.stats.totalReturned - game.stats.totalWagered) >= 0 ? '+' : '' }}${{ ((game.stats.totalReturned - game.stats.totalWagered) * game.denomination).toFixed(2) }}
           </span>
         </div>
@@ -557,7 +657,10 @@ function describeHold(cards: Card[], indices: number[]): string {
       </p>
 
       <!-- New session button -->
-      <button class="tp-new-session" @click="game.resetSession()">
+      <button
+        class="tp-new-session"
+        @click="game.resetSession()"
+      >
         New Session
       </button>
     </div>

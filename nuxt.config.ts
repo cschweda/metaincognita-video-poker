@@ -12,8 +12,6 @@ export default defineNuxtConfig({
     enabled: true
   },
 
-  css: ['~/assets/css/main.css'],
-
   app: {
     head: {
       title: 'Video Poker Trainer',
@@ -23,6 +21,8 @@ export default defineNuxtConfig({
       link: []
     }
   },
+
+  css: ['~/assets/css/main.css'],
 
   routeRules: {
     '/': { prerender: true }

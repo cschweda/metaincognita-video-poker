@@ -86,21 +86,31 @@ const sparklineZeroY = computed(() => {
   <div class="bankroll-panel">
     <!-- Bankroll -->
     <div class="bp-section">
-      <div class="bp-label">BALANCE</div>
-      <div class="bp-value bp-value--large">${{ game.creditsAsDollars }}</div>
+      <div class="bp-label">
+        BALANCE
+      </div>
+      <div class="bp-value bp-value--large">
+        ${{ game.creditsAsDollars }}
+      </div>
     </div>
 
     <!-- Current bet -->
     <div class="bp-section">
-      <div class="bp-label">BET</div>
-      <div class="bp-value">${{ game.betAsDollars }} / hand</div>
+      <div class="bp-label">
+        BET
+      </div>
+      <div class="bp-value">
+        ${{ game.betAsDollars }} / hand
+      </div>
     </div>
 
     <div class="bp-divider" />
 
     <!-- Session summary -->
     <div class="bp-section">
-      <div class="bp-label">SESSION</div>
+      <div class="bp-label">
+        SESSION
+      </div>
       <UTooltip text="Total hands dealt this session.">
         <div class="bp-row">
           <span class="bp-row-label">Hands</span>
@@ -132,7 +142,7 @@ const sparklineZeroY = computed(() => {
             class="bp-row-value"
             :class="{
               'bp-value--good': netResult > 0,
-              'bp-value--bad': netResult < 0,
+              'bp-value--bad': netResult < 0
             }"
           >
             {{ netResult >= 0 ? '+' : '' }}${{ netResult.toFixed(2) }}
@@ -145,7 +155,10 @@ const sparklineZeroY = computed(() => {
       >
         <div class="bp-row">
           <span class="bp-row-label">Return</span>
-          <span class="bp-row-value" :class="returnColor">
+          <span
+            class="bp-row-value"
+            :class="returnColor"
+          >
             {{ game.effectiveReturn.toFixed(1) }}%
           </span>
         </div>
@@ -153,10 +166,25 @@ const sparklineZeroY = computed(() => {
     </div>
 
     <!-- Sparkline with interactive dots -->
-    <div v-if="sparkData.length >= 2" class="bp-sparkline">
-      <svg :viewBox="`0 -4 ${WIDTH} ${HEIGHT + 8}`" preserveAspectRatio="none" class="bp-sparkline__svg">
+    <div
+      v-if="sparkData.length >= 2"
+      class="bp-sparkline"
+    >
+      <svg
+        :viewBox="`0 -4 ${WIDTH} ${HEIGHT + 8}`"
+        preserveAspectRatio="none"
+        class="bp-sparkline__svg"
+      >
         <!-- Zero/starting line -->
-        <line x1="0" :y1="sparklineZeroY" :x2="WIDTH" :y2="sparklineZeroY" stroke="#334155" stroke-width="0.5" stroke-dasharray="3 2"/>
+        <line
+          x1="0"
+          :y1="sparklineZeroY"
+          :x2="WIDTH"
+          :y2="sparklineZeroY"
+          stroke="#334155"
+          stroke-width="0.5"
+          stroke-dasharray="3 2"
+        />
         <!-- Balance line -->
         <polyline
           :points="sparklinePoints"
@@ -181,11 +209,11 @@ const sparklineZeroY = computed(() => {
             :class="{
               'bp-sparkline__dot--win': pt.isWin && pt.handNum > 0,
               'bp-sparkline__dot--loss': !pt.isWin && pt.handNum > 0,
-              'bp-sparkline__dot--start': pt.handNum === 0,
+              'bp-sparkline__dot--start': pt.handNum === 0
             }"
             :style="{
               left: `${(pt.x / WIDTH) * 100}%`,
-              top: `${((pt.y + 4) / (HEIGHT + 8)) * 100}%`,
+              top: `${((pt.y + 4) / (HEIGHT + 8)) * 100}%`
             }"
           />
         </UTooltip>
@@ -196,7 +224,9 @@ const sparklineZeroY = computed(() => {
 
     <!-- Mistakes -->
     <div class="bp-section">
-      <div class="bp-label">MISTAKES</div>
+      <div class="bp-label">
+        MISTAKES
+      </div>
       <UTooltip text="Hands where you held different cards than the mathematically optimal play. Zero mistakes = perfect play.">
         <div class="bp-row">
           <span class="bp-row-label">Count</span>
@@ -225,14 +255,19 @@ const sparklineZeroY = computed(() => {
     <template v-if="game.phase === 'result'">
       <div class="bp-divider" />
       <div class="bp-section">
-        <div class="bp-label">LAST HAND</div>
+        <div class="bp-label">
+          LAST HAND
+        </div>
         <div
           class="bp-hand-result"
           :class="game.resultPayout > 0 ? 'bp-hand-result--win' : 'bp-hand-result--loss'"
         >
           {{ game.resultHandName || 'No Win' }}
         </div>
-        <div v-if="game.resultPayout > 0" class="bp-hand-payout">
+        <div
+          v-if="game.resultPayout > 0"
+          class="bp-hand-payout"
+        >
           +${{ (game.resultPayout * game.denomination).toFixed(2) }}
         </div>
         <div
@@ -254,7 +289,9 @@ const sparklineZeroY = computed(() => {
     <template v-if="game.stats.handsPlayed >= 5">
       <div class="bp-divider" />
       <div class="bp-section">
-        <div class="bp-label">PACE</div>
+        <div class="bp-label">
+          PACE
+        </div>
         <UTooltip text="Your play speed. Professional VP players average 600-800 hands/hour. Faster = more throughput = more comp value.">
           <div class="bp-row">
             <span class="bp-row-label">Hands/hr</span>
@@ -282,7 +319,10 @@ const sparklineZeroY = computed(() => {
     <!-- End session button -->
     <template v-if="game.stats.handsPlayed >= 3 && !game.sessionEnded">
       <div class="bp-divider" />
-      <button class="bp-end-session" @click="game.endSession()">
+      <button
+        class="bp-end-session"
+        @click="game.endSession()"
+      >
         End Session
       </button>
     </template>
@@ -291,11 +331,20 @@ const sparklineZeroY = computed(() => {
     <template v-if="game.sessionEnded">
       <div class="bp-divider" />
       <div class="bp-section">
-        <div class="bp-label" style="color: #4ade80">SESSION COMPLETE</div>
+        <div
+          class="bp-label"
+          style="color: #4ade80"
+        >
+          SESSION COMPLETE
+        </div>
         <div style="font-size: 0.65rem; color: #8890b8; margin-bottom: 6px">
           Bot comparison ready. See how Perfect Pat, Almost Alice, and Gut-Feel Gary would have played your hands.
         </div>
-        <a href="#bot-comparison" class="bp-link-btn" @click.prevent="scrollToComparison">
+        <a
+          href="#bot-comparison"
+          class="bp-link-btn"
+          @click.prevent="scrollToComparison"
+        >
           View Bot Comparison &#x2192;
         </a>
       </div>
@@ -303,10 +352,16 @@ const sparklineZeroY = computed(() => {
 
     <!-- Game rules button -->
     <div class="bp-divider" />
-    <button class="bp-rules-btn" @click="rulesOpen = true">
+    <button
+      class="bp-rules-btn"
+      @click="rulesOpen = true"
+    >
       {{ game.payTable.variant }} Rules
     </button>
-    <RulesModal v-model:open="rulesOpen" :variant="game.payTable.variant" />
+    <RulesModal
+      v-model:open="rulesOpen"
+      :variant="game.payTable.variant"
+    />
   </div>
 </template>
 
