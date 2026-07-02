@@ -1,8 +1,7 @@
 import type { Card } from './cards'
 import type { PayTableDef } from './payTables'
 import { getPayForHand } from './payTables'
-import { classifyHand, classifyBonusHand, classifyDDBHand } from './handClassifier'
-import { classifyDeucesWild } from './wildClassifier'
+import { classifyForPayTable } from './classify'
 import { combinations } from './combinations'
 import { cardLabel } from './cards'
 
@@ -11,16 +10,6 @@ export interface HoldAnalysis {
   heldCards: Card[]
   expectedValue: number
   handDistribution: Record<string, number>
-}
-
-/**
- * Classify a hand using the appropriate classifier for the pay table variant.
- */
-function classifyForPayTable(cards: Card[], payTable: PayTableDef): string {
-  if (payTable.classifier === 'deucesWild') return classifyDeucesWild(cards)
-  if (payTable.classifier === 'ddb') return classifyDDBHand(cards)
-  if (payTable.classifier === 'bonus') return classifyBonusHand(cards)
-  return classifyHand(cards)
 }
 
 /**

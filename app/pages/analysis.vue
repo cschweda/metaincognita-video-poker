@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SimulationResult } from '~/utils/simulator'
+import type { SimulationResult } from '~/utils/simulationWorker'
 
 defineOptions({ name: 'Analysis' })
 useHead({ title: 'Statistical Analysis — Video Poker Trainer' })
@@ -57,8 +57,9 @@ function downloadResults() {
 
     lines.push(``)
     lines.push(`  Hand frequencies (last run):`)
-    for (const [hand, count] of sortedFreqs(variantRuns[variantRuns.length - 1]!.handFrequencies)) {
-      lines.push(`    ${hand.padEnd(24)} ${count.toString().padStart(6)}  (${((count / store.handsPerRun) * 100).toFixed(2)}%)`)
+    const lastRun = variantRuns[variantRuns.length - 1]!
+    for (const [hand, count] of sortedFreqs(lastRun.handFrequencies)) {
+      lines.push(`    ${hand.padEnd(24)} ${count.toString().padStart(6)}  (${((count / lastRun.handsPlayed) * 100).toFixed(2)}%)`)
     }
     lines.push(``)
   }
@@ -401,7 +402,7 @@ function downloadResults() {
                         {{ count.toLocaleString() }}
                       </td>
                       <td class="text-right px-2 font-mono text-gray-500">
-                        {{ ((count / store.handsPerRun) * 100).toFixed(2) }}%
+                        {{ ((count / variantRuns[variantRuns.length - 1]!.handsPlayed) * 100).toFixed(2) }}%
                       </td>
                     </tr>
                   </tbody>
@@ -438,7 +439,7 @@ function downloadResults() {
             What's exact
           </p>
           <ul class="list-disc pl-5 space-y-1">
-            <li><strong class="text-gray-300">Deck &amp; RNG</strong> — crypto.getRandomValues + Fisher-Yates shuffle. Each of 2,598,960 possible hands is equally likely. Deals from a real 52-card deck without replacement.</li>
+            <li><strong class="text-gray-300">Deck &amp; RNG</strong> — crypto.getRandomValues + Fisher-Yates with rejection sampling (no modulo bias). Each of 2,598,960 possible hands is equally likely. Deals from a real 52-card deck without replacement.</li>
             <li><strong class="text-gray-300">Hand classification</strong> — Deterministic classifier for all hand types, verified against standard poker hand rankings.</li>
             <li><strong class="text-gray-300">Pay table payouts</strong> — Taken directly from published sources (Wizard of Odds).</li>
             <li><strong class="text-gray-300">In-game EV calculator</strong> — The training panel's 32-option analysis evaluates <em>every possible draw outcome</em> exhaustively. Those EV numbers are mathematically exact.</li>
@@ -448,16 +449,16 @@ function downloadResults() {
             What's approximate
           </p>
           <ul class="list-disc pl-5 space-y-1">
-            <li><strong class="text-gray-300">Strategy lookup vs brute-force EV</strong> — Simulation uses published strategy tables (~30-45 entries per variant) instead of brute-force EV. This is the same approach real players use. The only missing element is <strong class="text-amber-400">penalty card adjustments</strong>, which affect ~2% of hands and cost ~0.01% EV each. Estimated total EV loss: &lt;0.1% for all standard variants.</li>
-            <li><strong class="text-gray-300">Deuces Wild</strong> — Uses a proper deuce-count-organized strategy (0, 1, 2, 3, 4 deuces each have their own decision tree). This matches the published Wizard of Odds strategy. Minor edge cases in wild straight/flush draws may not be perfectly optimized.</li>
-            <li><strong class="text-gray-300">DDB kicker holds</strong> — The strategy correctly holds kicker cards (2, 3, 4) alongside three Aces or three 2s-4s, enabling the 400-coin and 160-coin bonus payouts.</li>
-            <li><strong class="text-gray-300">Variance at low sample sizes</strong> — At 1,000 hands, actual return can deviate 5-15% from theoretical. This is mathematically correct behavior (law of large numbers), not a bug. Run 10,000+ hands for tighter convergence.</li>
+            <li><strong class="text-gray-300">Strategy lookup vs brute-force EV</strong> — Simulation uses ranked hand-pattern strategy tables (the approach real players memorize) instead of the exhaustive per-hand EV search. Every rule class in the tables is graded against the exact EV engine in the automated test suite. Measured mean EV loss on random hands: <strong class="text-green-400">0.00%</strong> of bet for 9/6 Jacks or Better and 8/5 Bonus Poker (no deviations found in 200 hands each), ~0.02% for Bonus Deluxe, ~0.03% for Double Double Bonus and Deuces Wild, and ~0.2% for 10/7 Double Bonus (its high-card region has many marginal reorderings). The main systematic omission is <strong class="text-amber-400">penalty card adjustments</strong>.</li>
+            <li><strong class="text-gray-300">Deuces Wild</strong> — Deuce-count-organized strategy (0-4 deuces) with pat-hand guards, verified against exact EV — including the counterintuitive plays, e.g. three bare deuces outrank a pat five of a kind by 0.06 EV.</li>
+            <li><strong class="text-gray-300">DDB kickers</strong> — The kicker categories pay when the kicker arrives <em>with</em> the quads. Exact EV shows a bare kicker is never held: three Aces alone (12.49) beat three Aces + kicker (11.83), and quad Aces with a 5-K kicker discard it to draw at the 400-coin hand.</li>
+            <li><strong class="text-gray-300">Variance at low sample sizes</strong> — At 1,000 hands, actual return can deviate 5-15% from theoretical. This is mathematically correct behavior (law of large numbers), not a bug. Even at 500,000 hands, royal-flush frequency alone moves the return by ±0.6%. Run 10,000+ hands for reasonable convergence.</li>
           </ul>
 
           <p class="font-semibold text-gray-300 mt-3 mb-1">
             Bottom line
           </p>
-          <p>For all variants, simulation returns should converge within <strong class="text-green-400">~0.5% of theoretical</strong> at 10,000+ hands. The remaining gap is primarily from penalty card omission and natural variance, not strategy errors. The in-game training panel's per-hand EV analysis is always mathematically exact regardless of variant.</p>
+          <p>Strategy-table play measures within <strong class="text-green-400">~0.03% of optimal</strong> for every variant except 10/7 Double Bonus (~0.2%). Simulated returns converge toward those values, but sample noise dominates below ~100,000 hands. The in-game training panel's per-hand EV analysis is always mathematically exact regardless of variant.</p>
         </div>
       </template>
 

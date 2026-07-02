@@ -1,9 +1,8 @@
 import type { Card } from './cards'
 import type { PayTableDef } from './payTables'
-import { getPayForHand } from './payTables'
+import { PAY_TABLES, getPayForHand } from './payTables'
 import { fastOptimalHold } from './strategyLookup'
-import { classifyHand, classifyBonusHand, classifyDDBHand } from './handClassifier'
-import { classifyDeucesWild } from './wildClassifier'
+import { classifyForPayTable } from './classify'
 
 /**
  * Bot personas for video poker comparison.
@@ -54,13 +53,6 @@ export const PERSONAS: BotPersona[] = [
     expectedReturn: '94-95%'
   }
 ]
-
-function classifyForPersona(cards: Card[], payTable: PayTableDef): string {
-  if (payTable.classifier === 'deucesWild') return classifyDeucesWild(cards)
-  if (payTable.classifier === 'ddb') return classifyDDBHand(cards)
-  if (payTable.classifier === 'bonus') return classifyBonusHand(cards)
-  return classifyHand(cards)
-}
 
 /**
  * Perfect Pat — plays exact optimal strategy via the published strategy tables.
@@ -267,6 +259,8 @@ export interface DealtHand {
   remaining: Card[]
   /** Exact-optimal hold indices recorded by the brute-force EV analysis during play */
   optimalHeld?: number[]
+  /** Pay table the hand was actually dealt on (sessions can switch tables mid-way) */
+  payTableId?: string
 }
 
 /**
@@ -284,14 +278,17 @@ export function replayHandsThroughPersona(
   const totalWagered = dealtHands.length * coins
   const handResults: { handName: string | null, payout: number }[] = []
 
-  for (const { cards, remaining, optimalHeld } of dealtHands) {
+  for (const { cards, remaining, optimalHeld, payTableId } of dealtHands) {
+    // Score each hand under the table it was actually dealt on
+    const handTable = (payTableId && PAY_TABLES[payTableId]) || payTable
+
     // Get persona's hold decision
     let heldIndices: number[]
     switch (personaId) {
       case 'perfect-pat':
         // Prefer the exact brute-force-optimal hold recorded during play;
         // the strategy table is only a fallback approximation.
-        heldIndices = optimalHeld ?? perfectPatHold(cards, payTable)
+        heldIndices = optimalHeld ?? perfectPatHold(cards, handTable)
         break
       case 'almost-alice':
         heldIndices = almostAliceHold(cards)
@@ -317,9 +314,9 @@ export function replayHandsThroughPersona(
       }
     }
 
-    // Classify and pay
-    const handName = classifyForPersona(finalHand, payTable)
-    const payout = handName === 'Nothing' ? 0 : getPayForHand(payTable, handName, coins)
+    // Classify and pay under the hand's own table
+    const handName = classifyForPayTable(finalHand, handTable)
+    const payout = handName === 'Nothing' ? 0 : getPayForHand(handTable, handName, coins)
     totalPayout += payout
     handResults.push({
       handName: handName === 'Nothing' ? null : handName,

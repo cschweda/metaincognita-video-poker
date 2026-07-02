@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import { VARIANT_RULES } from '~/utils/variantRules'
+
 const game = useGameStore()
 const rulesOpen = ref(false)
+
+const minPayingHand = computed(() =>
+  VARIANT_RULES[game.payTable.variant]?.minPayingHand ?? 'Jacks or Better'
+)
 
 function scrollToComparison() {
   const el = document.getElementById('bot-comparison')
@@ -117,7 +123,7 @@ const sparklineZeroY = computed(() => {
           <span class="bp-row-value">{{ game.stats.handsPlayed }}</span>
         </div>
       </UTooltip>
-      <UTooltip text="Hands where you received a payout (Jacks or Better or higher).">
+      <UTooltip :text="`Hands where you received a payout (${minPayingHand} or higher).`">
         <div class="bp-row">
           <span class="bp-row-label">Won</span>
           <span class="bp-row-value">{{ game.stats.handsWon }}</span>

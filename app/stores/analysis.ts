@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { PAY_TABLES, PAY_TABLE_GROUPS } from '~/utils/payTables'
-import type { SimulationResult } from '~/utils/simulator'
+import type { SimulationResult } from '~/utils/simulationWorker'
 
 export type AnalysisStatus = 'idle' | 'running' | 'done'
 

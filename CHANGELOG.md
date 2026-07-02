@@ -2,6 +2,29 @@
 
 All notable changes to the Video Poker Trainer will be documented in this file.
 
+## [Unreleased]
+
+### Strategy Table Rewrite & Session Fixes
+
+#### Fixed
+- **The fast strategy tables (`strategyLookup.ts`) were rewritten from scratch and are now graded against the exact EV calculator in the test suite.** The old tables broke made pat hands in Deuces Wild (a dealt wild royal was played as a 4-card royal draw — EV 4.32 vs 25.0; pat straight flushes, straights and flushes with a deuce were similarly broken), held the junk kicker with quads, held one of the pair when trying to keep five of a kind with 3 deuces, held a single high card instead of two, over-ranked inside straights above 3-to-a-straight-flush, and held 3-flushes that a full redraw beats. Measured by 500k-hand simulation, Deuces Wild played at 94.4% instead of ~100.8%, DDB at 95.3% instead of ~99.0%. After the rewrite, exact-EV grading over random hands shows 0 mistakes in 200 hands for 9/6 JoB and 8/5 Bonus, ≤0.03% of bet mean EV loss for Deuces Wild, DDB and Bonus Deluxe, and ~0.2% for 10/7 Double Bonus (documented on the Analysis page).
+- **Exact EV corrected two pieces of published-strategy lore the app repeated.** With three aces in 9/6 DDB the optimal play is the aces *alone* — never a bare 2-4 kicker (12.49 vs 11.83 EV; the old table and the rules text both held the kicker), and aces are held even out of a full house. With 3 deuces in full-pay Deuces Wild, breaking a pat five of a kind for the bare deuces is exactly optimal (15.06 vs 15.00). Rules text, README and strategy tables all updated.
+- **Double Bonus 10/7 now has its own strategy adjustments** (all verified against exact EV): 4-to-a-flush and 3-to-a-royal outrank a non-ace high pair, a 4-card outside straight outranks a low pair, inside straights with a high card outrank unsuited high-card holds, trip aces break a full house, and inside straights are held over a full redraw.
+- **Session-state fixes in the game store:** INSERT CREDITS now adds 100 credits without wiping stats/history (it previously nuked the session but kept the replay decks, corrupting the bot comparison); End Session excludes a hand that was dealt but never drawn, and dealing again after End Session resumes the session cleanly; a late-arriving analysis now back-fills mistake tracking even if the next hand was already dealt (previously the mistake was silently lost); persona replay scores each hand under the pay table it was dealt on.
+- **Keyboard fix:** Enter/Space no longer hijack focus from buttons, links, selects and modal controls on the game page — previously Enter on the variant tabs or a confirmation dialog dealt a hand instead of activating the control.
+- Analysis page hand-frequency percentages now divide by each run's actual hand count instead of the current dropdown selection.
+- The shuffle now uses rejection sampling on top of `crypto.getRandomValues`, removing the (already negligible, ~1e-8) modulo bias.
+- The EV analysis worker has a 15s watchdog: a hung worker fails over to main-thread analysis instead of leaving the hand unanalyzed.
+
+#### Removed / Consolidated
+- Six duplicate classifier dispatchers consolidated into `app/utils/classify.ts`.
+- Dead code removed: the unused synchronous and async simulators (`simulator.ts`, `simulatorAsync.ts`), the unused bet actions (`betMax`/`incrementBet`/`setCoinsBet`), the never-read localStorage save/load cycle, the unreachable max-coins pay-table warning, and the unused `jokerPoker` classifier tag.
+
+#### Testing
+- New `tests/strategyLookup.test.ts`: 41 tests grading every strategy rule class against the exact EV calculator at runtime (no hard-coded expectations), plus a seeded random-hand smoke test and a deterministic 60k-hand-per-variant return tripwire. Full suite is now 87 tests across 8 files.
+- New `tests/gameStoreSession.test.ts`: session lifecycle coverage (additive credits, End Session exclusions and resume, late-analysis reconciliation).
+- Worker-watchdog fallback test in `tests/evAnalysisClient.test.ts`.
+
 ## [0.3.0] - 2026-06-09
 
 ### Correctness, Performance & Testing

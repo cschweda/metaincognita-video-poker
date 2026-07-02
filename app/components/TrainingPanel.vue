@@ -93,10 +93,11 @@ const optimalDescription = computed(() => {
 })
 
 function describeHold(cards: Card[]): string {
-  // Detect deuces (wild cards in Deuces Wild)
-  const deuces = cards.filter(c => c.rank === 2)
-  const naturals = cards.filter(c => c.rank !== 2)
+  // Deuces are only special in Deuces Wild — in other variants a 2 is a
+  // normal card and must count toward pairs/trips descriptions.
   const isDeucesWild = game.payTable.classifier === 'deucesWild'
+  const deuces = isDeucesWild ? cards.filter(c => c.rank === 2) : []
+  const naturals = isDeucesWild ? cards.filter(c => c.rank !== 2) : cards
 
   if (isDeucesWild && deuces.length > 0 && naturals.length === 0) {
     return `Hold ${deuces.length} deuce${deuces.length > 1 ? 's' : ''} (wild)`
@@ -148,7 +149,7 @@ function describeHold(cards: Card[]): string {
           Ready to Play
         </div>
         <div class="tp-phase-desc">
-          Click <strong>DEAL</strong> or <strong>BET MAX</strong> to begin.
+          Click <strong>DEAL</strong> to begin.
           The optimal play will be shown after each deal.
         </div>
       </div>

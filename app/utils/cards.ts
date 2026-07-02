@@ -47,12 +47,26 @@ export function createDeck(): Card[] {
   return deck
 }
 
+/**
+ * Uniform integer in [0, n) from the CSPRNG, using rejection sampling so
+ * every value is exactly equally likely (a bare modulo would bias low values
+ * by ~n/2^32 — immaterial in practice, but exactness is this app's brand).
+ */
+function randomInt(n: number): number {
+  const limit = Math.floor(0x100000000 / n) * n
+  const arr = new Uint32Array(1)
+  let x: number
+  do {
+    crypto.getRandomValues(arr)
+    x = arr[0]!
+  } while (x >= limit)
+  return x % n
+}
+
 export function shuffle(deck: Card[]): Card[] {
   const d = [...deck]
   for (let i = d.length - 1; i > 0; i--) {
-    const arr = new Uint32Array(1)
-    crypto.getRandomValues(arr)
-    const j = arr[0]! % (i + 1)
+    const j = randomInt(i + 1)
     ;[d[i], d[j]] = [d[j]!, d[i]!]
   }
   return d

@@ -33,8 +33,6 @@ function startGame(tableId?: string) {
   // Reset FIRST so phase is idle, then set pay table
   game.resetSession()
   game.setPayTable(id)
-  // Clear any stale localStorage from a previous variant
-  game.clearLocalStorage()
   router.push('/game')
 }
 </script>

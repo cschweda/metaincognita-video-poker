@@ -175,17 +175,17 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'Jacks or Better (1)'
     ],
     strategyNotes: [
-      'Kickers matter — a 2, 3, or 4 alongside three Aces should be held, unlike in other variants.',
-      'The 400-coin Four Aces + kicker hand reshapes strategy around preserving potential kicker cards.',
-      'Two Pair again pays only 1:1, making the game volatile.',
-      'The full strategy is the most complex of any non-wild variant due to kicker considerations.'
+      'The kicker bonuses pay when a kicker ARRIVES with the quads — but holding a bare kicker next to three Aces is a mistake (exact EV: three Aces alone 12.49 vs 11.83 with the kicker). Two fresh draws beat one.',
+      'Aces up (Aces + a second pair): hold ONLY the Aces. This is the most famous DDB-specific play — the quad-Aces upside beats the two-pair payout.',
+      'Quad Aces with a 5-K kicker: discard the kicker and draw for the 2-4 kicker (216 average vs 160 locked).',
+      'Two Pair pays only 1:1, making the game volatile.'
     ],
     strategyDifferences: [
-      'vs Double Bonus: KICKERS MATTER. When you have three Aces, hold a 2, 3, or 4 alongside them — that kicker turns a 160-coin hand into a 400-coin hand. In every other variant, you discard the kicker.',
-      'vs Double Bonus: Three 2s-4s with an Ace or another 2-4 as kicker should also be held — the kicker turns 80 into 160.',
-      'vs JoB: Two Pair pays 1:1 (same as Double Bonus). All the Two Pair strategy changes from Double Bonus apply here too.',
-      'vs all others: The kicker creates situations where holding 4 cards (trips + kicker) is better than holding 3 (trips alone). This is unique to DDB.',
-      'The full strategy has more entries than any other non-wild variant because kicker considerations create many branch points.'
+      'vs JoB/Double Bonus: ACES UP — with Aces and a second pair, hold only the Aces (1.90 vs 1.68 EV). In JoB you always hold two pair.',
+      'vs Double Bonus: quad Aces with a 5-K kicker are not pat — discard the kicker and draw at the 400-coin version.',
+      'A lone Ace outranks holding Ace + another unsuited high card (0.459 vs 0.444 EV) because of the quad-Aces upside.',
+      'Three Aces are held ALONE — even out of a full house. Never hold a bare kicker; the 400-coin hand pays when the kicker is drawn, not held.',
+      'vs JoB: Two Pair pays 1:1 (same as Double Bonus). All the Two Pair strategy changes from Double Bonus apply here too.'
     ],
     strategyComplexity: 'Advanced. ~45 ranked entries — the most complex non-wild variant. The kicker rules add a layer of decision-making that doesn\'t exist in any other game. Not recommended until you\'ve mastered JoB and Double Bonus.',
     payTableTip: 'The common 9/6 DDB pay table returns 98.98% with optimal play. The massive jackpot hands (400 for Four Aces + kicker) create exciting peaks but the Two Pair reduction ensures deep valleys.'
@@ -247,8 +247,8 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'Strategy depends on how many deuces you are dealt (0, 1, 2, 3, or 4).',
       'With 0 deuces: play similar to JoB but more aggressively toward straights and flushes.',
       'With 1 deuce: hold the deuce plus any paying combination; chase straights and flushes.',
-      'With 2 deuces: hold both plus any four-of-a-kind or better; otherwise hold just the two deuces.',
-      'With 3 deuces: hold all three plus any natural pair (makes five of a kind); otherwise hold just the three.',
+      'With 2 deuces: hold a made wild royal, five of a kind or straight flush pat; with quads (pair + deuces) discard the kicker and draw at five of a kind; otherwise hold just the two deuces.',
+      'With 3 deuces: hold all five only for a wild royal. Otherwise hold JUST the three deuces — even breaking a pat five of a kind (15.06 vs 15.00 exact EV).',
       'With 4 deuces: hold all five cards — Four Deuces pays 200 coins.',
       'Pairs and Two Pair do NOT pay in Deuces Wild — don\'t hold them unless they\'re part of a better draw.'
     ],
@@ -259,8 +259,8 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'vs JoB: NEVER DISCARD A DEUCE. This is rule #1. A deuce is always the most valuable card in your hand.',
       'With 0 deuces: Play more aggressively toward straights and flushes than in JoB, because pairs don\'t pay.',
       'With 1 deuce: The deuce + any pair = Three of a Kind (paying hand). Chase flushes and straights aggressively.',
-      'With 2 deuces: Two deuces + any natural pair = Four of a Kind. Otherwise just hold the two deuces.',
-      'With 3 deuces: Hold all three + any natural pair (makes Five of a Kind). Otherwise hold just the three.',
+      'With 2 deuces: Two deuces + any natural pair = Four of a Kind — but discard the fifth card and draw at Five of a Kind. Otherwise just hold the two deuces.',
+      'With 3 deuces: Hold just the three deuces unless the other two cards complete a wild royal. Even a pat Five of a Kind is worth breaking — three bare deuces average slightly more (15.06 vs 15.00).',
       'With 4 deuces: Hold all five cards. Four Deuces pays 200 coins — the second-highest hand.'
     ],
     strategyComplexity: 'Advanced. ~45 entries across 5 sub-strategies (one per deuce count). The #1 mistake: applying JoB thinking to a game where pairs don\'t pay.',

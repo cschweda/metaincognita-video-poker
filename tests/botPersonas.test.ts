@@ -43,6 +43,22 @@ describe('replayHandsThroughPersona — perfect-pat', () => {
     expect(result.totalPayout).toBe(5)
   })
 
+  it('replays each hand under the pay table it was dealt on', () => {
+    // Pat full house: pays 9 per coin on job-9-6 but 7 per coin on job-7-5
+    const fullHouse = [c(9, 'spades'), c(9, 'hearts'), c(9, 'diamonds'), c(5, 'clubs'), c(5, 'spades')]
+    const result = replayHandsThroughPersona(
+      'perfect-pat',
+      [
+        { cards: fullHouse, remaining: [], optimalHeld: [0, 1, 2, 3, 4], payTableId: 'job-9-6' },
+        { cards: fullHouse, remaining: [], optimalHeld: [0, 1, 2, 3, 4], payTableId: 'job-7-5' }
+      ],
+      PAY_TABLES['job-9-6']!,
+      5
+    )
+
+    expect(result.totalPayout).toBe(45 + 35)
+  })
+
   it('other personas ignore the recorded optimal hold', () => {
     // Gut-Feel Gary should still make his own (mistaken) choice even when
     // optimalHeld is present: with trips he holds a kicker too.

@@ -67,12 +67,6 @@ watch(() => game.payTableId, () => {
         Return: {{ game.payTable.returnPct }}%
         <template v-if="game.payTable.returnPct >= 100"> &#10022; Player Advantage</template>
       </span>
-      <span
-        v-if="game.coinsBet < 5"
-        class="pay-table__return--warning"
-      >
-        &#9888; Royal Flush bonus requires max coins
-      </span>
     </div>
   </div>
 </template>
@@ -190,14 +184,6 @@ watch(() => game.payTableId, () => {
 
 .pay-table__return--positive {
   color: #4ade80;
-}
-
-.pay-table__return--warning {
-  color: #f87171;
-  background: rgba(248, 113, 113, 0.07);
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(248, 113, 113, 0.12);
 }
 
 @keyframes winner-pulse {

@@ -2,8 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Card } from '~/utils/cards'
 import { createDeck, shuffle } from '~/utils/cards'
-import { classifyHand, classifyBonusHand, classifyDDBHand } from '~/utils/handClassifier'
-import { classifyDeucesWild } from '~/utils/wildClassifier'
+import { classifyForPayTable } from '~/utils/classify'
 import { PAY_TABLES, getPayForHand } from '~/utils/payTables'
 import type { PayTableDef } from '~/utils/payTables'
 import type { HoldAnalysis } from '~/utils/evCalculator'
@@ -64,8 +63,10 @@ export const useGameStore = defineStore('game', () => {
 
   // Guards against stale worker responses (new deal / reset supersedes old analysis)
   let analysisToken = 0
-  // Set when the player draws before the analysis arrives; reconciled on arrival
-  let pendingDrawReconcile: { playerHeldIndices: number[], handNumber: number } | null = null
+  // Set when the player draws before the analysis arrives; reconciled on arrival.
+  // Carries the dealt card ids so a late analysis can still back-fill its own
+  // hand even after a newer hand has been dealt.
+  let pendingDrawReconcile: { playerHeldIndices: number[], handNumber: number, dealtIds: string[] } | null = null
 
   // --- Hand history ---
   const handHistory = ref<HandHistoryEntry[]>([])
@@ -159,23 +160,6 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  function setCoinsBet(coins: number) {
-    if (!canBet.value) return
-    coinsBet.value = Math.max(1, Math.min(5, coins))
-  }
-
-  function incrementBet() {
-    if (!canBet.value) return
-    coinsBet.value = coinsBet.value >= 5 ? 1 : coinsBet.value + 1
-  }
-
-  function betMax() {
-    if (!canBet.value) return
-    coinsBet.value = 5
-    // Like a real machine: BET MAX also deals immediately
-    deal()
-  }
-
   function toggleHold(index: number) {
     if (!canHold.value) return
     if (index < 0 || index > 4) return
@@ -185,24 +169,19 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function classifyCurrentHand(cards: Card[]): string | null {
-    const pt = payTable.value
-    let result: string
-
-    if (pt.classifier === 'deucesWild') {
-      result = classifyDeucesWild(cards)
-    } else if (pt.classifier === 'ddb') {
-      result = classifyDDBHand(cards)
-    } else if (pt.classifier === 'bonus') {
-      result = classifyBonusHand(cards)
-    } else {
-      result = classifyHand(cards)
-    }
-
+    const result = classifyForPayTable(cards, payTable.value)
     return result === 'Nothing' ? null : result
   }
 
   function deal() {
     if (!canDeal.value) return
+
+    // Dealing after "End Session" resumes the session: the frozen persona
+    // comparison no longer matches live play, so clear it until the next end.
+    if (sessionEnded.value) {
+      sessionEnded.value = false
+      personaResults.value = []
+    }
 
     // Deduct bet
     credits.value -= coinsBet.value
@@ -230,22 +209,19 @@ export const useGameStore = defineStore('game', () => {
     // Save dealt deck for persona replay
     const dealtCards = fullDeck.slice(0, 5)
     const remainingCards = fullDeck.slice(5)
-    dealtDecks.value.push({ cards: [...dealtCards], remaining: [...remainingCards] })
+    const pt = payTable.value
+    dealtDecks.value.push({ cards: [...dealtCards], remaining: [...remainingCards], payTableId: pt.id })
     const deckEntryIndex = dealtDecks.value.length - 1
 
     // Start EV computation in the worker, in parallel with the deal animation
-    const pt = payTable.value
     const coins = coinsBet.value
     const token = ++analysisToken
-    pendingDrawReconcile = null
     analysisPending.value = true
 
     analyzeHandAsync(dealtCards, pt.id, remainingCards, coins).then((options) => {
-      if (token !== analysisToken) return // superseded by a newer deal or a reset
-
-      analysisPending.value = false
-      allHoldOptions.value = options
-      optimalPlay.value = options[0] || null
+      // A newer deal or a reset may have superseded this hand on screen, but
+      // the analysis still belongs to its own hand for record-keeping.
+      const isCurrent = token === analysisToken
 
       // Record the exact optimal hold so Perfect Pat replays true optimal
       // (guard against the session having been reset in the meantime)
@@ -255,7 +231,12 @@ export const useGameStore = defineStore('game', () => {
       }
 
       // If the player already drew this hand, back-fill mistake tracking
-      reconcilePendingDraw()
+      reconcilePendingDraw(dealtCards, options, isCurrent)
+
+      if (!isCurrent) return
+      analysisPending.value = false
+      allHoldOptions.value = options
+      optimalPlay.value = options[0] || null
     })
 
     for (let i = 0; i < 5; i++) {
@@ -358,7 +339,8 @@ export const useGameStore = defineStore('game', () => {
         } else {
           pendingDrawReconcile = {
             playerHeldIndices,
-            handNumber: stats.value.handsPlayed
+            handNumber: stats.value.handsPlayed,
+            dealtIds: dealtCards.map(c => c!.id)
           }
         }
 
@@ -383,33 +365,46 @@ export const useGameStore = defineStore('game', () => {
 
   /**
    * The player drew before the worker finished analyzing the deal.
-   * Back-fill mistake tracking for that hand now that the analysis is in.
+   * Back-fill mistake tracking for that hand now that the analysis is in —
+   * even if the player has already dealt the next hand.
    */
-  function reconcilePendingDraw() {
+  function reconcilePendingDraw(dealtCards: Card[], options: HoldAnalysis[], isCurrent: boolean) {
     if (!pendingDrawReconcile) return
-    const { playerHeldIndices, handNumber } = pendingDrawReconcile
+    const { playerHeldIndices, handNumber, dealtIds } = pendingDrawReconcile
+
+    // This analysis belongs to a different deal than the pending draw
+    if (dealtIds.length !== dealtCards.length || !dealtIds.every((id, i) => id === dealtCards[i]!.id)) return
     pendingDrawReconcile = null
 
-    const optimal = optimalPlay.value
-    const playerOption = findHoldOption(playerHeldIndices)
+    const optimal = options[0]
+    const playerOption = options.find(opt =>
+      opt.heldIndices.length === playerHeldIndices.length
+      && opt.heldIndices.every(idx => playerHeldIndices.includes(idx))
+    )
     if (!optimal || !playerOption) return
 
-    playerAnalysis.value = playerOption
     const evDiff = optimal.expectedValue - playerOption.expectedValue
-    wasOptimal.value = evDiff < 0.0001 // floating point tolerance
-    lastMistakeCost.value = evDiff * coinsBet.value * denomination.value
+    const optimalNow = evDiff < 0.0001 // floating point tolerance
+    const cost = evDiff * coinsBet.value * denomination.value
 
     const entry = handHistory.value.find(h => h.handNumber === handNumber)
     if (entry) {
       entry.optimalHeld = optimal.heldIndices
       entry.playerEV = playerOption.expectedValue
       entry.optimalEV = optimal.expectedValue
-      entry.mistakeCost = lastMistakeCost.value
+      entry.mistakeCost = cost
     }
 
-    if (!wasOptimal.value) {
+    if (!optimalNow) {
       stats.value.totalMistakes++
-      stats.value.totalEVLost += lastMistakeCost.value
+      stats.value.totalEVLost += cost
+    }
+
+    // Only touch the live "last hand" indicators while that hand is on screen
+    if (isCurrent) {
+      playerAnalysis.value = playerOption
+      wasOptimal.value = optimalNow
+      lastMistakeCost.value = cost
     }
   }
 
@@ -422,10 +417,8 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function insertCredits() {
-    credits.value = 100
-    stats.value = { handsPlayed: 0, handsWon: 0, totalWagered: 0, totalReturned: 0, totalMistakes: 0, totalEVLost: 0 }
-    handHistory.value = []
-    resetGame()
+    // Like feeding a real machine: adds money, the session continues
+    credits.value += 100
   }
 
   function resetGame() {
@@ -462,18 +455,20 @@ export const useGameStore = defineStore('game', () => {
 
   /**
    * End the session and run persona comparison.
-   * Replays all dealt hands through each bot persona to show
-   * how they would have done with the same cards.
+   * Replays the completed hands through each bot persona to show
+   * how they would have done with the same cards. A hand that was dealt
+   * but never drawn is excluded — the player never finished it.
    */
   function endSession() {
-    if (dealtDecks.value.length === 0) return
+    const completed = dealtDecks.value.slice(0, stats.value.handsPlayed)
+    if (completed.length === 0) return
 
     const results: PersonaResult[] = []
     for (const persona of PERSONAS) {
       results.push(
         replayHandsThroughPersona(
           persona.id,
-          dealtDecks.value,
+          completed,
           payTable.value,
           coinsBet.value
         )
@@ -481,48 +476,6 @@ export const useGameStore = defineStore('game', () => {
     }
     personaResults.value = results
     sessionEnded.value = true
-    saveToLocalStorage()
-  }
-
-  function saveToLocalStorage() {
-    try {
-      const data = {
-        payTableId: payTableId.value,
-        denomination: denomination.value,
-        coinsBet: coinsBet.value,
-        credits: credits.value,
-        stats: stats.value,
-        handHistory: handHistory.value.slice(0, 100), // cap at 100
-        sessionStartTime: sessionStartTime.value,
-        personaResults: personaResults.value,
-        sessionEnded: sessionEnded.value
-      }
-      localStorage.setItem('vp-session', JSON.stringify(data))
-    } catch { /* quota exceeded — silently fail */ }
-  }
-
-  function loadFromLocalStorage() {
-    try {
-      const raw = localStorage.getItem('vp-session')
-      if (!raw) return false
-      const data = JSON.parse(raw)
-      if (data.payTableId) payTableId.value = data.payTableId
-      if (data.denomination) denomination.value = data.denomination
-      if (data.coinsBet) coinsBet.value = data.coinsBet
-      if (data.credits) credits.value = data.credits
-      if (data.stats) stats.value = data.stats
-      if (data.handHistory) handHistory.value = data.handHistory
-      if (data.sessionStartTime) sessionStartTime.value = data.sessionStartTime
-      if (data.personaResults) personaResults.value = data.personaResults
-      if (data.sessionEnded) sessionEnded.value = data.sessionEnded
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  function clearLocalStorage() {
-    localStorage.removeItem('vp-session')
   }
 
   return {
@@ -572,9 +525,6 @@ export const useGameStore = defineStore('game', () => {
 
     // Actions
     setPayTable,
-    setCoinsBet,
-    incrementBet,
-    betMax,
     toggleHold,
     deal,
     draw,
@@ -582,9 +532,6 @@ export const useGameStore = defineStore('game', () => {
     insertCredits,
     resetGame,
     resetSession,
-    endSession,
-    saveToLocalStorage,
-    loadFromLocalStorage,
-    clearLocalStorage
+    endSession
   }
 })

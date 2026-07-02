@@ -2,19 +2,23 @@
  * Web Worker for video poker simulation.
  * Vite bundles this as a separate module with all its imports resolved.
  */
-import type { Card } from './cards'
-import { createDeck, shuffle } from './cards'
 import type { PayTableDef } from './payTables'
+import { createDeck, shuffle } from './cards'
 import { getPayForHand } from './payTables'
-import { classifyHand, classifyBonusHand, classifyDDBHand } from './handClassifier'
-import { classifyDeucesWild } from './wildClassifier'
+import { classifyForPayTable } from './classify'
 import { fastOptimalHold } from './strategyLookup'
 
-function classifyForSim(cards: Card[], payTable: PayTableDef): string {
-  if (payTable.classifier === 'deucesWild') return classifyDeucesWild(cards)
-  if (payTable.classifier === 'ddb') return classifyDDBHand(cards)
-  if (payTable.classifier === 'bonus') return classifyBonusHand(cards)
-  return classifyHand(cards)
+export interface SimulationResult {
+  payTableId: string
+  variant: string
+  shortName: string
+  theoreticalReturn: number
+  handsPlayed: number
+  totalWagered: number
+  totalReturned: number
+  actualReturn: number
+  handFrequencies: Record<string, number>
+  durationMs: number
 }
 
 function runSim(payTable: PayTableDef, numHands: number, coins: number, runIndex: number, variantIndex: number) {
@@ -40,7 +44,7 @@ function runSim(payTable: PayTableDef, numHands: number, coins: number, runIndex
       }
     }
 
-    const handName = classifyForSim(finalHand, payTable)
+    const handName = classifyForPayTable(finalHand, payTable)
     handFrequencies[handName] = (handFrequencies[handName] || 0) + 1
     if (handName !== 'Nothing') {
       totalReturned += getPayForHand(payTable, handName, coins)

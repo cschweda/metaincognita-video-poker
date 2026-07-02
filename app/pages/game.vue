@@ -41,8 +41,10 @@ const currentGroup = computed(() =>
 const currentVariantName = computed(() => game.payTable.variant)
 
 function onGlobalKeydown(e: KeyboardEvent) {
+  // Never steal Enter/Space from interactive elements — buttons, links,
+  // selects and modal controls must keep their native keyboard behavior.
   const target = e.target as HTMLElement
-  if (target.closest('.card') || target.closest('.hold-btn') || target.closest('.ctrl-btn')) return
+  if (target.closest('button, a, select, input, textarea, [role="dialog"]')) return
 
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault()
@@ -67,38 +69,17 @@ function onActivity() {
   resetTimeout()
 }
 
-// Save on tab close / navigate away
-function onBeforeUnload() {
-  if (game.stats.handsPlayed > 0) {
-    game.saveToLocalStorage()
-  }
-}
-
-// Save + end session on visibility hidden (tab switch, minimize)
-function onVisibilityChange() {
-  if (document.hidden && game.stats.handsPlayed > 0) {
-    game.saveToLocalStorage()
-  }
-}
-
 onMounted(() => {
   document.addEventListener('keydown', onGlobalKeydown)
   document.addEventListener('click', onActivity)
   document.addEventListener('keydown', onActivity)
-  window.addEventListener('beforeunload', onBeforeUnload)
-  document.addEventListener('visibilitychange', onVisibilityChange)
   resetTimeout()
-
-  // No session restore — every page load starts fresh
-  game.clearLocalStorage()
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', onGlobalKeydown)
   document.removeEventListener('click', onActivity)
   document.removeEventListener('keydown', onActivity)
-  window.removeEventListener('beforeunload', onBeforeUnload)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
   if (timeoutTimer) clearTimeout(timeoutTimer)
 })
 </script>
@@ -208,7 +189,7 @@ onUnmounted(() => {
       </NuxtLink>
       <div class="vp-infobar__center">
         <span
-          v-if="game.stats.handsPlayed > 0"
+          v-if="game.stats.handsPlayed > 0 || game.phase !== 'idle'"
           class="vp-infobar__item"
         >Hand #{{ game.stats.handsPlayed + (game.phase === 'dealt' || game.phase === 'dealing' || game.phase === 'drawing' ? 1 : 0) }}</span>
         <span class="vp-infobar__item">{{ currentVariantName }} {{ game.payTable.shortName }}</span>

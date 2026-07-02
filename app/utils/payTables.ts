@@ -8,7 +8,7 @@ export interface PayTableDef {
   variant: string
   shortName: string
   returnPct: number
-  classifier: 'standard' | 'bonus' | 'ddb' | 'deucesWild' | 'jokerPoker'
+  classifier: 'standard' | 'bonus' | 'ddb' | 'deucesWild'
   hands: PayTableHand[]
 }
 
@@ -135,7 +135,7 @@ export const PAY_TABLES: Record<string, PayTableDef> = {
     variant: 'Deuces Wild',
     shortName: 'Full Pay',
     returnPct: 100.76,
-    classifier: 'deucesWild' as const,
+    classifier: 'deucesWild',
     hands: [
       { name: 'Natural Royal Flush', pays: [250, 500, 750, 1000, 4000] },
       { name: 'Four Deuces', pays: mult(200) },
