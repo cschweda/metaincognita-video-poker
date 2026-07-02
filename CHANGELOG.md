@@ -15,6 +15,7 @@ All notable changes to the Video Poker Trainer will be documented in this file.
 - Analysis page hand-frequency percentages now divide by each run's actual hand count instead of the current dropdown selection.
 - The shuffle now uses rejection sampling on top of `crypto.getRandomValues`, removing the (already negligible, ~1e-8) modulo bias.
 - The EV analysis worker has a 15s watchdog: a hung worker fails over to main-thread analysis instead of leaving the hand unanalyzed.
+- The HELD badge now rises with the held card (same 10px translate and timing), so the raised card no longer overlaps the bottom of the label; the badge slide respects `prefers-reduced-motion`.
 
 #### Removed / Consolidated
 - Six duplicate classifier dispatchers consolidated into `app/utils/classify.ts`.

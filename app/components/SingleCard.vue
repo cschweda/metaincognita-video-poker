@@ -30,7 +30,10 @@ const ariaLabel = computed(() => {
 <template>
   <div class="card-slot">
     <!-- HELD badge -->
-    <div class="held-badge-area">
+    <div
+      class="held-badge-area"
+      :class="{ 'held-badge-area--raised': isHeld }"
+    >
       <Transition name="held-pop">
         <span
           v-if="isHeld"
@@ -135,6 +138,12 @@ const ariaLabel = computed(() => {
   display: flex;
   align-items: center;
   margin-bottom: 3px;
+  transition: transform 0.15s ease;
+}
+
+/* Rise with the held card so the badge stays clear of the card top */
+.held-badge-area--raised {
+  transform: translateY(-10px);
 }
 
 .held-badge {
@@ -405,7 +414,8 @@ const ariaLabel = computed(() => {
 @media (prefers-reduced-motion: reduce) {
   .card,
   .card__inner,
-  .card__front {
+  .card__front,
+  .held-badge-area {
     transition-duration: 0.01ms !important;
   }
   .held-pop-enter-active,
