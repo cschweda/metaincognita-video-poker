@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatHeldCards, buildDisplayDistribution } from '~/utils/evCalculator'
-import { cardLabel, RANK_NAMES, SUIT_NAMES } from '~/utils/cards'
-import type { Card } from '~/utils/cards'
+import { cardLabel } from '~/utils/cards'
+import { describeHold, describeEvGap } from '~/utils/holdDescription'
 import { PERSONAS } from '~/utils/botPersonas'
 
 const game = useGameStore()
@@ -68,12 +68,7 @@ const optimalReason = computed(() => {
   // Compare to second-best option
   if (game.allHoldOptions.length >= 2) {
     const secondBest = game.allHoldOptions[1]!
-    const evDiff = opt.expectedValue - secondBest.expectedValue
-    if (evDiff > 0.001) {
-      reason += ` Next best option is ${(evDiff * 100).toFixed(1)}% worse in EV.`
-    } else {
-      reason += ' Very close to the next-best option — a marginal edge.'
-    }
+    reason += ` ${describeEvGap(opt.expectedValue, secondBest.expectedValue)}`
   }
 
   return reason
@@ -83,60 +78,8 @@ const optimalReason = computed(() => {
 const optimalDescription = computed(() => {
   const opt = game.optimalPlay
   if (!opt) return ''
-
-  const cards = opt.heldCards
-  if (cards.length === 0) return 'Discard everything — draw 5 new cards'
-  if (cards.length === 5) return 'Hold all 5 cards — pat hand'
-
-  return describeHold(cards)
+  return describeHold(opt.heldCards, game.payTable.classifier === 'deucesWild')
 })
-
-function describeHold(cards: Card[]): string {
-  // Deuces are only special in Deuces Wild — in other variants a 2 is a
-  // normal card and must count toward pairs/trips descriptions.
-  const isDeucesWild = game.payTable.classifier === 'deucesWild'
-  const deuces = isDeucesWild ? cards.filter(c => c.rank === 2) : []
-  const naturals = isDeucesWild ? cards.filter(c => c.rank !== 2) : cards
-
-  if (isDeucesWild && deuces.length > 0 && naturals.length === 0) {
-    return `Hold ${deuces.length} deuce${deuces.length > 1 ? 's' : ''} (wild)`
-  }
-
-  // Detect patterns for more natural descriptions
-  const ranks = naturals.length > 0 ? naturals.map(c => c.rank) : cards.map(c => c.rank)
-  const suits = naturals.length > 0 ? naturals.map(c => c.suit) : cards.map(c => c.suit)
-  const rankCounts: Record<number, number> = {}
-  for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1
-
-  const pairs = Object.entries(rankCounts).filter(([, c]) => c >= 2)
-  const allSameSuit = suits.length > 0 && suits.every(s => s === suits[0])
-
-  const wildSuffix = isDeucesWild && deuces.length > 0
-    ? ` + ${deuces.length} wild`
-    : ''
-
-  if (naturals.length === 2 && pairs.length === 1) {
-    return `Hold the pair of ${RANK_NAMES[Number(pairs[0]![0])]}s${wildSuffix}`
-  }
-  if (naturals.length === 3 && pairs.length === 1 && Object.values(rankCounts).includes(3)) {
-    return `Hold three ${RANK_NAMES[Number(pairs[0]![0])]}s${wildSuffix}`
-  }
-  if (naturals.length >= 3 && allSameSuit && naturals.length + deuces.length === 4) {
-    return `Hold 4 to a flush (${SUIT_NAMES[suits[0]!]})${wildSuffix}`
-  }
-  if (naturals.length >= 3 && naturals.length + deuces.length === 4) {
-    const sorted = [...ranks].sort((a, b) => a - b)
-    const isOpenEnded = sorted.length >= 3 && sorted[sorted.length - 1]! - sorted[0]! <= 4
-    if (isOpenEnded) return `Hold 4 to a straight${wildSuffix}`
-  }
-  if (naturals.length >= 2 && allSameSuit && naturals.length + deuces.length === 3) {
-    return `Hold 3 to a flush (${SUIT_NAMES[suits[0]!]})${wildSuffix}`
-  }
-
-  // Fallback: list the cards
-  const shortLabels = cards.map(c => cardLabel(c))
-  return `Hold ${shortLabels.join(', ')}`
-}
 </script>
 
 <template>
