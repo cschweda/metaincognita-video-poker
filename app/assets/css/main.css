@@ -6,6 +6,13 @@
   --font-mono: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
 }
 
+/* Reserve the scrollbar gutter permanently. Without this, any content
+   growing past the viewport toggles the classic (space-taking) scrollbar,
+   and the centered layout shifts horizontally — a window-wide zig-zag. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Global reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

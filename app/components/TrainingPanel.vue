@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatHeldCards } from '~/utils/evCalculator'
+import { formatHeldCards, buildDisplayDistribution } from '~/utils/evCalculator'
 import { cardLabel, RANK_NAMES, SUIT_NAMES } from '~/utils/cards'
 import type { Card } from '~/utils/cards'
 import { PERSONAS } from '~/utils/botPersonas'
@@ -17,15 +17,14 @@ const playerRank = computed(() => {
   ) + 1
 })
 
-// Sorted outcome distribution for the current hold selection
-const sortedDistribution = computed(() => {
+// Outcome distribution for the current hold selection. One row per
+// pay-table hand + "Nothing", always — a constant row count keeps the
+// panel height stable while toggling holds, so the page never reflows
+// (no scrollbar flicker / window zig-zag).
+const displayDistribution = computed(() => {
   const analysis = game.currentHoldAnalysis
-  if (!analysis) return {}
-  // Sort by probability descending, exclude very low probabilities
-  const entries = Object.entries(analysis.handDistribution)
-    .filter(([, prob]) => prob >= 0.0005)
-    .sort((a, b) => b[1] - a[1])
-  return Object.fromEntries(entries)
+  if (!analysis) return []
+  return buildDisplayDistribution(analysis.handDistribution, game.payTable)
 })
 
 // Brief explanation of WHY the optimal play is best
@@ -240,19 +239,20 @@ function describeHold(cards: Card[]): string {
                 Draw Outcomes
               </div>
               <div
-                v-for="(prob, handName) in sortedDistribution"
-                :key="handName"
+                v-for="row in displayDistribution"
+                :key="row.name"
                 class="tp-dist__row"
+                :class="{ 'tp-dist__row--nil': row.prob < 0.0005 }"
               >
-                <span class="tp-dist__hand">{{ handName }}</span>
+                <span class="tp-dist__hand">{{ row.name }}</span>
                 <div class="tp-dist__bar-bg">
                   <div
                     class="tp-dist__bar"
-                    :class="{ 'tp-dist__bar--win': handName !== 'Nothing' }"
-                    :style="{ width: (prob * 100) + '%' }"
+                    :class="{ 'tp-dist__bar--win': row.name !== 'Nothing' }"
+                    :style="{ width: (row.prob * 100) + '%' }"
                   />
                 </div>
-                <span class="tp-dist__pct">{{ (prob * 100).toFixed(1) }}%</span>
+                <span class="tp-dist__pct">{{ (row.prob * 100).toFixed(1) }}%</span>
               </div>
             </div>
           </template>
@@ -1189,6 +1189,12 @@ function describeHold(cards: Card[]): string {
   align-items: center;
   padding: 1px 0;
   font-size: 0.68rem;
+}
+
+/* Outcomes that are (near-)impossible for the current hold stay in the
+   list at fixed positions — dimmed, so the live outcomes stand out. */
+.tp-dist__row--nil {
+  opacity: 0.35;
 }
 
 .tp-dist__hand {

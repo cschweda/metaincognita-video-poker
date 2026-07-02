@@ -224,9 +224,15 @@ const ariaLabel = computed(() => {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+/* Border width must not change with hold state — a wider border moves the
+   card face content. The thicker gold ring is a 0-offset box-shadow, which
+   paints outside the border without any layout effect. */
 .card--held .card__front {
-  border: 2.5px solid #c9a227;
-  box-shadow: 0 0 18px rgba(201, 162, 39, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: #c9a227;
+  box-shadow:
+    0 0 0 1.5px #c9a227,
+    0 0 18px rgba(201, 162, 39, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Wild card glow */

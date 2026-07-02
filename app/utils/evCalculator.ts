@@ -99,6 +99,24 @@ export function analyzeHand(
 }
 
 /**
+ * Expand a sparse hand distribution into one row per pay-table hand plus
+ * "Nothing", in pay-table order, zero-filling absent hands.
+ *
+ * The row count depends only on the pay table — never on the hold
+ * selection — so UI lists built from this stay a constant height while
+ * the player toggles holds.
+ */
+export function buildDisplayDistribution(
+  distribution: Record<string, number>,
+  payTable: PayTableDef
+): { name: string, prob: number }[] {
+  return [...payTable.hands.map(h => h.name), 'Nothing'].map(name => ({
+    name,
+    prob: distribution[name] ?? 0
+  }))
+}
+
+/**
  * Format held cards as a readable string like "7♦ 7♣" or "Hold nothing"
  */
 export function formatHeldCards(analysis: HoldAnalysis): string {
