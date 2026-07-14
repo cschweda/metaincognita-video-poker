@@ -264,8 +264,10 @@ onUnmounted(() => {
 
 <style scoped>
 /* Page shell — NOT flexbox column, just a plain block so children can be independently centered */
+/* 100% (not 100vh) of the layout's scrolling <main>, which is the viewport less
+   the top status bar — 100vh here would overflow the shell by the bar's height */
 .vp-page {
-  min-height: 100vh;
+  min-height: 100%;
   background: linear-gradient(180deg, #080812 0%, #121224 40%, #080812 100%);
 }
 
@@ -445,7 +447,8 @@ onUnmounted(() => {
   flex-shrink: 0;
   position: sticky;
   top: 12px;
-  max-height: calc(100vh - 24px);
+  /* 12px gutter top and bottom, inside the viewport less the 37px status bar */
+  max-height: calc(100vh - 61px);
   overflow-y: auto;
 }
 

@@ -38,7 +38,7 @@ function startGame(tableId?: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-white">
+  <div class="min-h-full bg-gray-950 text-white">
     <div class="max-w-4xl mx-auto p-6 space-y-6">
       <div class="text-center space-y-1">
         <h1 class="text-3xl font-bold text-white">

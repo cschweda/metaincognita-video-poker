@@ -85,7 +85,7 @@ function exportHandHistory() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-white">
+  <div class="min-h-full bg-gray-950 text-white">
     <div class="max-w-5xl mx-auto px-4 py-8">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
