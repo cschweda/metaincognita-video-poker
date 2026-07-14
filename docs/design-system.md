@@ -3,6 +3,8 @@
 > **Purpose:** Codify the shared visual language across all casino simulators (Hold'em, Video Poker, Craps, Blackjack, Roulette, Slots) so each game looks like part of the same family despite different gameplay mechanics.
 >
 > **Principle:** The *chrome* (UI shell, stats, navigation, analysis) is identical across all simulators. The *game area* (table, machine, board) is custom per game. Players should feel at home navigating any simulator in the collection.
+>
+> **Revision:** 2026-07-14 — adds the top status bar, the hub exit, and the viewport-ownership rule they force (*Layout Patterns*). A copy of this document without those sections is stale.
 
 ---
 
@@ -105,12 +107,134 @@ font-family: system-ui, -apple-system, sans-serif;
 
 ## Layout Patterns
 
-### Page Shell
+### App Shell
 
-Every page uses this structure:
+A shared layout wraps every route. `app.vue` wraps `NuxtPage` in `NuxtLayout`, so no page can opt out of the chrome:
 
 ```html
-<div class="min-h-screen bg-gray-950 text-white">
+<!-- app/app.vue -->
+<UApp>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
+</UApp>
+```
+
+```html
+<!-- app/layouts/default.vue -->
+<div class="h-screen flex flex-col bg-gray-950 text-white">
+  <nav
+    aria-label="App"
+    class="h-9 shrink-0 flex items-center gap-2 px-3 bg-gray-900 border-b border-gray-800"
+  >
+    <AppHubLink />
+    <span
+      class="h-4 w-px bg-gray-800"
+      aria-hidden="true"
+    />
+    <span class="text-xs text-gray-400">
+      <span class="text-primary-400">Video Poker</span> Trainer
+    </span>
+  </nav>
+
+  <main class="flex-1 min-h-0 overflow-y-auto">
+    <slot />
+  </main>
+</div>
+```
+
+The shell is `h-screen` and `<main>` is the scroll container (`flex-1 min-h-0 overflow-y-auto`). **The shell owns the viewport; pages do not** — see *Viewport Ownership*.
+
+### Top Status Bar
+
+The slim bar across the top of every route. Chrome in the strict sense: not merely the same style in every simulator, the same markup.
+
+| Slot | Content | Classes |
+|------|---------|---------|
+| Far left | Hub exit — `<AppHubLink />` | (see below) |
+| Divider | Decorative hairline | `h-4 w-px bg-gray-800` + `aria-hidden="true"` |
+| Title | App name, the game word in the accent | `text-xs text-gray-400`, game word `text-primary-400` |
+
+- **Element:** `<nav aria-label="App">` — a landmark, not a bare `<div>`.
+- **Height: 37px** — `h-9` (36px) plus the 1px `border-b`. Memorize this number; every `calc(100vh - …)` in the app has to subtract it.
+- `shrink-0` — the bar never compresses under a tall page.
+- `bg-gray-900` on the `bg-gray-950` shell, divided by `border-b border-gray-800`. The bar reads as chrome sitting *above* the page, not as part of it.
+- The title is the **only** place the per-game accent appears in the bar (`text-primary-400`). The hub exit beside it deliberately does not follow the accent.
+
+The hub exit is the bar's **first child**. Any further top chrome a simulator needs (a back/leave control, a session stat) follows it, after the divider.
+
+### The Hub Exit (`AppHubLink`)
+
+The gold `METAINCOGNITA` wordmark, pinned far left of the status bar on every route. It leaves the app for the hub at `https://metaincognita.com`, the floor every simulator hangs off. Copy `app/components/AppHubLink.vue` **verbatim, classes included** — it is byte-identical in slots, and that is the point:
+
+```html
+<a
+  href="https://metaincognita.com"
+  aria-label="METAINCOGNITA — exit the simulator, back to all the games"
+  data-test="hub-link"
+  class="flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/5 px-2 py-0.5 text-amber-400 transition-colors hover:border-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70"
+>
+  <UIcon
+    name="i-lucide-log-out"
+    class="w-3.5 h-3.5"
+    aria-hidden="true"
+  />
+  <span class="text-[10px] font-semibold tracking-[0.12em]">METAINCOGNITA</span>
+</a>
+```
+
+Every rule below is load-bearing, not stylistic:
+
+| Rule | Why |
+|------|-----|
+| A real `<a href>` — never `NuxtLink`, never a router push | It leaves the SPA. A router push stays inside it. |
+| Same tab — **no `target`** | This is an *exit*, not a side trip. A new tab leaves the simulator running behind it. (The footer's GitHub link is the opposite case: it *is* a side trip, and keeps `target="_blank" rel="noopener"`.) |
+| On **every route**, the app's own index included | Never gated behind a `v-if`, never hidden, never collapsed into a menu. Prominence is the point. |
+| It **never confirms** | It destroys nothing. Do not confuse it with the in-page "Home"/leave control, which goes to *this app's* setup page and keeps whatever confirm it already had. The hub exit is not a leave; it is the door. |
+| It stays **gold** | The `amber-*` classes are literal — never `primary-*`. This app's accent happens to be amber; the hub exit must not follow it if that ever changes. Suite chrome, not game chrome: a player learns it once and finds it everywhere. |
+| The `aria-label` **contains the visible wordmark verbatim** | WCAG 2.5.3 Label in Name. "Meta Incognita — exit the simulator" reads fine to a human and **fails**, on the space. |
+
+Guarded by `tests/appHubLink.test.ts` (real anchor, no `target`, gold and not `primary`, accessible name contains the label) and `tests/defaultLayout.test.ts` (present on every route, first child of the bar, no page overrides the layout, `app.vue` still wraps in `NuxtLayout`).
+
+### Viewport Ownership
+
+**The shell owns the viewport. Pages size to the shell, not the window.** This is the trap for any repo adopting the bar, and it will hit every page at once.
+
+Before the bar, every page sized itself to the viewport (`min-h-screen`, `min-height: 100vh`). Put a 37px bar above a page that is already 100vh tall and the document becomes 100vh + 37px: **every route is permanently overscrolled by the bar's height**, with nothing to scroll to.
+
+| Don't | Do |
+|-------|-----|
+| `min-h-screen` on a page root | `min-h-full` — 100% of the scrolling `<main>` |
+| `min-height: 100vh` in page CSS | `min-height: 100%` |
+| `calc(100vh - 24px)` | `calc(100vh - 61px)` — the same 24px of gutters, **plus the 37px bar** |
+
+`vh` still means the *window*, which now includes the bar. Anything computing `calc(100vh - …)` must subtract 37px on top of whatever it already accounted for. From `game.vue`:
+
+```css
+/* 100% (not 100vh) of the layout's scrolling <main>, which is the viewport less
+   the top status bar — 100vh here would overflow the shell by the bar's height */
+.vp-page {
+  min-height: 100%;
+}
+
+.vp-col-left,
+.vp-col-right {
+  position: sticky;
+  top: 12px;
+  /* 12px gutter top and bottom, inside the viewport less the 37px status bar */
+  max-height: calc(100vh - 61px);
+  overflow-y: auto;
+}
+```
+
+`position: sticky` now resolves against the scrolling `<main>`, not the document — so `top: 12px` is 12px below **the bar**, and sticky columns tuck under it instead of sliding behind it.
+
+### Page Shell
+
+Every page renders inside the shell's `<main>`, using this structure:
+
+```html
+<div class="min-h-full bg-gray-950 text-white">
   <div class="max-w-{size} mx-auto px-4 py-{n}">
     <!-- Header -->
     <!-- Content -->
@@ -119,14 +243,18 @@ Every page uses this structure:
 </div>
 ```
 
+`min-h-full`, **not** `min-h-screen` — see *Viewport Ownership*.
+
 | Page Type | Max Width | Padding |
 |-----------|-----------|---------|
-| Setup | `max-w-2xl` (672px) | `p-6` |
+| Setup | `max-w-4xl` (896px) | `p-6` |
 | Game | Full width, columns centered | `p-2` to `p-4` |
-| Stats/History | `max-w-5xl` (1024px) | `py-8` |
-| Analysis | `max-w-5xl` | `py-8` |
+| Stats/History | `max-w-5xl` (1024px) | `px-4 py-8` |
+| Analysis | `max-w-5xl` | `px-4 py-8` |
 
 ### Header Pattern
+
+The in-page header. It is page furniture and sits **below** the global status bar:
 
 ```html
 <div class="flex items-center justify-between mb-8">
@@ -140,9 +268,11 @@ Every page uses this structure:
 </div>
 ```
 
+Its "Home" goes to *this app's* setup page (`/`). It is **not** the hub exit and does not replace it — the two are different controls, and both are on the page.
+
 ### Footer Pattern
 
-Every page ends with:
+Also in-page, also below the bar. The nav row a page ends with:
 
 ```html
 <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-500">
@@ -153,10 +283,15 @@ Every page ends with:
   <NuxtLink to="/analysis" class="hover:text-gray-300 transition-colors">Analysis</NuxtLink>
   <span>&middot;</span>
   <NuxtLink to="/history" class="hover:text-gray-300 transition-colors">History</NuxtLink>
+  <AnalysisStatus />
   <span>&middot;</span>
-  <a href="https://github.com/cschweda/{repo}" ...>GitHub</a>
+  <a href="https://github.com/cschweda/{repo}" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors flex items-center gap-1">GitHub</a>
 </footer>
 ```
+
+A page omits its own link: the setup page has no "Home", the game page has no "Game". Copy the *pattern*, not this app's markup — video poker deviates twice. `index.vue` uses a plain `<div>` with the same classes minus `mt-10`, and `game.vue` re-implements the row in scoped CSS (`.vp-footer`) to match the machine's chrome. `<AnalysisStatus />` rides in the footer on setup, game and history, but not on analysis — that page reports its own run inline.
+
+This footer is *not* a substitute for the status bar. It navigates **within** the app; the bar leaves it.
 
 ---
 
@@ -270,7 +405,9 @@ Wrap any metric that might confuse a new player:
 
 The page has two visual zones:
 
-1. **Chrome** — setup, stats, analysis, footer, info bar, side panels. Uses the shared design system above. Identical across all simulators.
+1. **Chrome** — the top status bar, setup, stats, analysis, footer, info bar, side panels. Uses the shared design system above. Identical across all simulators.
+
+   The status bar and the hub exit inside it are the strictest case in the collection: identical *markup*, copied verbatim, not merely styled to match. Everything else here is a pattern to follow; those two are a component to clone.
 
 2. **Game area** — the actual game rendering. Custom per game. This is where each simulator's visual identity lives:
    - Hold'em: Green felt table, chip stacks, community cards
@@ -305,6 +442,8 @@ Every simulator should have an `/analysis` page that:
 | Focus indicators | `focus-visible` ring on all interactive elements |
 | Keyboard nav | Tab between groups, arrow within groups |
 | Screen readers | `aria-label`, `aria-pressed`, `aria-live` |
+| Label in Name | Where a control has visible text, its accessible name **contains that text verbatim** (WCAG 2.5.3) — see the hub exit |
+| Landmarks | The status bar is a `<nav aria-label="App">`; page content is the layout's `<main>` |
 | Color independence | Shape + color (not color alone) |
 | Motion | `prefers-reduced-motion` respected |
 | Contrast | WCAG 2.1 AA minimum |
@@ -410,14 +549,17 @@ The README references the PNG (`public/hero.png`) for GitHub compatibility. The 
 ```
 {simulator}/
 ├── app/
-│   ├── app.vue                    # UApp + NuxtPage
+│   ├── app.vue                    # UApp + NuxtLayout + NuxtPage
 │   ├── app.config.ts              # primary color, tooltip config
+│   ├── layouts/
+│   │   └── default.vue            # App shell: top status bar + scrolling <main>
 │   ├── pages/
 │   │   ├── index.vue              # Setup / selection
 │   │   ├── game.vue               # The game
 │   │   ├── analysis.vue           # Simulation runner
 │   │   └── history.vue            # Session stats
 │   ├── components/
+│   │   ├── AppHubLink.vue         # Hub exit — gold METAINCOGNITA wordmark
 │   │   ├── {GameSpecific}.vue     # Custom game rendering
 │   │   └── AnalysisStatus.vue     # Footer status indicator
 │   ├── stores/
