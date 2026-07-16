@@ -49,7 +49,9 @@ function startGame(tableId?: string) {
         </p>
       </div>
 
-      <!-- Variant grid — 3 columns -->
+      <!-- Variant grid — 3 columns. The whole card is a mouse hit area;
+           the title button is the keyboard/AT path (the card itself can't be
+           a button/radio — it contains the Play Now / Rules buttons). -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <div
           v-for="group in PAY_TABLE_GROUPS"
@@ -61,11 +63,16 @@ function startGame(tableId?: string) {
           @click="selectGroup(group)"
         >
           <div class="flex items-center justify-between">
-            <h2
-              class="text-sm font-semibold"
-              :class="selectedGroup?.variant === group.variant ? 'text-white' : 'text-gray-200'"
-            >
-              {{ group.variant }}
+            <h2 class="text-sm font-semibold">
+              <button
+                type="button"
+                class="rounded focus-visible:outline-2 focus-visible:outline-primary-400"
+                :class="selectedGroup?.variant === group.variant ? 'text-white' : 'text-gray-200'"
+                :aria-pressed="selectedGroup?.variant === group.variant"
+                @click.stop="selectGroup(group)"
+              >
+                {{ group.variant }}
+              </button>
             </h2>
             <span
               class="text-[0.6rem] font-mono tabular-nums px-1.5 py-0.5 rounded"
@@ -78,10 +85,10 @@ function startGame(tableId?: string) {
               {{ PAY_TABLES[group.tables[0]!]!.returnPct }}%
             </span>
           </div>
-          <p class="text-[0.7rem] text-gray-500 leading-snug">
+          <p class="text-[0.7rem] text-gray-400 leading-snug">
             {{ group.description }}
           </p>
-          <div class="text-[0.6rem] text-gray-600">
+          <div class="text-[0.6rem] text-gray-400">
             {{ PAY_TABLES[group.tables[0]!]!.classifier === 'deucesWild' ? 'Wild cards' : 'Standard deck' }}
             &middot; {{ group.tables.length }} pay table{{ group.tables.length > 1 ? 's' : '' }}
           </div>
@@ -132,7 +139,7 @@ function startGame(tableId?: string) {
                 ? 'text-primary-400'
                 : PAY_TABLES[tableId]!.returnPct >= 100
                   ? 'text-green-400'
-                  : 'text-gray-500'"
+                  : 'text-gray-400'"
             >
               {{ PAY_TABLES[tableId]!.returnPct }}%
             </span>
@@ -168,7 +175,7 @@ function startGame(tableId?: string) {
         </div>
         <p
           v-if="selectedRules"
-          class="text-xs text-gray-500 leading-relaxed"
+          class="text-xs text-gray-400 leading-relaxed"
         >
           {{ selectedRules.overview.slice(0, 200) }}{{ selectedRules.overview.length > 200 ? '...' : '' }}
         </p>
@@ -187,7 +194,7 @@ function startGame(tableId?: string) {
           <button
             v-for="d in [0.25, 0.50, 1.00]"
             :key="d"
-            class="px-4 py-1.5 rounded-md border font-mono text-sm transition-all tabular-nums"
+            class="px-4 py-2.5 rounded-md border font-mono text-sm transition-all tabular-nums"
             :class="game.denomination === d
               ? 'border-primary-500 bg-primary-500/10 text-white'
               : 'border-gray-700/50 bg-gray-900/60 text-gray-400 hover:border-gray-600'"
@@ -210,7 +217,7 @@ function startGame(tableId?: string) {
       </UButton>
 
       <!-- Footer nav -->
-      <div class="border-t border-gray-800 pt-4 flex items-center justify-center gap-4 text-xs text-gray-500">
+      <div class="border-t border-gray-800 pt-4 flex items-center justify-center gap-4 text-xs text-gray-400">
         <NuxtLink
           to="/game"
           class="hover:text-gray-300 transition-colors"

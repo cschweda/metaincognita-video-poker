@@ -83,13 +83,13 @@ watch(() => game.payTableId, () => {
 }
 
 .pay-table-wrapper--flash {
-  border-color: #c9a227;
+  border-color: var(--vp-gold);
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 20px rgba(201, 162, 39, 0.3);
   animation: table-flash 0.5s ease;
 }
 
 @keyframes table-flash {
-  0% { border-color: #c9a227; box-shadow: inset 0 2px 8px rgba(0,0,0,.3), 0 0 30px rgba(201,162,39,.5); }
+  0% { border-color: var(--vp-gold); box-shadow: inset 0 2px 8px rgba(0,0,0,.3), 0 0 30px rgba(201,162,39,.5); }
   100% { border-color: #28284a; box-shadow: inset 0 2px 8px rgba(0,0,0,.3); }
 }
 
@@ -110,7 +110,7 @@ watch(() => game.payTableId, () => {
 .pay-table__hand-header {
   text-align: left;
   padding: 2px 6px;
-  color: #5560a0;
+  color: var(--vp-muted);
   font-weight: 400;
   font-size: 0.85em;
 }
@@ -119,13 +119,13 @@ watch(() => game.payTableId, () => {
   text-align: center;
   padding: 2px 3px;
   min-width: 36px;
-  color: #5560a0;
+  color: var(--vp-muted);
   font-weight: 400;
   font-size: 0.85em;
 }
 
 .pay-table__coin-header--active {
-  color: #ffd60a;
+  color: var(--vp-gold-bright);
   font-weight: 700;
   background: rgba(201, 162, 39, 0.05);
 }
@@ -148,7 +148,7 @@ watch(() => game.payTableId, () => {
 
 .pay-table__row--winner .pay-table__hand-name {
   font-weight: 700;
-  color: #ffd60a;
+  color: var(--vp-gold-bright);
   text-shadow: 0 0 8px rgba(255, 214, 10, 0.4);
 }
 
@@ -156,7 +156,7 @@ watch(() => game.payTableId, () => {
   text-align: center;
   padding: 2px 3px;
   font-weight: 400;
-  color: #6670a0;
+  color: var(--vp-muted-strong);
 }
 
 .pay-table__pay--active-col {
@@ -166,7 +166,7 @@ watch(() => game.payTableId, () => {
 }
 
 .pay-table__pay--winner {
-  color: #ffd60a;
+  color: var(--vp-gold-bright);
   font-weight: 700;
   text-shadow: 0 0 6px rgba(255, 214, 10, 0.5);
 }
@@ -175,7 +175,7 @@ watch(() => game.payTableId, () => {
   margin-top: 5px;
   font-size: 0.62rem;
   text-align: center;
-  color: #5560a0;
+  color: var(--vp-muted);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -183,7 +183,7 @@ watch(() => game.payTableId, () => {
 }
 
 .pay-table__return--positive {
-  color: #4ade80;
+  color: var(--vp-win);
 }
 
 @keyframes winner-pulse {

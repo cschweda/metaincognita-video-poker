@@ -93,7 +93,7 @@ function exportHandHistory() {
           <h1 class="text-2xl font-bold">
             Session History
           </h1>
-          <p class="text-sm text-gray-500 mt-0.5">
+          <p class="text-sm text-gray-400 mt-0.5">
             {{ game.payTable.variant }} ({{ game.payTable.shortName }})
             <span v-if="game.stats.handsPlayed > 0"> &middot; {{ game.stats.handsPlayed }} hands</span>
           </p>
@@ -135,7 +135,7 @@ function exportHandHistory() {
             class="px-5 py-2.5 text-sm font-medium capitalize transition-all rounded-t-lg"
             :class="activeTab === tab
               ? 'text-white bg-gray-800/60 border-b-2 border-primary-500'
-              : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/30'"
+              : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/30'"
             @click="activeTab = tab"
           >
             {{ tab }}
@@ -154,7 +154,7 @@ function exportHandHistory() {
           <!-- Headline stat -->
           <div class="bg-gradient-to-br from-gray-900 to-gray-900/60 border border-gray-800 rounded-2xl p-6 flex items-center justify-between">
             <div>
-              <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">
+              <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">
                 Session Result
               </div>
               <div
@@ -177,7 +177,7 @@ function exportHandHistory() {
           <!-- Key metrics -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-4">
-              <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider mb-2">
+              <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-2">
                 Won
               </div>
               <div class="text-2xl font-bold font-mono text-green-400">
@@ -185,7 +185,7 @@ function exportHandHistory() {
               </div>
             </div>
             <div class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-4">
-              <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider mb-2">
+              <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-2">
                 Lost
               </div>
               <div class="text-2xl font-bold font-mono text-red-400">
@@ -193,7 +193,7 @@ function exportHandHistory() {
               </div>
             </div>
             <div class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-4">
-              <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider mb-2">
+              <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-2">
                 Mistakes
               </div>
               <div
@@ -204,7 +204,7 @@ function exportHandHistory() {
               </div>
             </div>
             <div class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-4">
-              <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider mb-2">
+              <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-2">
                 EV Lost
               </div>
               <div
@@ -222,7 +222,7 @@ function exportHandHistory() {
             class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5"
           >
             <div class="flex items-center justify-between mb-3">
-              <span class="text-[0.65rem] text-gray-500 uppercase tracking-wider">Profit Trend</span>
+              <span class="text-[0.65rem] text-gray-400 uppercase tracking-wider">Profit Trend</span>
               <span
                 :class="profitTimeline[profitTimeline.length - 1]! >= 0 ? 'text-green-400' : 'text-red-400'"
                 class="text-sm font-mono font-bold"
@@ -239,7 +239,7 @@ function exportHandHistory() {
                 :style="{ height: `${Math.max(4, Math.abs(val) / Math.max(...profitTimeline.map(Math.abs), 1) * 100)}%` }"
               />
             </div>
-            <div class="flex justify-between text-[0.6rem] text-gray-600 mt-1">
+            <div class="flex justify-between text-[0.6rem] text-gray-400 mt-1">
               <span>Hand #1</span>
               <span>Hand #{{ game.handHistory.length }}</span>
             </div>
@@ -251,7 +251,7 @@ function exportHandHistory() {
               <div class="text-lg font-bold font-mono text-green-400">
                 ${{ biggestWin.toFixed(2) }}
               </div>
-              <div class="text-[0.6rem] text-gray-500 uppercase">
+              <div class="text-[0.6rem] text-gray-400 uppercase">
                 Biggest Win
               </div>
             </div>
@@ -259,7 +259,7 @@ function exportHandHistory() {
               <div class="text-lg font-bold font-mono text-red-400">
                 -${{ biggestLoss.toFixed(2) }}
               </div>
-              <div class="text-[0.6rem] text-gray-500 uppercase">
+              <div class="text-[0.6rem] text-gray-400 uppercase">
                 Per-Hand Risk
               </div>
             </div>
@@ -270,7 +270,7 @@ function exportHandHistory() {
             v-if="game.personaResults.length > 0"
             class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5"
           >
-            <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider mb-3">
+            <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-3">
               Bot Comparison
             </div>
             <div class="space-y-2">
@@ -278,7 +278,7 @@ function exportHandHistory() {
               <div class="flex items-center justify-between bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 py-2">
                 <div>
                   <span class="text-sm font-semibold text-white">You</span>
-                  <span class="text-[0.6rem] text-gray-500 ml-2">Your actual plays</span>
+                  <span class="text-[0.6rem] text-gray-400 ml-2">Your actual plays</span>
                 </div>
                 <div class="flex items-center gap-3 font-mono text-sm">
                   <span
@@ -300,7 +300,7 @@ function exportHandHistory() {
               >
                 <div>
                   <span class="text-sm font-semibold text-gray-200">{{ pr.personaName }}</span>
-                  <span class="text-[0.6rem] text-gray-500 ml-2">{{ PERSONAS.find(p => p.id === pr.personaId)?.style }}</span>
+                  <span class="text-[0.6rem] text-gray-400 ml-2">{{ PERSONAS.find(p => p.id === pr.personaId)?.style }}</span>
                 </div>
                 <div class="flex items-center gap-3 font-mono text-sm">
                   <span
@@ -323,7 +323,7 @@ function exportHandHistory() {
             class="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5"
           >
             <div class="flex items-center justify-between mb-3">
-              <span class="text-[0.65rem] text-gray-500 uppercase tracking-wider">Mistakes ({{ mistakeHands.length }})</span>
+              <span class="text-[0.65rem] text-gray-400 uppercase tracking-wider">Mistakes ({{ mistakeHands.length }})</span>
               <span class="text-xs text-red-400 font-mono font-bold">${{ game.stats.totalEVLost.toFixed(2) }} total</span>
             </div>
             <div class="space-y-1.5">
@@ -333,10 +333,10 @@ function exportHandHistory() {
                 class="w-full text-left flex items-center gap-2 text-xs bg-red-900/10 border border-red-800/20 rounded-lg px-3 py-2 hover:bg-red-900/20 transition-colors"
                 @click="activeTab = 'hands'; expandedHand = h.handNumber"
               >
-                <span class="text-gray-500 font-mono w-8">#{{ h.handNumber }}</span>
+                <span class="text-gray-400 font-mono w-8">#{{ h.handNumber }}</span>
                 <span class="text-white font-mono flex-1">{{ formatCards(h.dealtCards) }}</span>
                 <span class="text-red-400 font-mono font-bold">-${{ h.mistakeCost.toFixed(2) }}</span>
-                <span class="text-gray-600">&rsaquo;</span>
+                <span class="text-gray-500">&rsaquo;</span>
               </button>
             </div>
           </div>
@@ -371,7 +371,7 @@ function exportHandHistory() {
               class="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-800/20 transition-colors"
               @click="expandedHand = expandedHand === h.handNumber ? null : h.handNumber"
             >
-              <span class="text-xs text-gray-500 font-mono w-8">#{{ h.handNumber }}</span>
+              <span class="text-xs text-gray-400 font-mono w-8">#{{ h.handNumber }}</span>
               <span class="font-mono text-white text-sm flex-1">{{ formatCards(h.dealtCards) }}</span>
               <span
                 v-if="h.mistakeCost > 0.001"
@@ -381,7 +381,7 @@ function exportHandHistory() {
                 class="px-2 py-0.5 rounded text-[0.6rem] font-bold uppercase w-20 text-center"
                 :class="h.payout > 0
                   ? 'bg-green-900/40 text-green-400'
-                  : 'bg-gray-800/60 text-gray-500'"
+                  : 'bg-gray-800/60 text-gray-400'"
               >
                 {{ h.handResult || 'No Win' }}
               </span>
@@ -391,7 +391,7 @@ function exportHandHistory() {
               >
                 {{ h.payout > 0 ? '+' : '-' }}${{ ((h.payout > 0 ? h.payout : game.coinsBet) * game.denomination).toFixed(2) }}
               </span>
-              <span class="text-gray-600 text-xs">{{ expandedHand === h.handNumber ? '&#9660;' : '&#9654;' }}</span>
+              <span class="text-gray-500 text-xs">{{ expandedHand === h.handNumber ? '&#9660;' : '&#9654;' }}</span>
             </button>
 
             <!-- Expanded detail -->
@@ -401,7 +401,7 @@ function exportHandHistory() {
             >
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-gray-900/50 rounded-lg p-3">
-                  <div class="text-[0.6rem] text-gray-500 uppercase mb-1">
+                  <div class="text-[0.6rem] text-gray-400 uppercase mb-1">
                     Dealt
                   </div>
                   <div class="font-mono text-white">
@@ -409,7 +409,7 @@ function exportHandHistory() {
                   </div>
                 </div>
                 <div class="bg-gray-900/50 rounded-lg p-3">
-                  <div class="text-[0.6rem] text-gray-500 uppercase mb-1">
+                  <div class="text-[0.6rem] text-gray-400 uppercase mb-1">
                     Final Hand
                   </div>
                   <div class="font-mono text-white">
@@ -420,13 +420,13 @@ function exportHandHistory() {
 
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-gray-900/50 rounded-lg p-3">
-                  <div class="text-[0.6rem] text-gray-500 uppercase mb-1">
+                  <div class="text-[0.6rem] text-gray-400 uppercase mb-1">
                     You Held
                   </div>
                   <div class="font-mono text-white">
                     {{ h.playerHeld.length > 0 ? h.playerHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(drew 5 new)' }}
                   </div>
-                  <div class="text-[0.55rem] text-gray-500 font-mono mt-1">
+                  <div class="text-[0.55rem] text-gray-400 font-mono mt-1">
                     EV: {{ h.playerEV.toFixed(4) }}
                   </div>
                 </div>
@@ -436,7 +436,7 @@ function exportHandHistory() {
                 >
                   <div
                     class="text-[0.6rem] uppercase mb-1"
-                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-gray-500'"
+                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-gray-400'"
                   >
                     Optimal
                   </div>
@@ -448,7 +448,7 @@ function exportHandHistory() {
                   </div>
                   <div
                     class="text-[0.55rem] font-mono mt-1"
-                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-gray-500'"
+                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-gray-400'"
                   >
                     EV: {{ h.optimalEV.toFixed(4) }}
                   </div>
@@ -463,7 +463,7 @@ function exportHandHistory() {
                 <span class="text-sm text-red-400 font-mono font-bold">${{ h.mistakeCost.toFixed(2) }}</span>
               </div>
 
-              <div class="flex items-center justify-between text-xs text-gray-500">
+              <div class="flex items-center justify-between text-xs text-gray-400">
                 <span>Result: <strong :class="h.payout > 0 ? 'text-green-400' : 'text-gray-400'">{{ h.handResult || 'No Win' }}</strong></span>
                 <span
                   v-if="h.payout > 0"
@@ -476,7 +476,7 @@ function exportHandHistory() {
       </template>
 
       <!-- Footer -->
-      <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-500">
+      <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-400">
         <NuxtLink
           to="/"
           class="hover:text-gray-300 transition-colors"

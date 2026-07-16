@@ -13,7 +13,7 @@ const rules = computed(() => VARIANT_RULES[props.variant])
 <template>
   <UModal
     v-model:open="open"
-    :title="rules?.variant + ' — Rules & Strategy'"
+    :title="rules ? `${rules.variant} — Rules & Strategy` : 'Rules'"
     close-icon="i-lucide-x"
   >
     <template #body>
@@ -288,9 +288,9 @@ const rules = computed(() => VARIANT_RULES[props.variant])
   font-size: 0.82rem;
 }
 
-.rules-ptv__return--good { color: #4ade80; }
+.rules-ptv__return--good { color: var(--vp-win); }
 .rules-ptv__return--ok { color: #fbbf24; }
-.rules-ptv__return--bad { color: #f87171; }
+.rules-ptv__return--bad { color: var(--vp-loss); }
 
 .rules-ptv__desc {
   font-size: 0.78rem;

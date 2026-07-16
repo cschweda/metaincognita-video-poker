@@ -47,14 +47,14 @@ const isWin = computed(() => game.resultPayout > 0)
 }
 
 .result-display__text--win {
-  color: #ffd60a;
+  color: var(--vp-gold-bright);
   text-shadow: 0 0 16px rgba(255, 214, 10, 0.4);
   animation: pop 0.3s ease-out;
 }
 
 .result-display__text--loss {
   /* Muted relative to a win, but must stay readable (WCAG AA) */
-  color: #8f96bd;
+  color: var(--vp-muted-strong);
 }
 
 .result-pop-enter-active {

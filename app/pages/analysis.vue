@@ -83,7 +83,7 @@ function downloadResults() {
           <h1 class="text-3xl font-bold text-white">
             Statistical Analysis
           </h1>
-          <p class="text-gray-500 text-sm mt-1">
+          <p class="text-gray-400 text-sm mt-1">
             Optimal play simulation across all variants
           </p>
         </div>
@@ -120,8 +120,12 @@ function downloadResults() {
           </UButton>
 
           <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500">Hands/run:</span>
+            <label
+              for="analysis-hands-per-run"
+              class="text-xs text-gray-400"
+            >Hands/run:</label>
             <select
+              id="analysis-hands-per-run"
               v-model.number="store.handsPerRun"
               :disabled="store.status === 'running'"
               class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500/50 cursor-pointer"
@@ -142,8 +146,12 @@ function downloadResults() {
           </div>
 
           <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500">Runs:</span>
+            <label
+              for="analysis-num-runs"
+              class="text-xs text-gray-400"
+            >Runs:</label>
             <select
+              id="analysis-num-runs"
               v-model.number="store.numRuns"
               :disabled="store.status === 'running'"
               class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500/50 cursor-pointer"
@@ -182,7 +190,7 @@ function downloadResults() {
               />
             </div>
             <span class="text-sm text-gray-400">{{ store.runPhase }}</span>
-            <span class="text-xs text-gray-500 font-mono tabular-nums">{{ store.runProgress }}%</span>
+            <span class="text-xs text-gray-400 font-mono tabular-nums">{{ store.runProgress }}%</span>
           </div>
           <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
             <div
@@ -190,12 +198,12 @@ function downloadResults() {
               :style="{ width: store.runProgress + '%' }"
             />
           </div>
-          <p class="text-xs text-gray-600">
+          <p class="text-xs text-gray-400">
             Running in background — you can navigate to other pages. Results persist.
           </p>
         </div>
 
-        <p class="text-xs text-gray-600 mt-3">
+        <p class="text-xs text-gray-400 mt-3">
           {{ store.totalHands.toLocaleString() }} total hands across {{ store.simTargets.length }} variants.
           Uses strategy lookup for fast optimal play. UI stays responsive during simulation.
         </p>
@@ -206,7 +214,7 @@ function downloadResults() {
         v-if="store.runTimestamp && store.status !== 'running'"
         class="mb-6 flex items-center justify-between"
       >
-        <div class="flex items-center gap-3 text-xs text-gray-600">
+        <div class="flex items-center gap-3 text-xs text-gray-400">
           <span>{{ store.runTimestamp }}</span>
           <span>&middot;</span>
           <span>{{ store.runDuration }}s runtime</span>
@@ -235,13 +243,13 @@ function downloadResults() {
           <template v-if="variantRuns.length > 0">
             <h2 class="text-xl font-bold text-white mb-4">
               {{ variantRuns[0]?.variant }}
-              <span class="text-gray-500 font-normal text-base ml-2">{{ variantRuns[0]?.shortName }}</span>
+              <span class="text-gray-400 font-normal text-base ml-2">{{ variantRuns[0]?.shortName }}</span>
             </h2>
 
             <!-- Metrics Grid -->
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
               <div class="bg-gray-800/60 rounded-lg p-3">
-                <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider">
+                <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider">
                   Theoretical
                 </div>
                 <div class="text-lg font-bold font-mono text-white mt-1">
@@ -249,7 +257,7 @@ function downloadResults() {
                 </div>
               </div>
               <div class="bg-gray-800/60 rounded-lg p-3">
-                <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider">
+                <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider">
                   Avg Actual
                 </div>
                 <div
@@ -264,7 +272,7 @@ function downloadResults() {
                 </div>
               </div>
               <div class="bg-gray-800/60 rounded-lg p-3">
-                <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider">
+                <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider">
                   Deviation
                 </div>
                 <div
@@ -279,7 +287,7 @@ function downloadResults() {
                 </div>
               </div>
               <div class="bg-gray-800/60 rounded-lg p-3">
-                <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider">
+                <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider">
                   Range
                 </div>
                 <div class="text-sm font-bold font-mono text-gray-400 mt-1.5">
@@ -287,7 +295,7 @@ function downloadResults() {
                 </div>
               </div>
               <div class="bg-gray-800/60 rounded-lg p-3">
-                <div class="text-[0.65rem] text-gray-500 uppercase tracking-wider">
+                <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider">
                   Avg Time
                 </div>
                 <div class="text-sm font-bold font-mono text-gray-400 mt-1.5">
@@ -361,7 +369,7 @@ function downloadResults() {
                     >
                       {{ run.totalReturned >= run.totalWagered ? '+' : '' }}{{ (run.totalReturned - run.totalWagered).toLocaleString() }}
                     </td>
-                    <td class="text-right px-2 font-mono text-gray-500">
+                    <td class="text-right px-2 font-mono text-gray-400">
                       {{ (run.durationMs / 1000).toFixed(1) }}s
                     </td>
                   </tr>
@@ -377,7 +385,7 @@ function downloadResults() {
               <div class="overflow-x-auto mt-2">
                 <table class="w-full text-sm">
                   <thead>
-                    <tr class="border-b border-gray-700 text-gray-500 text-xs">
+                    <tr class="border-b border-gray-700 text-gray-400 text-xs">
                       <th class="text-left py-1 px-2">
                         Hand
                       </th>
@@ -401,7 +409,7 @@ function downloadResults() {
                       <td class="text-right px-2 font-mono text-gray-400">
                         {{ count.toLocaleString() }}
                       </td>
-                      <td class="text-right px-2 font-mono text-gray-500">
+                      <td class="text-right px-2 font-mono text-gray-400">
                         {{ ((count / variantRuns[variantRuns.length - 1]!.handsPlayed) * 100).toFixed(2) }}%
                       </td>
                     </tr>
@@ -424,7 +432,7 @@ function downloadResults() {
           <p class="mt-1">
             At <strong class="text-amber-400">100,000+ hands</strong> convergence is tight — within 0.1-0.3% of theoretical.
           </p>
-          <p class="mt-2 text-gray-500">
+          <p class="mt-2 text-gray-400">
             This demonstrates why even +EV games like Deuces Wild (100.76%) are hard to profit from in short sessions. The variance zone is real.
           </p>
         </div>
@@ -465,7 +473,7 @@ function downloadResults() {
       <!-- Empty state -->
       <div
         v-if="!store.results.length && store.status === 'idle'"
-        class="text-center py-20 text-gray-600"
+        class="text-center py-20 text-gray-400"
       >
         <p class="text-lg mb-2">
           Click the button above to run the analysis
@@ -478,7 +486,7 @@ function downloadResults() {
         </p>
       </div>
 
-      <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-500">
+      <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-400">
         <NuxtLink
           to="/"
           class="hover:text-gray-300 transition-colors"

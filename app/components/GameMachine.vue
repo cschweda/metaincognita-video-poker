@@ -15,7 +15,7 @@
   border: 2px solid #28284a;
   border-radius: 14px;
   box-shadow:
-    0 0 0 1px #c9a227,
+    0 0 0 1px var(--vp-gold),
     0 12px 48px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   padding: clamp(10px, 2.5vw, 22px);

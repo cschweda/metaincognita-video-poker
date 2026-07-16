@@ -6,6 +6,21 @@
   --font-mono: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
 }
 
+/* Machine design tokens. The machine gold is deliberately warmer than the
+   Nuxt UI `amber` primary (suite chrome like AppHubLink stays literal amber
+   per the design system). Muted text tones are AA-checked against the
+   #1a1a2e/#12121f panels: --vp-muted ≈ 5.2:1, --vp-muted-strong ≈ 6.9:1.
+   --vp-muted-dim fails AA on purpose — borders and decoration only. */
+:root {
+  --vp-gold: #c9a227;
+  --vp-gold-bright: #ffd60a;
+  --vp-win: #4ade80;
+  --vp-loss: #f87171;
+  --vp-muted: #7f8bc9;
+  --vp-muted-strong: #9aa3d0;
+  --vp-muted-dim: #5560a0;
+}
+
 /* Reserve the scrollbar gutter permanently. Without this, any content
    growing past the viewport toggles the classic (space-taking) scrollbar,
    and the centered layout shifts horizontally — a window-wide zig-zag. */

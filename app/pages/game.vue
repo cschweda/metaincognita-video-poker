@@ -157,7 +157,7 @@ onUnmounted(() => {
               <span class="text-amber-400">${{ game.stats.totalEVLost.toFixed(2) }}</span>
             </div>
           </div>
-          <p class="text-gray-500 text-xs">
+          <p class="text-gray-400 text-xs">
             Tip: Use "End Session" first to see how your play compared to the bot personas before switching.
           </p>
           <div class="flex gap-2 justify-end pt-2">
@@ -348,11 +348,11 @@ onUnmounted(() => {
 }
 
 .vp-infobar__balance-value--up {
-  color: #4ade80;
+  color: var(--vp-win);
 }
 
 .vp-infobar__balance-value--down {
-  color: #f87171;
+  color: var(--vp-loss);
 }
 
 .vp-infobar__link {
@@ -387,7 +387,8 @@ onUnmounted(() => {
 }
 
 .vp-nav__tab {
-  padding: 5px 12px;
+  /* ~40px tall: comfortable thumb target (WCAG 2.5.8) */
+  padding: 10px 14px;
   border-radius: 6px;
   border: 1px solid rgba(51, 51, 88, 1);
   background: rgba(20, 20, 40, 0.9);
@@ -404,13 +405,13 @@ onUnmounted(() => {
 }
 
 .vp-nav__tab--active {
-  border-color: #c9a227;
+  border-color: var(--vp-gold);
   background: rgba(201, 162, 39, 0.12);
-  color: #ffd60a;
+  color: var(--vp-gold-bright);
 }
 
 .vp-nav__subtab {
-  padding: 3px 10px;
+  padding: 8px 12px;
   border-radius: 4px;
   border: 1px solid rgba(40, 40, 74, 1);
   background: rgba(20, 20, 40, 0.7);
@@ -427,8 +428,8 @@ onUnmounted(() => {
 }
 
 .vp-nav__subtab--active {
-  border-color: #c9a227;
-  color: #ffd60a;
+  border-color: var(--vp-gold);
+  color: var(--vp-gold-bright);
   background: rgba(201, 162, 39, 0.08);
 }
 

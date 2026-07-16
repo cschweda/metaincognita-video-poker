@@ -109,7 +109,9 @@ const ariaLabel = computed(() => {
       </div>
     </button>
 
-    <!-- HOLD / CANCEL button -->
+    <!-- HOLD / CANCEL button. Out of the tab order on purpose: the card
+         itself is the fully-operable toggle, so this stays a mouse/touch
+         convenience instead of doubling every card's tab stops. -->
     <button
       class="hold-btn"
       :class="{
@@ -117,6 +119,7 @@ const ariaLabel = computed(() => {
         'hold-btn--disabled': !canHold
       }"
       :disabled="!canHold"
+      tabindex="-1"
       :aria-pressed="isHeld"
       :aria-label="card ? `${isHeld ? 'Cancel' : 'Hold'} ${RANK_LABELS[card.rank]} of ${card.suit}` : 'Hold'"
       @click="emit('toggleHold')"
@@ -147,7 +150,7 @@ const ariaLabel = computed(() => {
 }
 
 .held-badge {
-  background: linear-gradient(135deg, #c9a227, #ffd60a);
+  background: linear-gradient(135deg, var(--vp-gold), var(--vp-gold-bright));
   color: #1a1a2e;
   font-size: 0.58rem;
   font-weight: 800;
@@ -187,7 +190,7 @@ const ariaLabel = computed(() => {
 }
 
 .card:focus-visible {
-  outline: 2px solid #ffd60a;
+  outline: 2px solid var(--vp-gold-bright);
   outline-offset: 2px;
 }
 
@@ -237,9 +240,9 @@ const ariaLabel = computed(() => {
    card face content. The thicker gold ring is a 0-offset box-shadow, which
    paints outside the border without any layout effect. */
 .card--held .card__front {
-  border-color: #c9a227;
+  border-color: var(--vp-gold);
   box-shadow:
-    0 0 0 1.5px #c9a227,
+    0 0 0 1.5px var(--vp-gold),
     0 0 18px rgba(201, 162, 39, 0.5),
     0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -301,7 +304,7 @@ const ariaLabel = computed(() => {
 .card__back {
   transform: rotateY(180deg);
   background: linear-gradient(135deg, #6b1020 0%, #4a0a18 50%, #6b1020 100%);
-  border: 2px solid #c9a227;
+  border: 2px solid var(--vp-gold);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
@@ -383,8 +386,8 @@ const ariaLabel = computed(() => {
 }
 
 .hold-btn--active {
-  background: linear-gradient(180deg, #ffd60a 0%, #c9a227 40%, #a88520 100%);
-  border-color: #c9a227;
+  background: linear-gradient(180deg, var(--vp-gold-bright) 0%, var(--vp-gold) 40%, #a88520 100%);
+  border-color: var(--vp-gold);
   color: #1a1a2e;
   box-shadow:
     0 4px 0 #6b5510,
@@ -406,7 +409,7 @@ const ariaLabel = computed(() => {
 }
 
 .hold-btn:focus-visible {
-  outline: 2px solid #ffd60a;
+  outline: 2px solid var(--vp-gold-bright);
   outline-offset: 2px;
 }
 

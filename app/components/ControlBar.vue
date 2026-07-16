@@ -94,13 +94,13 @@ const isActionDisabled = computed(() => {
 }
 
 .ctrl-btn:focus-visible {
-  outline: 2px solid #ffd60a;
+  outline: 2px solid var(--vp-gold-bright);
   outline-offset: 2px;
 }
 
 /* Primary button (Deal/Draw) */
 .ctrl-btn--primary {
-  background: linear-gradient(180deg, #c9a227, #a88520);
+  background: linear-gradient(180deg, var(--vp-gold), #a88520);
   color: #1a1a2e;
   font-size: 0.95rem;
   padding: 11px 36px;
@@ -116,7 +116,7 @@ const isActionDisabled = computed(() => {
   display: flex;
   justify-content: space-between;
   font-size: clamp(0.58rem, 1.3vw, 0.78rem);
-  color: #4ade80;
+  color: var(--vp-win);
   text-shadow: 0 0 6px rgba(74, 222, 128, 0.2);
   padding: 2px 4px;
   flex-wrap: wrap;
