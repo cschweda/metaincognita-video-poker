@@ -2,6 +2,8 @@ import type { Card } from './cards'
 import type { PayTableDef } from './payTables'
 import { getPayForHand } from './payTables'
 import { classifyDeucesWild } from './wildClassifier'
+import { handShape, rankCounts, sortedCounts } from './handShape'
+import { combinations } from './combinations'
 
 /**
  * Fast strategy lookup for video poker simulation and bot play.
@@ -40,11 +42,9 @@ function indicesOfSubset(hand: Card[], subset: Card[]): number[] {
   return result
 }
 
-function getRankCounts(cards: Card[]): Map<number, number> {
-  const m = new Map<number, number>()
-  for (const c of cards) m.set(c.rank, (m.get(c.rank) || 0) + 1)
-  return m
-}
+// Rank-count and count-sorting primitives are shared: see handShape.ts
+const getRankCounts = rankCounts
+const getSortedCounts = sortedCounts
 
 function getSuitGroups(cards: Card[]): Map<Suit, Card[]> {
   const m = new Map<Suit, Card[]>()
@@ -56,20 +56,8 @@ function getSuitGroups(cards: Card[]): Map<Suit, Card[]> {
   return m
 }
 
-function getSortedCounts(rc: Map<number, number>): number[] {
-  return [...rc.values()].sort((a, b) => b - a)
-}
-
-/** All k-element subsets of an array (arrays here are ≤ 5 elements). */
-function choose<T>(arr: T[], k: number): T[][] {
-  if (k === 0) return [[]]
-  if (arr.length < k) return []
-  const [head, ...rest] = arr as [T, ...T[]]
-  return [
-    ...choose(rest, k - 1).map(s => [head, ...s]),
-    ...choose(rest, k)
-  ]
-}
+// k-element subsets (≤5-element arrays here) — shared enumerator, same order
+const choose = combinations
 
 const ALL_FIVE = [0, 1, 2, 3, 4]
 
@@ -224,15 +212,10 @@ interface JobOpts {
 }
 
 function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
-  const rc = getRankCounts(cards)
-  const counts = getSortedCounts(rc)
-  const ranks = cards.map(c => c.rank).sort((a, b) => a - b)
-  const uniq = [...new Set(ranks)]
-  const fl = cards.every(c => c.suit === cards[0]!.suit)
-  const st = uniq.length === 5 && (uniq[4]! - uniq[0]! === 4 || uniq.join(',') === '2,3,4,5,14')
+  const { rankCounts: rc, counts, isFlush: fl, isStraight: st, isRoyal } = handShape(cards)
 
   // 1-3. Pat royal / straight flush / four of a kind
-  if (fl && uniq.join(',') === '10,11,12,13,14') return ALL_FIVE
+  if (isRoyal) return ALL_FIVE
   if (fl && st) return ALL_FIVE
   if (counts[0] === 4) return ALL_FIVE
 

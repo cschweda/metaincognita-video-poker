@@ -35,3 +35,4 @@ Thumbs.db
 
 # PDF reference docs (large)
 # docs/*.pdf
+coverage

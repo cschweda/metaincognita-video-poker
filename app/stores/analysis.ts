@@ -42,6 +42,11 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
   function startAnalysis() {
     if (status.value === 'running') return
+    // Degrade with a message instead of throwing when Workers are unavailable
+    if (typeof Worker === 'undefined') {
+      runPhase.value = 'Simulation requires Web Worker support'
+      return
+    }
 
     status.value = 'running'
     results.value = []

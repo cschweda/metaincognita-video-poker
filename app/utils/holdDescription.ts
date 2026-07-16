@@ -1,5 +1,6 @@
 import type { Card } from './cards'
 import { cardLabel, RANK_NAMES, SUIT_NAMES } from './cards'
+import { rankCounts } from './handShape'
 
 /**
  * Human-readable description of a hold, e.g. "Hold the pair of Sevens".
@@ -19,12 +20,12 @@ export function describeHold(cards: Card[], isDeucesWild: boolean): string {
   }
 
   // Detect patterns for more natural descriptions
-  const ranks = naturals.length > 0 ? naturals.map(c => c.rank) : cards.map(c => c.rank)
-  const suits = naturals.length > 0 ? naturals.map(c => c.suit) : cards.map(c => c.suit)
-  const rankCounts: Record<number, number> = {}
-  for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1
+  const described = naturals.length > 0 ? naturals : cards
+  const ranks = described.map(c => c.rank)
+  const suits = described.map(c => c.suit)
+  const rc = rankCounts(described)
 
-  const pairs = Object.entries(rankCounts).filter(([, c]) => c >= 2)
+  const pairs = [...rc.entries()].filter(([, c]) => c >= 2)
   const allSameSuit = suits.length > 0 && suits.every(s => s === suits[0])
 
   const wildSuffix = isDeucesWild && deuces.length > 0
@@ -34,7 +35,7 @@ export function describeHold(cards: Card[], isDeucesWild: boolean): string {
   if (naturals.length === 2 && pairs.length === 1) {
     return `Hold the pair of ${RANK_NAMES[Number(pairs[0]![0])]}s${wildSuffix}`
   }
-  if (naturals.length === 3 && pairs.length === 1 && Object.values(rankCounts).includes(3)) {
+  if (naturals.length === 3 && pairs.length === 1 && [...rc.values()].includes(3)) {
     return `Hold three ${RANK_NAMES[Number(pairs[0]![0])]}s${wildSuffix}`
   }
   if (pairs.length === 2) {

@@ -65,11 +65,16 @@ export const useGameStore = defineStore('game', () => {
   // Guards against stale worker responses (new deal / reset supersedes old analysis)
   let analysisToken = 0
   // Set when the player draws before the analysis arrives; reconciled on arrival.
-  // Carries the dealt card ids so a late analysis can still back-fill its own
-  // hand even after a newer hand has been dealt.
-  let pendingDrawReconcile: { playerHeldIndices: number[], handNumber: number, dealtIds: string[] } | null = null
+  // Keyed by the deal's analysis token so a late analysis can still back-fill
+  // its own hand even after a newer hand has been dealt (card ids could
+  // collide across two identical deals; the token cannot).
+  let pendingDrawReconcile: { playerHeldIndices: number[], handNumber: number, forToken: number } | null = null
 
   // --- Hand history ---
+  // Display cap: newest entries win. dealtDecks stays uncapped — persona
+  // replay needs every completed hand, and sessions are bounded by the
+  // 5-minute inactivity timeout anyway.
+  const HAND_HISTORY_LIMIT = 500
   const handHistory = ref<HandHistoryEntry[]>([])
 
   // --- Dealt decks for persona replay ---
@@ -257,7 +262,7 @@ export const useGameStore = defineStore('game', () => {
       }
 
       // If the player already drew this hand, back-fill mistake tracking
-      reconcilePendingDraw(dealtCards, options, isCurrent)
+      reconcilePendingDraw(token, options, isCurrent)
 
       if (!isCurrent) return
       analysisPending.value = false
@@ -266,9 +271,7 @@ export const useGameStore = defineStore('game', () => {
     }).catch((err) => {
       console.error('EV analysis failed for this hand:', err)
       // A reconcile recorded for this hand can never complete now
-      if (pendingDrawReconcile
-        && pendingDrawReconcile.dealtIds.length === dealtCards.length
-        && pendingDrawReconcile.dealtIds.every((id, i) => id === dealtCards[i]!.id)) {
+      if (pendingDrawReconcile?.forToken === token) {
         pendingDrawReconcile = null
       }
       if (token !== analysisToken) return
@@ -378,7 +381,10 @@ export const useGameStore = defineStore('game', () => {
           pendingDrawReconcile = {
             playerHeldIndices,
             handNumber: stats.value.handsPlayed,
-            dealtIds: dealtCards.map(c => c!.id)
+            // analysisToken still identifies this hand's deal: nothing
+            // increments it between deal and draw except a reset, which
+            // clears the reconcile anyway
+            forToken: analysisToken
           }
         }
 
@@ -395,6 +401,9 @@ export const useGameStore = defineStore('game', () => {
           handResult: handName,
           payout: resultPayout.value
         })
+        if (handHistory.value.length > HAND_HISTORY_LIMIT) {
+          handHistory.value.length = HAND_HISTORY_LIMIT
+        }
 
         phase.value = 'result'
       }, delay + 400)
@@ -406,12 +415,12 @@ export const useGameStore = defineStore('game', () => {
    * Back-fill mistake tracking for that hand now that the analysis is in —
    * even if the player has already dealt the next hand.
    */
-  function reconcilePendingDraw(dealtCards: Card[], options: HoldAnalysis[], isCurrent: boolean) {
+  function reconcilePendingDraw(token: number, options: HoldAnalysis[], isCurrent: boolean) {
     if (!pendingDrawReconcile) return
-    const { playerHeldIndices, handNumber, dealtIds } = pendingDrawReconcile
+    const { playerHeldIndices, handNumber, forToken } = pendingDrawReconcile
 
     // This analysis belongs to a different deal than the pending draw
-    if (dealtIds.length !== dealtCards.length || !dealtIds.every((id, i) => id === dealtCards[i]!.id)) return
+    if (forToken !== token) return
     pendingDrawReconcile = null
 
     const optimal = options[0]

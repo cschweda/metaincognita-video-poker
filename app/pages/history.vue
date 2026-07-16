@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Card } from '~/utils/cards'
 import { cardLabel } from '~/utils/cards'
-import { PERSONAS } from '~/utils/botPersonas'
 
 defineOptions({ name: 'History' })
 useHead({ title: 'Session History — Video Poker Trainer' })
@@ -20,6 +19,11 @@ const profitTimeline = computed(() => {
     return running
   })
 })
+
+// Hoisted: computing this inside each bar's :style made rendering O(n²)
+const profitTimelineMaxAbs = computed(() =>
+  Math.max(...profitTimeline.value.map(Math.abs), 1)
+)
 
 const biggestWin = computed(() => {
   if (game.handHistory.length === 0) return 0
@@ -236,7 +240,7 @@ function exportHandHistory() {
                 :key="i"
                 class="flex-1 rounded-t-sm transition-all"
                 :class="val >= 0 ? 'bg-green-500/60' : 'bg-red-500/60'"
-                :style="{ height: `${Math.max(4, Math.abs(val) / Math.max(...profitTimeline.map(Math.abs), 1) * 100)}%` }"
+                :style="{ height: `${Math.max(4, Math.abs(val) / profitTimelineMaxAbs * 100)}%` }"
               />
             </div>
             <div class="flex justify-between text-[0.6rem] text-gray-400 mt-1">
@@ -273,48 +277,7 @@ function exportHandHistory() {
             <div class="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-3">
               Bot Comparison
             </div>
-            <div class="space-y-2">
-              <!-- You -->
-              <div class="flex items-center justify-between bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 py-2">
-                <div>
-                  <span class="text-sm font-semibold text-white">You</span>
-                  <span class="text-[0.6rem] text-gray-400 ml-2">Your actual plays</span>
-                </div>
-                <div class="flex items-center gap-3 font-mono text-sm">
-                  <span
-                    :class="game.effectiveReturn >= 99 ? 'text-green-400' : game.effectiveReturn >= 96 ? 'text-amber-400' : 'text-red-400'"
-                    class="font-bold"
-                  >
-                    {{ game.effectiveReturn.toFixed(2) }}%
-                  </span>
-                  <span :class="(game.stats.totalReturned - game.stats.totalWagered) >= 0 ? 'text-green-400' : 'text-red-400'">
-                    {{ (game.stats.totalReturned - game.stats.totalWagered) >= 0 ? '+' : '' }}${{ ((game.stats.totalReturned - game.stats.totalWagered) * game.denomination).toFixed(2) }}
-                  </span>
-                </div>
-              </div>
-              <!-- Personas -->
-              <div
-                v-for="pr in game.personaResults"
-                :key="pr.personaId"
-                class="flex items-center justify-between bg-gray-800/40 rounded-lg px-3 py-2"
-              >
-                <div>
-                  <span class="text-sm font-semibold text-gray-200">{{ pr.personaName }}</span>
-                  <span class="text-[0.6rem] text-gray-400 ml-2">{{ PERSONAS.find(p => p.id === pr.personaId)?.style }}</span>
-                </div>
-                <div class="flex items-center gap-3 font-mono text-sm">
-                  <span
-                    :class="pr.returnPct >= 99 ? 'text-green-400' : pr.returnPct >= 96 ? 'text-amber-400' : 'text-red-400'"
-                    class="font-bold"
-                  >
-                    {{ pr.returnPct.toFixed(2) }}%
-                  </span>
-                  <span :class="(pr.totalPayout - pr.totalWagered) >= 0 ? 'text-green-400' : 'text-red-400'">
-                    {{ (pr.totalPayout - pr.totalWagered) >= 0 ? '+' : '' }}${{ ((pr.totalPayout - pr.totalWagered) * game.denomination).toFixed(2) }}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <PersonaComparison />
           </div>
 
           <!-- Mistake summary -->
@@ -476,42 +439,7 @@ function exportHandHistory() {
       </template>
 
       <!-- Footer -->
-      <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-400">
-        <NuxtLink
-          to="/"
-          class="hover:text-gray-300 transition-colors"
-        >Home</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink
-          to="/game"
-          class="hover:text-gray-300 transition-colors"
-        >Game</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink
-          to="/analysis"
-          class="hover:text-gray-300 transition-colors"
-        >Analysis</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink
-          to="/history"
-          class="hover:text-gray-300 transition-colors"
-        >History</NuxtLink>
-        <AnalysisStatus />
-        <span>&middot;</span>
-        <a
-          href="https://github.com/cschweda/metaincognita-video-poker"
-          target="_blank"
-          rel="noopener"
-          class="hover:text-gray-300 transition-colors flex items-center gap-1"
-        >
-          <svg
-            class="w-3.5 h-3.5"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          ><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
-          GitHub
-        </a>
-      </footer>
+      <AppFooter />
     </div>
   </div>
 </template>

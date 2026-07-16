@@ -3,6 +3,7 @@ import type { PayTableDef } from './payTables'
 import { PAY_TABLES, getPayForHand } from './payTables'
 import { fastOptimalHold } from './strategyLookup'
 import { classifyForPayTable } from './classify'
+import { handShape } from './handShape'
 
 /**
  * Bot personas for video poker comparison.
@@ -69,13 +70,7 @@ function perfectPatHold(cards: Card[], payTable: PayTableDef): number[] {
  * - Simpler straight draw rules
  */
 function almostAliceHold(cards: Card[]): number[] {
-  const rc = new Map<number, number>()
-  for (const c of cards) rc.set(c.rank, (rc.get(c.rank) || 0) + 1)
-  const counts = [...rc.values()].sort((a, b) => b - a)
-  const ranks = cards.map(c => c.rank).sort((a, b) => a - b)
-  const fl = cards.every(c => c.suit === cards[0]!.suit)
-  const uniqueRanks = [...new Set(ranks)].sort((a, b) => a - b)
-  const st = uniqueRanks.length === 5 && (uniqueRanks[4]! - uniqueRanks[0]! === 4 || uniqueRanks.join(',') === '2,3,4,5,14')
+  const { rankCounts: rc, counts, isFlush: fl, isStraight: st } = handShape(cards)
 
   // Pat hands
   if (fl && st) return [0, 1, 2, 3, 4]
@@ -145,13 +140,7 @@ function almostAliceHold(cards: Card[]): number[] {
  * - Holds Ace even when low pair is better
  */
 function gutFeelGaryHold(cards: Card[]): number[] {
-  const rc = new Map<number, number>()
-  for (const c of cards) rc.set(c.rank, (rc.get(c.rank) || 0) + 1)
-  const counts = [...rc.values()].sort((a, b) => b - a)
-  const ranks = cards.map(c => c.rank).sort((a, b) => a - b)
-  const fl = cards.every(c => c.suit === cards[0]!.suit)
-  const uniqueRanks = [...new Set(ranks)].sort((a, b) => a - b)
-  const st = uniqueRanks.length === 5 && (uniqueRanks[4]! - uniqueRanks[0]! === 4 || uniqueRanks.join(',') === '2,3,4,5,14')
+  const { rankCounts: rc, counts, isFlush: fl, isStraight: st } = handShape(cards)
 
   // Gary never breaks a paying hand
   if (fl && st) return [0, 1, 2, 3, 4]

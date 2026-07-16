@@ -2,7 +2,7 @@ import type { Card } from './cards'
 import type { PayTableDef } from './payTables'
 import { getPayForHand } from './payTables'
 import { classifyForPayTable } from './classify'
-import { combinations } from './combinations'
+import { forEachCombination } from './combinations'
 import { cardLabel } from './cards'
 
 export interface HoldAnalysis {
@@ -51,13 +51,13 @@ export function analyzeHand(
       totalPayout = payout
       totalCombinations = 1
     } else {
-      // Enumerate all C(remainingDeck.length, discardCount) draw combos
-      const draws = combinations(remainingDeck, discardCount)
-      totalCombinations = draws.length
+      // Enumerate all C(remainingDeck.length, discardCount) draw combos —
+      // via callback, O(1) memory instead of materializing up to 1.5M arrays.
+      // One reused hand buffer: held slots stay put, every non-held slot is
+      // overwritten on every draw, so no stale cards can leak between draws.
+      const finalHand: Card[] = [...dealt]
 
-      for (const drawCards of draws) {
-        // Build the final hand: held cards in their positions + drawn cards filling gaps
-        const finalHand: Card[] = [...dealt]
+      forEachCombination(remainingDeck, discardCount, (drawCards) => {
         let drawIdx = 0
         for (let i = 0; i < 5; i++) {
           if (!(mask & (1 << i))) {
@@ -72,7 +72,8 @@ export function analyzeHand(
         if (handName !== 'Nothing') {
           totalPayout += getPayForHand(payTable, handName, coins)
         }
-      }
+        totalCombinations++
+      })
     }
 
     // EV = average payout per coin wagered

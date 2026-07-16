@@ -1,4 +1,5 @@
 import type { Card } from './cards'
+import { handShape } from './handShape'
 
 /**
  * Wild-card-aware hand classifier for Deuces Wild.
@@ -45,14 +46,7 @@ export function classifyDeucesWild(cards: Card[]): DeucesWildHandRank {
   if (numWild === 0) return classifyNoWilds(naturals)
 
   // --- 1, 2, or 3 wilds ---
-  const ranks = naturals.map(c => c.rank).sort((a, b) => a - b)
-  const suits = naturals.map(c => c.suit)
-
-  const isAllSameSuit = suits.every(s => s === suits[0])
-  const rankCounts: Record<number, number> = {}
-  for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1
-  const counts = Object.values(rankCounts).sort((a, b) => b - a)
-  const uniqueRanks = [...new Set(ranks)].sort((a, b) => a - b)
+  const { uniqueRanks, counts, isFlush: isAllSameSuit } = handShape(naturals)
 
   // Check top-down
 
@@ -94,22 +88,13 @@ export function classifyDeucesWild(cards: Card[]): DeucesWildHandRank {
  * Returns Deuces Wild hand types (Natural Royal only possible here).
  */
 function classifyNoWilds(cards: Card[]): DeucesWildHandRank {
-  const ranks = cards.map(c => c.rank).sort((a, b) => a - b)
-  const suits = cards.map(c => c.suit)
-
-  const isFlush = suits.every(s => s === suits[0])
-
-  const rankCounts: Record<number, number> = {}
-  for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1
-  const counts = Object.values(rankCounts).sort((a, b) => b - a)
-
-  // No ace-low straight is possible without wilds: the wheel A-2-3-4-5
-  // needs a 2, and every 2 in Deuces Wild is a wild card.
-  const uniqueRanks = [...new Set(ranks)].sort((a, b) => a - b)
-  const isStraight = uniqueRanks.length === 5 && uniqueRanks[4]! - uniqueRanks[0]! === 4
+  // handShape's isStraight includes the ace-low wheel, but the wheel needs
+  // a natural 2 and every 2 here is wild — so it can never fire for this
+  // input, matching the old wheel-less check.
+  const { counts, isFlush, isStraight, isRoyal } = handShape(cards)
 
   // Natural Royal Flush
-  if (isFlush && uniqueRanks.join(',') === '10,11,12,13,14') return 'Natural Royal Flush'
+  if (isRoyal) return 'Natural Royal Flush'
 
   if (isFlush && isStraight) return 'Straight Flush'
   if (counts[0] === 4) return 'Four of a Kind'

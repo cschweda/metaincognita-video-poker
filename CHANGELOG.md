@@ -4,6 +4,47 @@ All notable changes to the Video Poker Trainer will be documented in this file.
 
 ## [Unreleased]
 
+### Resilience, Accessibility & Hardening Pass
+
+A full-codebase audit (game logic, UI/accessibility, tests/tooling) turned into a four-part improvement pass. The core math needed no fixes — the audit confirmed the classifiers, EV calculator, payouts, and shuffle are correct.
+
+#### Fixed
+
+- **A worker hiccup no longer condemns the session to main-thread analysis.** One EV-worker timeout or error used to set a permanent failure flag; every later hand then ran the ~1-2s brute force on the main thread, freezing the deal animation. A failure now tears down only the broken worker and the next hand gets a fresh one; only repeated consecutive failures disable the worker path, and a successful response resets the count.
+- **A failed analysis now says so instead of spinning forever.** The analysis promise had no rejection handler, so a worker crash left "Computing optimal play…" up indefinitely. The store now records an `analysisError`, the training panel shows an "Analysis unavailable" state (drawing still works), and the result verdict badge shows EVALUATING… / ANALYSIS UNAVAILABLE instead of claiming OPTIMAL PLAY before the analysis has actually landed — which also fixes the brief wrong verdict during speed-play races.
+- **Session time no longer freezes at 0m.** `sessionElapsedMinutes` read `Date.now()` inside a computed with no reactive dependency, so it never updated; $/hr and hands/hr only refreshed when stats changed. The store now has a reactive clock ticked by the bankroll panel every 30s and on every completed hand.
+- **Navigating home mid-animation can no longer corrupt the next session.** The deal/draw flip timers were never cancelled; a reset mid-draw let the pending timer classify a nulled hand and write a phantom hand (stats, wager, history row) into the fresh session. All animation timers are tracked and cleared on reset.
+- **"No Win" is readable again.** The loss text rendered at 0.3 opacity (~1.5:1 contrast) — far below WCAG AA. Now a solid muted tone (≥4.5:1).
+
+#### Accessibility
+
+- **Contrast raised to WCAG AA across the app.** The muted blue-purple label family (~3.0:1 on the dark panels — including the actual pay-table payout numbers) is lifted to 5.2–6.9:1 via new design tokens; meaningful Tailwind `gray-500/600` labels and footer links move to `gray-400`; separators stay decorative-dim.
+- **Design tokens.** New CSS custom properties (`--vp-gold`, `--vp-gold-bright`, `--vp-win`, `--vp-loss`, `--vp-muted`, `--vp-muted-strong`, `--vp-muted-dim`) replace ~80 hardcoded color literals across the machine components — retheming or future contrast fixes are now a one-file change.
+- **The teaching tooltips work from the keyboard.** Every BankrollPanel stat row is now a focusable button (new `StatRow` component) and the sparkline dots are buttons with aria-labels (new `BankrollSparkline` component); previously the EV Lost / Return / $-per-hour definitions were hover-only.
+- The analysis page's Hands-per-run / Runs selects have real labels; the landing-page variant cards gained a keyboard path (title button with `aria-pressed`); nav tabs, sub-tabs, and denomination buttons are raised toward 44px touch targets; each card's redundant HOLD button leaves the tab order (the card itself is the accessible toggle, halving tab stops); the rules modal no longer titles itself "undefined — Rules & Strategy" for an unknown variant.
+
+#### Refactored
+
+- **One implementation of the poker-shape primitives.** New `app/utils/handShape.ts` (ranks, rank counts, flush/straight/royal detection including the ace-low wheel) replaces five inline re-implementations across the classifiers, strategy tables, personas, and hold descriptions — the wheel check alone existed in four files. Verified unchanged by the exact-EV oracle suite and the 60k-hand tripwire.
+- **EV enumeration is O(1) memory.** `forEachCombination` visits draws via a reused scratch array instead of materializing up to C(47,5) = 1.53M arrays (~100MB of transient allocations per analyzed hand); the final-hand buffer is reused per hold mask. strategyLookup's duplicate `choose` helper now delegates to the same enumerator.
+- **TrainingPanel decomposed** from a 1,349-line five-phase monolith into a ~300-line phase-switch shell composing focused children (`training/TrainingOptimalPlay`, `TrainingCurrentSelection`, `TrainingResultBanner`, `TrainingHandRecap`, `TrainingSessionStats`, `TrainingHandHistoryList`), with the optimal-play teaching copy shared via `app/utils/optimalPlayText.ts`.
+- **Duplicated UI unified:** the bot-comparison block (previously implemented twice, with triplicated return-tier thresholds) is one `PersonaComparison` component used by both the training panel and the history page; the ranked hold-options table (twice within TrainingPanel) is one `HoldOptionsTable`; the four copy-pasted page footers (one of which had already drifted) are one `AppFooter` using the bundled simple-icons GitHub glyph instead of four inline octocat SVGs. New `app/utils/format.ts` centralizes dollar/return-tier formatting.
+- **Store hygiene:** the draw-before-analysis reconcile is keyed by analysis token instead of dealt-card ids (ids could collide across identical deals); `handHistory` is capped at 500 entries (persona replay still sees every completed hand); the history page's profit-trend bars no longer recompute the max per bar (was O(n²) per render); the analysis store degrades with a message instead of throwing when Web Workers are unavailable. Dead CSS (`.tp-comparison`, `.tp-play-*`, `.bp-credits`) and the unused single-run simulation branch are gone.
+
+#### Testing & CI
+
+- **New `tests/handClassifier.test.ts` (39 tests)** — the standard/Bonus/DDB classifiers finally have direct tests: straight/wheel/broadway boundaries (including A-3-4-5-6 and wraparound rejections), the jacks-or-better pair boundary, every quad rank-group and DDB kicker boundary (Four Aces + 2-4 vs + 5-K, Four 2s-4s + A-4 vs + 5-K), and a classifier↔pay-table row-name integrity check (a renamed row would silently zero payouts).
+- **Seedable RNG.** `shuffle()` now accepts an injectable rand-int source (crypto rejection sampling remains the game-path default). New `app/utils/prng.ts` (xorshift32) is shared by the strategy tripwire tests and the simulation worker — simulations are reproducible when seeded and much faster (no more ~1M `crypto.getRandomValues` calls per batch).
+- **Fast/statistical test split.** Vitest projects: `pnpm test:fast` runs everything but the two statistical suites in ~2s; `pnpm test` still runs all. Coverage now scoped to `app/**`.
+- **Deploys are gated.** The Netlify build command now runs lint + typecheck + fast tests before `generate` — a red check can no longer deploy. GitHub CI also triggers on pull requests, and still runs the full statistical suite.
+- Worker-recovery tests added to `tests/evAnalysisClient.test.ts`; analysis-failure and timer-cancellation tests added to the store suites.
+
+#### Docs
+
+- README: removed the stale "saves a session snapshot to localStorage" claim (that code was removed in the strategy-rewrite cleanup); documented the fast/statistical split and deploy gating.
+- ADR-01 rewritten (the project uses pnpm, not Yarn); ADR-06 amended (two stores: game + analysis, with the boundary rationale); ADR-07 superseded (strategy tables are TypeScript graded against exact EV, not runtime JSON).
+- Social embeds fixed: `og:image`/`twitter:card` meta now point at the hero image; title/description consolidated into `useSeoMeta`.
+
 ### The Hub Exit
 
 #### Added
@@ -28,7 +69,7 @@ All notable changes to the Video Poker Trainer will be documented in this file.
 - Dead code removed: the unused synchronous and async simulators (`simulator.ts`, `simulatorAsync.ts`), the unused bet actions (`betMax`/`incrementBet`/`setCoinsBet`), the never-read localStorage save/load cycle, the unreachable max-coins pay-table warning, and the unused `jokerPoker` classifier tag.
 
 #### Testing
-- New `tests/strategyLookup.test.ts`: 41 tests grading every strategy rule class against the exact EV calculator at runtime (no hard-coded expectations), plus a seeded random-hand smoke test and a deterministic 60k-hand-per-variant return tripwire. Full suite is now 87 tests across 8 files.
+- New `tests/strategyLookup.test.ts`: 41 tests grading every strategy rule class against the exact EV calculator at runtime (no hard-coded expectations), plus a seeded random-hand smoke test and a deterministic 60k-hand-per-variant return tripwire.
 - New `tests/gameStoreSession.test.ts`: session lifecycle coverage (additive credits, End Session exclusions and resume, late-analysis reconciliation).
 - Worker-watchdog fallback test in `tests/evAnalysisClient.test.ts`.
 

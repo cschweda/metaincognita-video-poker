@@ -1,4 +1,5 @@
 import type { Card } from './cards'
+import { handShape, rankCounts } from './handShape'
 
 export type HandRank
   = | 'Royal Flush'
@@ -22,26 +23,9 @@ export type HandRank
 export function classifyHand(cards: Card[]): HandRank {
   if (cards.length !== 5) return 'Nothing'
 
-  const ranks = cards.map(c => c.rank).sort((a, b) => a - b)
-  const suits = cards.map(c => c.suit)
+  const { rankCounts: rc, counts, isFlush, isStraight, isRoyal } = handShape(cards)
 
-  const isFlush = suits.every(s => s === suits[0])
-
-  // Count rank occurrences
-  const rankCounts: Record<number, number> = {}
-  for (const r of ranks) {
-    rankCounts[r] = (rankCounts[r] || 0) + 1
-  }
-  const counts = Object.values(rankCounts).sort((a, b) => b - a)
-
-  // Check straight
-  const uniqueRanks = [...new Set(ranks)].sort((a, b) => a - b)
-  const isRegularStraight = uniqueRanks.length === 5 && uniqueRanks[4]! - uniqueRanks[0]! === 4
-  const isAceLowStraight = uniqueRanks.join(',') === '2,3,4,5,14'
-  const isStraight = isRegularStraight || isAceLowStraight
-
-  // Royal flush: A-K-Q-J-10 all same suit
-  if (isFlush && uniqueRanks.join(',') === '10,11,12,13,14') return 'Royal Flush'
+  if (isRoyal) return 'Royal Flush'
 
   if (isFlush && isStraight) return 'Straight Flush'
 
@@ -59,7 +43,7 @@ export function classifyHand(cards: Card[]): HandRank {
 
   // Jacks or Better: a pair of J, Q, K, or A
   if (counts[0] === 2) {
-    const pairRank = Number(Object.keys(rankCounts).find(r => rankCounts[Number(r)] === 2))
+    const pairRank = [...rc.entries()].find(([, n]) => n === 2)![0]
     if (pairRank >= 11) return 'Jacks or Better'
   }
 
@@ -88,11 +72,8 @@ export function classifyBonusHand(cards: Card[]): BonusHandRank {
   const base = classifyHand(cards)
 
   if (base === 'Four of a Kind') {
-    const rankCounts: Record<number, number> = {}
-    for (const c of cards) {
-      rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1
-    }
-    const quadRank = Number(Object.keys(rankCounts).find(r => rankCounts[Number(r)] === 4))
+    const rc = rankCounts(cards)
+    const quadRank = [...rc.entries()].find(([, n]) => n === 4)![0]
     if (quadRank === 14) return 'Four Aces'
     if (quadRank >= 2 && quadRank <= 4) return 'Four 2s-4s'
     return 'Four 5s-Ks'
@@ -125,12 +106,9 @@ export function classifyDDBHand(cards: Card[]): DDBHandRank {
   const base = classifyHand(cards)
 
   if (base === 'Four of a Kind') {
-    const rankCounts: Record<number, number> = {}
-    for (const c of cards) {
-      rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1
-    }
-    const quadRank = Number(Object.keys(rankCounts).find(r => rankCounts[Number(r)] === 4))
-    const kickerRank = Number(Object.keys(rankCounts).find(r => rankCounts[Number(r)] === 1))
+    const rc = rankCounts(cards)
+    const quadRank = [...rc.entries()].find(([, n]) => n === 4)![0]
+    const kickerRank = [...rc.entries()].find(([, n]) => n === 1)![0]
 
     if (quadRank === 14) {
       return (kickerRank >= 2 && kickerRank <= 4) ? 'Four Aces + 2-4' : 'Four Aces + 5-K'
