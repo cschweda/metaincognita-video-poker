@@ -60,6 +60,7 @@ export const useGameStore = defineStore('game', () => {
   const lastMistakeCost = ref<number>(0)
   const wasOptimal = ref<boolean>(true)
   const analysisPending = ref<boolean>(false)
+  const analysisError = ref<boolean>(false)
 
   // Guards against stale worker responses (new deal / reset supersedes old analysis)
   let analysisToken = 0
@@ -76,6 +77,26 @@ export const useGameStore = defineStore('game', () => {
 
   // --- Session timing ---
   const sessionStartTime = ref<number>(Date.now())
+  // Reactive clock: Date.now() in a computed never re-evaluates on its own.
+  // BankrollPanel ticks this on an interval; draw() ticks it per hand.
+  const now = ref<number>(Date.now())
+
+  // Deal/draw animation timers, cancelled on reset so a pending flip can't
+  // mutate a session that no longer owns it (e.g. navigating home mid-draw)
+  let animationTimers: ReturnType<typeof setTimeout>[] = []
+
+  function scheduleAnimation(fn: () => void, ms: number) {
+    const timer = setTimeout(() => {
+      animationTimers = animationTimers.filter(t => t !== timer)
+      fn()
+    }, ms)
+    animationTimers.push(timer)
+  }
+
+  function clearAnimationTimers() {
+    for (const timer of animationTimers) clearTimeout(timer)
+    animationTimers = []
+  }
 
   // --- Persona comparison results ---
   const personaResults = ref<PersonaResult[]>([])
@@ -109,22 +130,26 @@ export const useGameStore = defineStore('game', () => {
   })
 
   const sessionElapsedMinutes = computed(() => {
-    return Math.round((Date.now() - sessionStartTime.value) / 60000)
+    return Math.round((now.value - sessionStartTime.value) / 60000)
   })
 
   const handsPerHour = computed(() => {
-    const minutes = (Date.now() - sessionStartTime.value) / 60000
+    const minutes = (now.value - sessionStartTime.value) / 60000
     if (minutes < 0.5) return 0
     return Math.round(stats.value.handsPlayed / minutes * 60)
   })
 
   const effectiveHourlyRate = computed(() => {
-    const minutes = (Date.now() - sessionStartTime.value) / 60000
+    const minutes = (now.value - sessionStartTime.value) / 60000
     if (minutes < 0.5) return 0
     const netCredits = stats.value.totalReturned - stats.value.totalWagered
     const netDollars = netCredits * denomination.value
     return (netDollars / minutes) * 60
   })
+
+  function tickClock() {
+    now.value = Date.now()
+  }
 
   // Live analysis: matches current hold selection against the precomputed 32 options
   const currentHoldAnalysis = computed<HoldAnalysis | null>(() => {
@@ -196,6 +221,7 @@ export const useGameStore = defineStore('game', () => {
     playerAnalysis.value = null
     lastMistakeCost.value = 0
     wasOptimal.value = true
+    analysisError.value = false
 
     // Shuffle and deal 5 cards, keep rest as draw pile
     const fullDeck = shuffle(createDeck())
@@ -237,17 +263,28 @@ export const useGameStore = defineStore('game', () => {
       analysisPending.value = false
       allHoldOptions.value = options
       optimalPlay.value = options[0] || null
+    }).catch((err) => {
+      console.error('EV analysis failed for this hand:', err)
+      // A reconcile recorded for this hand can never complete now
+      if (pendingDrawReconcile
+        && pendingDrawReconcile.dealtIds.length === dealtCards.length
+        && pendingDrawReconcile.dealtIds.every((id, i) => id === dealtCards[i]!.id)) {
+        pendingDrawReconcile = null
+      }
+      if (token !== analysisToken) return
+      analysisPending.value = false
+      analysisError.value = true
     })
 
     for (let i = 0; i < 5; i++) {
-      setTimeout(() => {
+      scheduleAnimation(() => {
         const updated = [...faceDown.value]
         updated[i] = false
         faceDown.value = updated
       }, (i + 1) * 100)
     }
 
-    setTimeout(() => {
+    scheduleAnimation(() => {
       faceDown.value = [false, false, false, false, false]
       phase.value = 'dealt'
     }, 600)
@@ -270,7 +307,7 @@ export const useGameStore = defineStore('game', () => {
     const newFd = held.value.map(h => !h)
     faceDown.value = newFd
 
-    setTimeout(() => {
+    scheduleAnimation(() => {
       // Replace non-held cards from deck
       const newHand = [...hand.value] as Card[]
       let drawIndex = 0
@@ -287,7 +324,7 @@ export const useGameStore = defineStore('game', () => {
       for (let i = 0; i < 5; i++) {
         if (!held.value[i]) {
           const cardIdx = i
-          setTimeout(() => {
+          scheduleAnimation(() => {
             const updated = [...faceDown.value]
             updated[cardIdx] = false
             faceDown.value = updated
@@ -296,7 +333,7 @@ export const useGameStore = defineStore('game', () => {
         }
       }
 
-      setTimeout(() => {
+      scheduleAnimation(() => {
         faceDown.value = [false, false, false, false, false]
 
         // Evaluate hand
@@ -319,6 +356,7 @@ export const useGameStore = defineStore('game', () => {
         // Update stats
         stats.value.handsPlayed++
         stats.value.totalWagered += coinsBet.value
+        tickClock()
 
         // Evaluate the player's decision against optimal. The analysis runs
         // in a worker, so a fast player can reach the result before it lands;
@@ -425,7 +463,11 @@ export const useGameStore = defineStore('game', () => {
     // Invalidate any in-flight worker analysis — it belongs to a cleared hand
     analysisToken++
     analysisPending.value = false
+    analysisError.value = false
     pendingDrawReconcile = null
+
+    // A pending flip timer must never mutate the cleared table
+    clearAnimationTimers()
 
     phase.value = 'idle'
     hand.value = [null, null, null, null, null]
@@ -450,6 +492,7 @@ export const useGameStore = defineStore('game', () => {
     personaResults.value = []
     sessionEnded.value = false
     sessionStartTime.value = Date.now()
+    now.value = Date.now()
     resetGame()
   }
 
@@ -501,6 +544,7 @@ export const useGameStore = defineStore('game', () => {
     lastMistakeCost,
     wasOptimal,
     analysisPending,
+    analysisError,
     handHistory,
 
     // Persona comparison
@@ -530,6 +574,7 @@ export const useGameStore = defineStore('game', () => {
     draw,
     dealOrDraw,
     insertCredits,
+    tickClock,
     resetGame,
     resetSession,
     endSession

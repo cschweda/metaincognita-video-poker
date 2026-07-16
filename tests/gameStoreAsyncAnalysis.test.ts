@@ -5,13 +5,15 @@ import type { HoldAnalysis } from '../app/utils/evCalculator'
 import { useGameStore } from '../app/stores/game'
 
 // Controllable analysis: each deal's analyzeHandAsync call is captured here
-// and resolved manually by the test.
+// and resolved (or rejected) manually by the test.
 const pendingResolvers: ((options: HoldAnalysis[]) => void)[] = []
+const pendingRejecters: ((err: unknown) => void)[] = []
 
 vi.mock('~/utils/evAnalysisClient', () => ({
   analyzeHandAsync: vi.fn(() =>
-    new Promise<HoldAnalysis[]>((resolve) => {
+    new Promise<HoldAnalysis[]>((resolve, reject) => {
       pendingResolvers.push(resolve)
+      pendingRejecters.push(reject)
     })
   )
 }))
@@ -30,6 +32,7 @@ describe('game store — async EV analysis', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     pendingResolvers.length = 0
+    pendingRejecters.length = 0
     vi.useFakeTimers()
   })
 
@@ -97,6 +100,50 @@ describe('game store — async EV analysis', () => {
     expect(store.stats.totalMistakes).toBe(1)
     expect(store.stats.totalEVLost).toBeCloseTo(0.625)
     expect(store.dealtDecks[0]!.optimalHeld).toEqual([1, 2])
+  })
+
+  it('surfaces an analysis failure instead of spinning forever', async () => {
+    const store = useGameStore()
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    expect(store.analysisPending).toBe(true)
+    expect(store.analysisError).toBe(false)
+
+    pendingRejecters[0]!(new Error('worker exploded'))
+    await flushMicrotasks()
+
+    expect(store.analysisPending).toBe(false)
+    expect(store.analysisError).toBe(true)
+
+    // Drawing still works without analysis
+    store.draw()
+    await vi.runAllTimersAsync()
+    expect(store.phase).toBe('result')
+    expect(store.stats.handsPlayed).toBe(1)
+
+    // The next deal clears the error state
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    expect(store.analysisError).toBe(false)
+    expect(store.analysisPending).toBe(true)
+  })
+
+  it('ignores an analysis failure from a superseded deal', async () => {
+    const store = useGameStore()
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    store.draw()
+    await vi.runAllTimersAsync()
+
+    // Next hand dealt, then the OLD hand's analysis fails
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    pendingRejecters[0]!(new Error('stale failure'))
+    await flushMicrotasks()
+
+    // The current hand's analysis is still pending and unaffected
+    expect(store.analysisError).toBe(false)
+    expect(store.analysisPending).toBe(true)
   })
 
   it('drops a stale analysis after the session resets', async () => {

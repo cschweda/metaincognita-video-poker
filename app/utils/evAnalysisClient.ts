@@ -3,8 +3,13 @@
  *
  * In the browser, hands are posted to a persistent worker so the ~1-2s
  * brute-force evaluation never blocks the main thread. When Workers are
- * unavailable (tests, SSR), the worker errors, or a request times out,
- * falls back to running the analyzer synchronously.
+ * unavailable (tests, SSR) falls back to running the analyzer synchronously.
+ *
+ * A worker error or timeout tears the worker down and resolves everything
+ * in flight via the synchronous fallback, but the next hand gets a fresh
+ * worker — a transient hiccup must not condemn the rest of the session to
+ * main-thread analysis. Only repeated consecutive failures disable the
+ * worker path; a successful response resets the count.
  */
 import type { Card } from './cards'
 import type { HoldAnalysis } from './evCalculator'
@@ -19,21 +24,31 @@ interface PendingRequest {
 
 // A healthy worker answers in 1-2s; this only trips when something is broken
 const WORKER_TIMEOUT_MS = 15_000
+const MAX_CONSECUTIVE_FAILURES = 2
 
 let worker: Worker | null = null
-let workerFailed = false
+let consecutiveFailures = 0
 let nextRequestId = 0
 const pending = new Map<number, PendingRequest>()
+
+/** @internal Test-only: reset module state between test cases. */
+export function __resetWorkerStateForTests() {
+  worker?.terminate()
+  worker = null
+  consecutiveFailures = 0
+  for (const request of pending.values()) clearTimeout(request.timer)
+  pending.clear()
+}
 
 function runSync(dealt: Card[], payTableId: string, remaining: Card[], coins: number): HoldAnalysis[] {
   const payTable = PAY_TABLES[payTableId]
   return payTable ? analyzeHand(dealt, payTable, remaining, coins) : []
 }
 
-/** Permanently fail over to main-thread analysis and resolve everything in flight. */
-function failWorker(reason: unknown) {
-  console.error('EV analysis worker unavailable, falling back to main thread:', reason)
-  workerFailed = true
+/** Tear the worker down and resolve everything in flight via the fallback. */
+function teardownWorker(reason: unknown) {
+  console.error('EV analysis worker failed, falling back to main thread:', reason)
+  consecutiveFailures++
   worker?.terminate()
   worker = null
   const inFlight = [...pending.values()]
@@ -45,7 +60,7 @@ function failWorker(reason: unknown) {
 }
 
 function getWorker(): Worker | null {
-  if (workerFailed || typeof Worker === 'undefined') return null
+  if (typeof Worker === 'undefined' || consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) return null
   if (!worker) {
     try {
       // Create worker with relative path (Vite resolves this)
@@ -60,15 +75,17 @@ function getWorker(): Worker | null {
         if (request) {
           pending.delete(id)
           clearTimeout(request.timer)
+          consecutiveFailures = 0
           request.resolve(options)
         }
       }
 
       worker.onerror = (err) => {
-        failWorker(err)
+        teardownWorker(err)
       }
     } catch {
-      workerFailed = true
+      // Constructor threw: the environment doesn't support module workers
+      consecutiveFailures = MAX_CONSECUTIVE_FAILURES
       worker = null
     }
   }
@@ -83,13 +100,15 @@ export function analyzeHandAsync(
 ): Promise<HoldAnalysis[]> {
   const w = getWorker()
   if (!w) {
-    return Promise.resolve(runSync(dealt, payTableId, remaining, coins))
+    // Executor form so a synchronous throw becomes a rejection, not an
+    // exception escaping into the caller's deal flow
+    return new Promise(resolve => resolve(runSync(dealt, payTableId, remaining, coins)))
   }
 
   return new Promise((resolve) => {
     const id = nextRequestId++
     const timer = setTimeout(
-      () => failWorker(new Error(`analysis request ${id} timed out`)),
+      () => teardownWorker(new Error(`analysis request ${id} timed out`)),
       WORKER_TIMEOUT_MS
     )
     pending.set(id, {

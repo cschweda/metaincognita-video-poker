@@ -107,6 +107,46 @@ describe('game store — session lifecycle', () => {
     expect(store.personaResults).toHaveLength(0)
   })
 
+  it('sessionElapsedMinutes advances with the clock via tickClock', async () => {
+    const store = useGameStore()
+    expect(store.sessionElapsedMinutes).toBe(0)
+
+    await vi.advanceTimersByTimeAsync(5 * 60_000)
+    store.tickClock()
+
+    expect(store.sessionElapsedMinutes).toBe(5)
+  })
+
+  it('resetSession mid-deal cancels the flip timers', async () => {
+    const store = useGameStore()
+    store.deal()
+
+    store.resetSession()
+    await vi.runAllTimersAsync()
+
+    expect(store.phase).toBe('idle')
+    expect(store.hand.every(c => c === null)).toBe(true)
+    expect(store.faceDown).toEqual([true, true, true, true, true])
+    expect(store.stats.handsPlayed).toBe(0)
+  })
+
+  it('resetSession mid-draw cancels pending timers — no phantom hand corrupts the fresh session', async () => {
+    const store = useGameStore()
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    expect(store.phase).toBe('dealt')
+
+    store.draw()
+    // Navigating home mid-animation resets the session while draw timers are pending
+    store.resetSession()
+    await vi.runAllTimersAsync()
+
+    expect(store.phase).toBe('idle')
+    expect(store.stats.handsPlayed).toBe(0)
+    expect(store.stats.totalWagered).toBe(0)
+    expect(store.handHistory).toHaveLength(0)
+  })
+
   it('reconciles a late analysis for a previous hand after a new deal', async () => {
     const store = useGameStore()
 

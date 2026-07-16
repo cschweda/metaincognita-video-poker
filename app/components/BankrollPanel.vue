@@ -4,6 +4,17 @@ import { VARIANT_RULES } from '~/utils/variantRules'
 const game = useGameStore()
 const rulesOpen = ref(false)
 
+// Session time / $-per-hour read the store's reactive clock; tick it while
+// this panel is visible so they don't freeze between hands
+let clockTimer: ReturnType<typeof setInterval> | null = null
+onMounted(() => {
+  game.tickClock()
+  clockTimer = setInterval(() => game.tickClock(), 30_000)
+})
+onUnmounted(() => {
+  if (clockTimer) clearInterval(clockTimer)
+})
+
 const minPayingHand = computed(() =>
   VARIANT_RULES[game.payTable.variant]?.minPayingHand ?? 'Jacks or Better'
 )

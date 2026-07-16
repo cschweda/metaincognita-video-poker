@@ -53,7 +53,8 @@ const isWin = computed(() => game.resultPayout > 0)
 }
 
 .result-display__text--loss {
-  color: rgba(170, 170, 200, 0.3);
+  /* Muted relative to a win, but must stay readable (WCAG AA) */
+  color: #8f96bd;
 }
 
 .result-pop-enter-active {

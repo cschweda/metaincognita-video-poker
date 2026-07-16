@@ -112,9 +112,23 @@ const optimalDescription = computed(() => {
 
     <!-- PHASE: dealt — show optimal play + live analysis -->
     <template v-if="game.phase === 'dealt'">
+      <!-- Analysis failed: say so instead of spinning forever -->
+      <div
+        v-if="!game.optimalPlay && game.analysisError"
+        class="tp-section"
+      >
+        <div class="tp-phase-title">
+          Analysis unavailable
+        </div>
+        <div class="tp-phase-desc">
+          This hand couldn't be analyzed — hold and draw as usual;
+          the next deal will retry the analyzer.
+        </div>
+      </div>
+
       <!-- Show spinner if EV not ready yet -->
       <div
-        v-if="!game.optimalPlay"
+        v-else-if="!game.optimalPlay"
         class="tp-section"
       >
         <div class="tp-phase-title">
@@ -380,16 +394,29 @@ const optimalDescription = computed(() => {
           <span class="tp-rank">(your play ranked #{{ playerRank }} of 32)</span>
         </div>
 
-        <!-- Verdict badge -->
+        <!-- Verdict badge: only claim a verdict once this hand's analysis landed -->
         <div
           class="tp-header"
           style="margin-top: 8px"
         >
           <span
+            v-if="game.playerAnalysis"
             class="tp-verdict"
             :class="game.wasOptimal ? 'tp-verdict--correct' : 'tp-verdict--mistake'"
           >
             {{ game.wasOptimal ? 'OPTIMAL PLAY' : 'MISTAKE' }}
+          </span>
+          <span
+            v-else-if="game.analysisError"
+            class="tp-verdict tp-verdict--pending"
+          >
+            ANALYSIS UNAVAILABLE
+          </span>
+          <span
+            v-else
+            class="tp-verdict tp-verdict--pending"
+          >
+            EVALUATING&hellip;
           </span>
         </div>
       </div>
@@ -909,6 +936,11 @@ const optimalDescription = computed(() => {
 .tp-verdict--mistake {
   background: rgba(127, 29, 29, 0.2);
   color: #f87171;
+}
+
+.tp-verdict--pending {
+  background: rgba(85, 96, 160, 0.15);
+  color: #8f96bd;
 }
 
 .tp-comparison {
