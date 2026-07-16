@@ -7,6 +7,7 @@ import { createDeck, shuffle } from './cards'
 import { getPayForHand } from './payTables'
 import { classifyForPayTable } from './classify'
 import { fastOptimalHold } from './strategyLookup'
+import { makeRng, prngInt } from './prng'
 
 export interface SimulationResult {
   payTableId: string
@@ -21,14 +22,21 @@ export interface SimulationResult {
   durationMs: number
 }
 
-function runSim(payTable: PayTableDef, numHands: number, coins: number, runIndex: number, variantIndex: number) {
+function runSim(payTable: PayTableDef, numHands: number, coins: number, runIndex: number, variantIndex: number, seed: number) {
   const start = performance.now()
   const handFrequencies: Record<string, number> = {}
   let totalReturned = 0
   const totalWagered = numHands * coins
 
+  // Monte-Carlo path: a seeded xorshift is far cheaper than the CSPRNG
+  // (one getRandomValues call per swap adds up to ~1M calls per analysis
+  // run) and makes runs reproducible. Real game deals still use crypto.
+  const rng = makeRng(seed)
+  const randInt = (n: number) => prngInt(rng, n)
+  const baseDeck = createDeck()
+
   for (let i = 0; i < numHands; i++) {
-    const fullDeck = shuffle(createDeck())
+    const fullDeck = shuffle(baseDeck, randInt)
     const dealt = fullDeck.slice(0, 5)
     const remaining = fullDeck.slice(5)
 
@@ -85,16 +93,16 @@ function runSim(payTable: PayTableDef, numHands: number, coins: number, runIndex
 self.onmessage = (e: MessageEvent) => {
   const { type } = e.data
 
-  if (type === 'run') {
-    const { payTable, numHands, coins, runIndex, variantIndex } = e.data
-    runSim(payTable, numHands, coins, runIndex, variantIndex)
-  }
-
   if (type === 'runAll') {
-    const { targets, numHands, numRuns, coins } = e.data
+    const { targets, numHands, numRuns, coins, seed } = e.data
+    // Fresh entropy per batch unless the caller pins a seed for reproducibility
+    const baseSeed = typeof seed === 'number'
+      ? seed >>> 0
+      : crypto.getRandomValues(new Uint32Array(1))[0]!
     for (let vi = 0; vi < targets.length; vi++) {
       for (let ri = 0; ri < numRuns; ri++) {
-        runSim(targets[vi].payTable, numHands, coins, ri, vi)
+        const runSeed = (baseSeed ^ Math.imul(vi + 1, 0x9E3779B9) ^ Math.imul(ri + 1, 0x85EBCA6B)) >>> 0
+        runSim(targets[vi].payTable, numHands, coins, ri, vi, runSeed)
       }
     }
     self.postMessage({ type: 'allDone' })

@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import type { Card, Rank, Suit } from '../app/utils/cards'
 import type { PayTableDef } from '../app/utils/payTables'
-import { createDeck, cardLabel } from '../app/utils/cards'
+import { createDeck, cardLabel, shuffle } from '../app/utils/cards'
+import { makeRng, prngInt } from '../app/utils/prng'
 import { analyzeHand } from '../app/utils/evCalculator'
 import { fastOptimalHold } from '../app/utils/strategyLookup'
 import { classifyForPayTable } from '../app/utils/classify'
@@ -204,25 +205,9 @@ describe('Bonus / Double Bonus / Deluxe strategy vs exact EV', () => {
   })
 })
 
-// Deterministic PRNG so sampled hands are stable across runs
-function makeRng(seed: number) {
-  let s = seed >>> 0
-  return () => {
-    s ^= s << 13
-    s ^= s >>> 17
-    s ^= s << 5
-    s >>>= 0
-    return s / 0x100000000
-  }
-}
-
+// Deterministic PRNG (shared app helper) so sampled hands are stable across runs
 function seededShuffle(deck: Card[], rng: () => number): Card[] {
-  const d = [...deck]
-  for (let i = d.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    ;[d[i], d[j]] = [d[j]!, d[i]!]
-  }
-  return d
+  return shuffle(deck, n => prngInt(rng, n))
 }
 
 describe('random-hand smoke test vs exact EV', () => {

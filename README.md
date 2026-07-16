@@ -394,7 +394,8 @@ The full design system specification — covering shared colors, typography, com
 ```bash
 pnpm install
 pnpm dev        # http://localhost:3000
-pnpm test       # Run the vitest suite (shuffle statistics, classifiers, store)
+pnpm test       # Full vitest suite, incl. statistical tests (~2 min)
+pnpm test:fast  # Everything except the two statistical suites (~2s)
 pnpm lint       # ESLint
 pnpm typecheck  # vue-tsc
 pnpm generate   # Static SPA build → dist
@@ -407,12 +408,13 @@ pnpm preview    # Preview production build
 
 The vitest suite (`tests/`) covers the parts where correctness is the product:
 
-- **Shuffle statistics** — chi-squared positional uniformity over 50k shuffles, suit-fairness in dealt hands, adjacent-card independence
-- **Deuces Wild classifier** — including the ace-low wheel edge cases (A-2-3-4-5 requires a wild for the 2; A-3-4-5-6 is not a straight)
+- **Shuffle statistics** — chi-squared positional uniformity over 50k shuffles, suit-fairness in dealt hands, adjacent-card independence, seeded-PRNG determinism
+- **Hand classifiers** — the standard/Bonus/DDB classifiers (kicker boundaries included) and the Deuces Wild classifier with its ace-low wheel edge cases (A-2-3-4-5 requires a wild for the 2; A-3-4-5-6 is not a straight), plus a classifier↔pay-table row-name integrity check
+- **Strategy tables** — every rule class graded against the exact-EV calculator at runtime, plus a deterministic 60k-hand-per-variant return tripwire
 - **Persona replay** — Perfect Pat uses recorded exact-optimal holds
-- **Async EV analysis** — worker race handling: drawing before the analysis lands back-fills mistake stats when it arrives
+- **Async EV analysis** — worker race handling: drawing before the analysis lands back-fills mistake stats when it arrives; worker failure recovery
 
-CI runs lint → typecheck → test → build on every push.
+The suite is split into a `fast` project (`pnpm test:fast`, ~2s) and a `statistical` project (the 50k-shuffle and 60k-hand suites). CI runs lint → typecheck → full test → build on every push and pull request, and the Netlify build gates deploys on lint + typecheck + fast tests.
 
 ## Deployment
 
@@ -445,9 +447,8 @@ The only CSP relaxation: `'unsafe-inline'` in `script-src` and `style-src` is re
 
 ## Session Features
 
-- **Fresh start by design** — every page load begins a new session (no cross-session carryover yet)
+- **Fresh start by design** — every page load begins a new session (no cross-session carryover yet; nothing is persisted)
 - **5-minute inactivity timeout** — auto-ends session and triggers persona comparison
-- **Tab close / minimize** — saves a session snapshot to localStorage automatically
 
 ## Accessibility
 

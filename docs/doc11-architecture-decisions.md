@@ -5,17 +5,17 @@
 
 ---
 
-## ADR-01: Yarn Instead of pnpm
+## ADR-01: pnpm (supersedes "Yarn Instead of pnpm")
 
-**Status:** Accepted
+**Status:** Superseded (2026-07-16) — the project was built with pnpm from the first commit.
 
-**Context:** The developer's default stack for new projects uses pnpm. The simulator collection (No-Limit Hold'em, Craps, Video Poker) uses Yarn 1.22.22.
+**Original decision (historical):** Use Yarn 1.22.22 for consistency with the simulator collection.
 
-**Decision:** Use Yarn 1.22.22 for the Video Poker Simulator.
+**Actual decision:** Use pnpm (pinned via `packageManager` in `package.json`). The lockfile is `pnpm-lock.yaml`, the install command is `pnpm install`, and `netlify.toml`/CI build scripts use pnpm.
 
-**Rationale:** Consistency across the simulator collection. All three simulators share the same tech stack and will be developed in overlapping timeframes. Using the same package manager avoids cognitive switching costs and ensures identical dependency resolution behavior. The simulators are personal projects with a single developer — the benefits of pnpm (speed, disk efficiency) are marginal at this scale.
+**Rationale for the reversal:** The developer's default stack is pnpm and the Yarn-consistency argument evaporated — this repo never had a `yarn.lock`. pnpm's strict node_modules also surfaced a real issue early (store tests needed `vue` as a direct devDependency), which looser hoisting would have masked.
 
-**Consequences:** Lockfile is `yarn.lock`, not `pnpm-lock.yaml`. Install command is `yarn install`, not `pnpm install`. Build scripts in `package.json` and `netlify.toml` use Yarn.
+**Consequences:** All docs and scripts reference pnpm. Any remaining Yarn references in the design suite are historical artifacts of the pre-build planning docs.
 
 ---
 
@@ -118,7 +118,7 @@ The correctness of the top-down approach follows from the fact that the pay tabl
 
 ## ADR-06: Single Pinia Store
 
-**Status:** Accepted
+**Status:** Amended (2026-07-16) — see note at end.
 
 **Context:** The application state includes: game configuration (variant, pay table, denomination), current hand state (dealt cards, holds, credits), session statistics, hand history, and UI state (training mode, speed setting). Some patterns split this into multiple stores.
 
@@ -131,11 +131,13 @@ The correctness of the top-down approach follows from the fact that the pay tabl
 
 **Consequences:** The store file will grow as phases add features (hand history, bot data, convergence state). Use TypeScript interfaces and composable functions to keep the store organized even as it grows. If the store exceeds ~300 lines, consider extracting helper functions (not separate stores) to manage subsections.
 
+**Amendment (2026-07-16):** In practice there are two stores: `stores/game.ts` (gameplay/session — the store this ADR describes) and `stores/analysis.ts` (the batch-simulation runner on the `/analysis` page). The split holds because they share no state: the simulation runner never reads or writes game/session state, so the "tightly coupled" rationale doesn't apply to it. The single-store rule stands for anything touching gameplay, session, or training state.
+
 ---
 
 ## ADR-07: Strategy Data as Static JSON Files
 
-**Status:** Accepted
+**Status:** Superseded (2026-07-16) — strategy tables live in TypeScript (`app/utils/strategyLookup.ts`), graded against the exact-EV calculator at runtime in the test suite.
 
 **Context:** Each variant has an optimal strategy table (a ranked list of hand patterns). This data can be:
 - (a) Hardcoded in TypeScript source
@@ -152,3 +154,5 @@ The correctness of the top-down approach follows from the fact that the pay tabl
 **Consequences:** JSON files must be kept in sync with the pay table definitions. The strategy-parity test is the safety net — it must run as part of the standard test suite and fail the build on any discrepancy.
 
 Future: Option (c) — generating strategy tables programmatically — could be added as a developer tool. This would auto-generate the JSON files from the EV calculator, eliminating manual transcription entirely. Not prioritized for initial build.
+
+**Supersession note (2026-07-16):** The build chose option (a): the tables are TypeScript in `app/utils/strategyLookup.ts` (rewritten from scratch in the strategy-table audit). What survived from this ADR is the important part — the parity safety net. `tests/strategyLookup.test.ts` grades every rule class against the exact-EV calculator at runtime (no hard-coded expectations) plus a deterministic 60k-hand-per-variant return tripwire, which is strictly stronger than the JSON transcription check this ADR proposed. `docs/reference/` was never populated and runtime JSON loading was never built.

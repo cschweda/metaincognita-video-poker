@@ -12,15 +12,7 @@ export default defineNuxtConfig({
     enabled: true
   },
 
-  app: {
-    head: {
-      title: 'Video Poker Trainer',
-      meta: [
-        { name: 'description', content: 'A video poker training simulator that teaches optimal play, pay table literacy, and bankroll management.' }
-      ],
-      link: []
-    }
-  },
+  // Title/description/social meta live in app.vue's useSeoMeta (single source)
 
   css: ['~/assets/css/main.css'],
 

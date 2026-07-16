@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { createDeck, shuffle } from '../app/utils/cards'
+import { makeRng, prngInt } from '../app/utils/prng'
 
 describe('createDeck', () => {
   it('produces 52 cards', () => {
@@ -27,6 +28,18 @@ describe('shuffle', () => {
     const ids = shuffled.map(c => c.id).sort()
     const origIds = deck.map(c => c.id).sort()
     expect(ids).toEqual(origIds)
+  })
+
+  it('is deterministic when injected with a seeded PRNG, random by default', () => {
+    const rngA = makeRng(0xABCDEF)
+    const rngB = makeRng(0xABCDEF)
+    const a = shuffle(createDeck(), n => prngInt(rngA, n))
+    const b = shuffle(createDeck(), n => prngInt(rngB, n))
+    expect(a.map(c => c.id)).toEqual(b.map(c => c.id))
+
+    const rngC = makeRng(0x1234)
+    const c = shuffle(createDeck(), n => prngInt(rngC, n))
+    expect(c.map(card => card.id)).not.toEqual(a.map(card => card.id))
   })
 
   it('does not mutate the original deck', () => {

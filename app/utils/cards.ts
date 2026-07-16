@@ -52,7 +52,7 @@ export function createDeck(): Card[] {
  * every value is exactly equally likely (a bare modulo would bias low values
  * by ~n/2^32 — immaterial in practice, but exactness is this app's brand).
  */
-function randomInt(n: number): number {
+function cryptoRandomInt(n: number): number {
   const limit = Math.floor(0x100000000 / n) * n
   const arr = new Uint32Array(1)
   let x: number
@@ -63,10 +63,16 @@ function randomInt(n: number): number {
   return x % n
 }
 
-export function shuffle(deck: Card[]): Card[] {
+export type RandInt = (n: number) => number
+
+/**
+ * Fisher-Yates shuffle. Real gameplay uses the CSPRNG default; simulation
+ * and tests inject a seeded PRNG (see prng.ts) for speed and reproducibility.
+ */
+export function shuffle(deck: Card[], randInt: RandInt = cryptoRandomInt): Card[] {
   const d = [...deck]
   for (let i = d.length - 1; i > 0; i--) {
-    const j = randomInt(i + 1)
+    const j = randInt(i + 1)
     ;[d[i], d[j]] = [d[j]!, d[i]!]
   }
   return d

@@ -1,15 +1,10 @@
 name: ci
 
-on: push
+on: [push, pull_request]
 
 jobs:
   ci:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node: [22]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -21,7 +16,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 22
           cache: pnpm
 
       - name: Install dependencies

@@ -1,5 +1,8 @@
 [build]
-  command = "pnpm generate"
+  # Deploy gate: a broken lint/typecheck/test must fail the deploy, not just
+  # GitHub CI (the two pipelines are independent). The fast test project runs
+  # here (~5s); the full statistical suite still runs in GitHub Actions.
+  command = "pnpm lint && pnpm typecheck && pnpm test:fast && pnpm generate"
   publish = "dist"
 
 [build.environment]
