@@ -1,11 +1,65 @@
 import { describe, it, expect } from 'vitest'
 import type { Card, Rank, Suit } from '../app/utils/cards'
-import { replayHandsThroughPersona } from '../app/utils/botPersonas'
+import { replayHandsThroughPersona, almostAliceHold, personaHold, PERSONAS } from '../app/utils/botPersonas'
 import { PAY_TABLES } from '../app/utils/payTables'
 
 function c(rank: Rank, suit: Suit): Card {
   return { rank, suit, id: `${rank}${suit[0]}` }
 }
+
+describe('Almost Alice — the published simple strategy for Jacks or Better', () => {
+  it('breaks a flush for four to a royal', () => {
+    const hand = [c(10, 'hearts'), c(11, 'hearts'), c(12, 'hearts'), c(13, 'hearts'), c(4, 'hearts')]
+    expect(almostAliceHold(hand).sort()).toEqual([0, 1, 2, 3])
+  })
+
+  it('holds four to an outside straight over a lone high card', () => {
+    const hand = [c(7, 'spades'), c(8, 'diamonds'), c(9, 'hearts'), c(10, 'clubs'), c(13, 'spades')]
+    expect(almostAliceHold(hand).sort()).toEqual([0, 1, 2, 3])
+  })
+
+  it('holds the two lowest of three unsuited high cards', () => {
+    const hand = [c(13, 'hearts'), c(12, 'diamonds'), c(11, 'spades'), c(4, 'clubs'), c(8, 'spades')]
+    expect(almostAliceHold(hand).sort()).toEqual([1, 2])
+  })
+
+  it('holds three to a royal over a low pair', () => {
+    const hand = [c(5, 'spades'), c(5, 'diamonds'), c(11, 'hearts'), c(12, 'hearts'), c(13, 'hearts')]
+    expect(almostAliceHold(hand).sort()).toEqual([2, 3, 4])
+  })
+
+  it('holds four to a straight flush over a high pair', () => {
+    const hand = [c(11, 'spades'), c(11, 'hearts'), c(8, 'hearts'), c(9, 'hearts'), c(10, 'hearts')]
+    expect(almostAliceHold(hand).sort()).toEqual([1, 2, 3, 4])
+  })
+
+  it('holds suited T-J over a lone jack', () => {
+    const hand = [c(10, 'clubs'), c(11, 'clubs'), c(3, 'hearts'), c(6, 'spades'), c(8, 'diamonds')]
+    expect(almostAliceHold(hand).sort()).toEqual([0, 1])
+  })
+})
+
+describe('recreational personas on Deuces Wild', () => {
+  const deucesWild = PAY_TABLES['deuces-wild-full']!
+
+  it('never discard a deuce', () => {
+    // Nothing else to like here: JoB strategy holds the king or redraws
+    const cards = [c(2, 'spades'), c(13, 'hearts'), c(7, 'diamonds'), c(4, 'clubs'), c(9, 'spades')]
+    for (const persona of PERSONAS) {
+      expect(personaHold(persona.id, cards, deucesWild), persona.name).toContain(0)
+    }
+  })
+
+  it('keep a dealt wild royal pat (Alice and Gary; Sam plays random)', () => {
+    const cards = [c(2, 'spades'), c(13, 'hearts'), c(12, 'hearts'), c(11, 'hearts'), c(10, 'hearts')]
+    const remaining = [c(3, 'clubs'), c(7, 'diamonds'), c(9, 'spades'), c(4, 'clubs'), c(6, 'diamonds')]
+    for (const id of ['almost-alice', 'gut-feel-gary']) {
+      expect(personaHold(id, cards, deucesWild), id).toEqual([0, 1, 2, 3, 4])
+      const result = replayHandsThroughPersona(id, [{ cards, remaining }], deucesWild, 5)
+      expect(result.handResults[0]!.handName, id).toBe('Wild Royal Flush')
+    }
+  })
+})
 
 describe('replayHandsThroughPersona — perfect-pat', () => {
   it('uses the recorded exact-optimal hold when provided', () => {

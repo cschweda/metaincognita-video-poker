@@ -3,6 +3,7 @@ import { createDeck, cardLabel } from '../app/utils/cards'
 import { PAY_TABLES } from '../app/utils/payTables'
 import { analyzeHand } from '../app/utils/evCalculator'
 import { fastOptimalHold } from '../app/utils/strategyLookup'
+import { personaHold } from '../app/utils/botPersonas'
 import { makeRng, prngInt } from '../app/utils/prng'
 import { DECK, N5, buildTables, evAllMasks, maskOf } from './helpers/exactEv'
 import type { Tables } from './helpers/exactEv'
@@ -112,6 +113,28 @@ describe('strategy tables vs exact EV (200k-deal sample per pay table)', () => {
       expect(lossPP, `${id}: table loses ${lossPP.toFixed(4)} pp vs exact`).toBeLessThan(MAX_LOSS_PP)
       expect(worst, `${id}: worst single hand ${worstHand} loses ${worst.toFixed(4)} EV/coin`).toBeLessThan(0.1)
     }
+  }, 300_000)
+
+  it('Almost Alice plays the published simple strategy: 99.46% on 9/6 Jacks or Better', () => {
+    // Every deal, not a sample: a royal pays 800× the per-coin bet and hits
+    // once in ~40,000 hands, so a 200k-deal sample carries ~±0.9 pp of noise
+    // — far too much to pin a persona's label with.
+    const pt = PAY_TABLES['job-9-6']!
+    const t = tablesFor('job-9-6')
+    const ev = new Float64Array(32)
+    const dealt = [0, 0, 0, 0, 0]
+    let sum = 0
+    for (let a = 0; a < 48; a++) for (let b = a + 1; b < 49; b++) for (let c = b + 1; c < 50; c++) for (let d = c + 1; d < 51; d++) for (let e = d + 1; e < 52; e++) {
+      dealt[0] = a
+      dealt[1] = b
+      dealt[2] = c
+      dealt[3] = d
+      dealt[4] = e
+      evAllMasks(t, dealt, ev)
+      sum += ev[maskOf(personaHold('almost-alice', [DECK[a]!, DECK[b]!, DECK[c]!, DECK[d]!, DECK[e]!], pt))]!
+    }
+    const returnPct = (sum / N5) * 100
+    expect(returnPct, `Alice returns ${returnPct.toFixed(3)}%`).toBeCloseTo(99.46, 1)
   }, 300_000)
 
   it('grades every one of the 2,598,960 deals on the two tables that leaked most', () => {

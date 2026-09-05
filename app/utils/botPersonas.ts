@@ -1,9 +1,14 @@
 import type { Card } from './cards'
 import type { PayTableDef } from './payTables'
 import { PAY_TABLES, getPayForHand } from './payTables'
-import { fastOptimalHold } from './strategyLookup'
+import {
+  fastOptimalHold, findRoyal, find4ToSF, findFlushDraw, find4ToOutsideStraight,
+  find3ToSF, findSuitedRanks, indicesOfSubset
+} from './strategyLookup'
 import { classifyForPayTable } from './classify'
 import { handShape } from './handShape'
+
+const ALL_FIVE = [0, 1, 2, 3, 4]
 
 /**
  * Bot personas for video poker comparison.
@@ -35,23 +40,23 @@ export const PERSONAS: BotPersona[] = [
   {
     id: 'almost-alice',
     name: 'Almost Alice',
-    description: 'Uses the "simple strategy" — a simplified version of optimal that sacrifices ~0.08% return for much easier memorization. What a good recreational player looks like.',
+    description: 'Plays the published 16-line "simple strategy" for Jacks or Better — no penalty cards, no straight-flush fine print. About 0.1% behind optimal on 9/6. What a good recreational player looks like.',
     style: 'Simple strategy',
-    expectedReturn: '99.4%'
+    expectedReturn: '99.4% on 9/6 JoB'
   },
   {
     id: 'gut-feel-gary',
     name: 'Gut-Feel Gary',
     description: 'Makes common recreational mistakes: always holds kickers, never breaks a paying hand for a draw, prefers high cards over low pairs. Typical casino tourist.',
     style: 'Recreational mistakes',
-    expectedReturn: '96-97%'
+    expectedReturn: '92.6% on 9/6 JoB'
   },
   {
     id: 'superstitious-sam',
     name: 'Superstitious Sam',
-    description: 'Believes in patterns and streaks. Holds "hot" suits, avoids cards that "haven\'t been paying". Strategy is effectively random with a bias toward holding more cards.',
+    description: 'Believes in patterns and streaks. Holds "hot" suits, avoids cards that "haven\'t been paying". Strategy is effectively random with a bias toward holding more cards — and random play returns about a third of the wager.',
     style: 'Pattern-chasing',
-    expectedReturn: '94-95%'
+    expectedReturn: '35% on 9/6 JoB'
   }
 ]
 
@@ -63,72 +68,83 @@ function perfectPatHold(cards: Card[], payTable: PayTableDef): number[] {
 }
 
 /**
- * Almost Alice — simplified strategy. Correct on ~95% of hands.
- * Differences from optimal:
- * - Never holds 3 to a straight flush (too hard to spot)
- * - Doesn't differentiate suited vs unsuited high cards
- * - Simpler straight draw rules
+ * Almost Alice — the Wizard of Odds "simple strategy" for Jacks or Better,
+ * all 16 lines of it: no penalty cards, no straight-flush typing, and the
+ * only suited/unsuited distinction is "two suited high cards". Exact
+ * expected return over every deal on 9/6: 99.4%, about 0.1 pp behind the
+ * full table. Every persona except Perfect Pat plays Jacks-or-Better
+ * strategy on every variant — see personaHold for what that means with
+ * wild cards.
  */
-function almostAliceHold(cards: Card[]): number[] {
+export function almostAliceHold(cards: Card[]): number[] {
   const { rankCounts: rc, counts, isFlush: fl, isStraight: st } = handShape(cards)
+  const pairRank = counts[0] === 2 ? [...rc.entries()].find(([, n]) => n === 2)![0] : null
+  const ofRank = (rank: number) => cards.map((c, i) => c.rank === rank ? i : -1).filter(i => i >= 0)
 
-  // Pat hands
-  if (fl && st) return [0, 1, 2, 3, 4]
-  if (counts[0]! >= 4) return [0, 1, 2, 3, 4]
-  if (counts[0] === 3 && counts[1] === 2) return [0, 1, 2, 3, 4]
-  if (fl) return [0, 1, 2, 3, 4]
-  if (st) return [0, 1, 2, 3, 4]
+  // 1. Four of a kind, straight flush, royal flush
+  if (fl && st) return ALL_FIVE
+  if (counts[0]! >= 4) return ALL_FIVE
 
-  // Three of a kind
-  if (counts[0] === 3) {
-    const tripRank = [...rc.entries()].find(([,c]) => c === 3)![0]
-    return cards.map((c, i) => c.rank === tripRank ? i : -1).filter(i => i >= 0)
-  }
+  // 2. Four to a royal flush
+  const royal4 = findRoyal(cards, 4)
+  if (royal4) return indicesOfSubset(cards, royal4)
 
-  // Two pair
+  // 3. Three of a kind, straight, flush, full house
+  if (counts[0] === 3 && counts[1] === 2) return ALL_FIVE
+  if (fl || st) return ALL_FIVE
+  if (counts[0] === 3) return ofRank([...rc.entries()].find(([, n]) => n === 3)![0])
+
+  // 4. Four to a straight flush
+  const sf4 = find4ToSF(cards)
+  if (sf4) return indicesOfSubset(cards, sf4)
+
+  // 5. Two pair
   if (counts[0] === 2 && counts[1] === 2) {
-    const pairRanks = [...rc.entries()].filter(([,c]) => c === 2).map(([r]) => r)
+    const pairRanks = [...rc.entries()].filter(([, n]) => n === 2).map(([r]) => r)
     return cards.map((c, i) => pairRanks.includes(c.rank) ? i : -1).filter(i => i >= 0)
   }
 
-  // High pair
-  if (counts[0] === 2) {
-    const pairRank = [...rc.entries()].find(([,c]) => c === 2)![0]
-    if (pairRank >= 11) return cards.map((c, i) => c.rank === pairRank ? i : -1).filter(i => i >= 0)
-  }
+  // 6. High pair
+  if (pairRank !== null && pairRank >= 11) return ofRank(pairRank)
 
-  // 4 to a flush (Alice catches this)
-  const suitCounts = new Map<string, Card[]>()
-  for (const c of cards) {
-    const arr = suitCounts.get(c.suit) || []
-    arr.push(c)
-    suitCounts.set(c.suit, arr)
-  }
-  for (const [, suited] of suitCounts) {
-    if (suited.length >= 4) {
-      const used = new Set<number>()
-      return suited.slice(0, 4).map((sc) => {
-        for (let i = 0; i < cards.length; i++) {
-          if (!used.has(i) && cards[i]!.rank === sc.rank && cards[i]!.suit === sc.suit) {
-            used.add(i)
-            return i
-          }
-        }
-        return -1
-      }).filter(i => i >= 0)
-    }
-  }
+  // 7. Three to a royal flush
+  const royal3 = findRoyal(cards, 3)
+  if (royal3) return indicesOfSubset(cards, royal3)
 
-  // Low pair
-  if (counts[0] === 2) {
-    const pairRank = [...rc.entries()].find(([,c]) => c === 2)![0]
-    return cards.map((c, i) => c.rank === pairRank ? i : -1).filter(i => i >= 0)
-  }
+  // 8. Four to a flush
+  const flush4 = findFlushDraw(cards, 4)
+  if (flush4) return indicesOfSubset(cards, flush4)
 
-  // Any high cards (simplified: just hold all high cards, no suited preference)
-  const highIndices = cards.map((c, i) => c.rank >= 11 ? i : -1).filter(i => i >= 0)
-  if (highIndices.length > 0) return highIndices.slice(0, 2)
+  // 9. Low pair
+  if (pairRank !== null) return ofRank(pairRank)
 
+  // 10. Four to an outside straight
+  const straight4 = find4ToOutsideStraight(cards)
+  if (straight4) return indicesOfSubset(cards, straight4)
+
+  // 11. Two suited high cards
+  const suitedHigh = findSuitedRanks(cards, [[14, 13], [14, 12], [14, 11], [13, 12], [13, 11], [12, 11]])
+  if (suitedHigh) return indicesOfSubset(cards, suitedHigh)
+
+  // 12. Three to a straight flush
+  const sf3 = find3ToSF(cards)
+  if (sf3) return indicesOfSubset(cards, sf3.picks)
+
+  // 13. Two unsuited high cards (with more than two, the lowest two)
+  const highs = cards
+    .map((c, i) => ({ rank: c.rank, i }))
+    .filter(x => x.rank >= 11)
+    .sort((a, b) => a.rank - b.rank)
+  if (highs.length >= 2) return [highs[0]!.i, highs[1]!.i].sort((a, b) => a - b)
+
+  // 14. Suited T-J, T-Q or T-K
+  const suitedTen = findSuitedRanks(cards, [[11, 10], [12, 10], [13, 10]])
+  if (suitedTen) return indicesOfSubset(cards, suitedTen)
+
+  // 15. One high card
+  if (highs.length === 1) return [highs[0]!.i]
+
+  // 16. Discard everything
   return []
 }
 
@@ -139,7 +155,7 @@ function almostAliceHold(cards: Card[]): number[] {
  * - Prefers high cards over low pairs
  * - Holds Ace even when low pair is better
  */
-function gutFeelGaryHold(cards: Card[]): number[] {
+export function gutFeelGaryHold(cards: Card[]): number[] {
   const { rankCounts: rc, counts, isFlush: fl, isStraight: st } = handShape(cards)
 
   // Gary never breaks a paying hand
@@ -197,7 +213,7 @@ function gutFeelGaryHold(cards: Card[]): number[] {
  * - Sometimes holds all 5 ("feeling lucky")
  * - Sometimes discards all ("clean slate")
  */
-function superstitiousSamHold(cards: Card[]): number[] {
+export function superstitiousSamHold(cards: Card[]): number[] {
   // Deterministic "random" based on card values for reproducibility
   const seed = cards.reduce((s, c) => s + c.rank * 17 + (c.suit === 'hearts' ? 1 : c.suit === 'diamonds' ? 2 : c.suit === 'clubs' ? 3 : 4), 0)
 
@@ -228,6 +244,58 @@ function superstitiousSamHold(cards: Card[]): number[] {
   // Sam never holds more than 4 (always wants at least 1 new card)
   if (held.length === 5) held.pop()
 
+  return held
+}
+
+// ─── Persona dispatch ───────────────────────────────────────
+
+const DW_PAYING_HANDS = new Set([
+  'Natural Royal Flush', 'Four Deuces', 'Wild Royal Flush', 'Five of a Kind',
+  'Straight Flush', 'Four of a Kind', 'Full House', 'Flush', 'Straight', 'Three of a Kind'
+])
+
+/**
+ * The hold a persona makes on a dealt hand under a pay table.
+ *
+ * Alice, Gary and Sam play Jacks-or-Better strategy everywhere — they are
+ * recreational players, not variant experts. Two things even a tourist
+ * knows on a Deuces Wild machine, though: a deuce is never thrown away,
+ * and a hand the machine is already paying for is not broken up (Sam,
+ * whose play is random, keeps only the first of those). Without this the
+ * comparison on Deuces Wild was meaningless: Alice would discard the deuce
+ * from a dealt wild royal to keep four hearts.
+ */
+export function personaHold(personaId: string, cards: Card[], payTable: PayTableDef, optimalHeld?: number[]): number[] {
+  if (personaId === 'perfect-pat') {
+    // Prefer the exact brute-force-optimal hold recorded during play;
+    // the strategy table is only a fallback approximation.
+    return optimalHeld ?? perfectPatHold(cards, payTable)
+  }
+
+  const isDeucesWild = payTable.classifier === 'deucesWild'
+  if (isDeucesWild && personaId !== 'superstitious-sam' && DW_PAYING_HANDS.has(classifyForPayTable(cards, payTable))) {
+    return ALL_FIVE
+  }
+
+  let held: number[]
+  switch (personaId) {
+    case 'almost-alice':
+      held = almostAliceHold(cards)
+      break
+    case 'gut-feel-gary':
+      held = gutFeelGaryHold(cards)
+      break
+    case 'superstitious-sam':
+      held = superstitiousSamHold(cards)
+      break
+    default:
+      held = perfectPatHold(cards, payTable)
+  }
+
+  if (isDeucesWild) {
+    const deuces = cards.map((c, i) => c.rank === 2 ? i : -1).filter(i => i >= 0)
+    held = [...new Set([...held, ...deuces])].sort((a, b) => a - b)
+  }
   return held
 }
 
@@ -272,25 +340,7 @@ export function replayHandsThroughPersona(
     const handTable = (payTableId && PAY_TABLES[payTableId]) || payTable
 
     // Get persona's hold decision
-    let heldIndices: number[]
-    switch (personaId) {
-      case 'perfect-pat':
-        // Prefer the exact brute-force-optimal hold recorded during play;
-        // the strategy table is only a fallback approximation.
-        heldIndices = optimalHeld ?? perfectPatHold(cards, handTable)
-        break
-      case 'almost-alice':
-        heldIndices = almostAliceHold(cards)
-        break
-      case 'gut-feel-gary':
-        heldIndices = gutFeelGaryHold(cards)
-        break
-      case 'superstitious-sam':
-        heldIndices = superstitiousSamHold(cards)
-        break
-      default:
-        heldIndices = perfectPatHold(cards, payTable)
-    }
+    const heldIndices = personaHold(personaId, cards, handTable, optimalHeld)
 
     // Execute the hold: draw from remaining deck
     const finalHand = [...cards]
