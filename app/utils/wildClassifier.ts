@@ -74,7 +74,7 @@ export function classifyDeucesWild(cards: Card[]): DeucesWildHandRank {
       numWild++
       continue
     }
-    hist[c.rank]++
+    hist[c.rank] = hist[c.rank]! + 1
     natMask |= 1 << c.rank
     if (suit === null) suit = c.suit
     else if (c.suit !== suit) sameSuit = false

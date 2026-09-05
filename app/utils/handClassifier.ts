@@ -49,7 +49,7 @@ function scan(cards: Card[]): void {
   isFlush = true
   for (let i = 0; i < 5; i++) {
     const c = cards[i]!
-    hist[c.rank]++
+    hist[c.rank] = hist[c.rank]! + 1
     rankMask |= 1 << c.rank
     if (c.suit !== suit0) isFlush = false
   }

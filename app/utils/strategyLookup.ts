@@ -167,7 +167,7 @@ export function find3ToSF(cards: Card[]): { picks: Card[], sfType: 1 | 2 | 3, ga
         // earlier); only the ace-low window remains, which is type 2.
         if (!ranks.every(r => r === 14 || r <= 5)) continue
         sfType = 2
-        gaps = [2, 3, 4, 5].filter(r => !ranks.includes(r)).length - 1
+        gaps = ([2, 3, 4, 5] as Card['rank'][]).filter(r => !ranks.includes(r)).length - 1
       } else {
         const span = ranks[2]! - ranks[0]!
         if (span > 4) continue
