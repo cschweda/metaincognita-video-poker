@@ -138,6 +138,7 @@ const showHistory = ref(false)
           :highlight="game.playerAnalysis"
           highlight-variant="player"
           :delta-decimals="4"
+          delta-label="Δ Best"
         />
       </div>
     </template>
@@ -181,6 +182,7 @@ const showHistory = ref(false)
       <PersonaComparison
         show-intro
         show-note
+        compact
       />
 
       <button
@@ -198,6 +200,11 @@ const showHistory = ref(false)
   max-width: 740px;
   width: 100%;
   background: rgba(17, 24, 39, 0.6);
+  /* Frame + gold accent match the bankroll panel; the base color keeps the
+     hold-option tables on slate instead of the layout's pure white */
+  border: 1px solid rgba(55, 65, 81, 0.6);
+  border-left: 4px solid var(--vp-gold);
+  color: #e2e8f0;
   border-radius: 10px;
   padding: 16px 20px;
   display: flex;

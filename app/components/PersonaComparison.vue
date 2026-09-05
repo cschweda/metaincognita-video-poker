@@ -8,9 +8,12 @@ import { returnTier, RETURN_TIER_TEXT, formatSignedDollars } from '~/utils/forma
 withDefaults(defineProps<{
   showIntro?: boolean
   showNote?: boolean
+  /** Sidebar fit (280px column): style label on its own line, smaller figures */
+  compact?: boolean
 }>(), {
   showIntro: false,
-  showNote: false
+  showNote: false,
+  compact: false
 })
 
 const game = useGameStore()
@@ -63,14 +66,20 @@ const rows = computed<ComparisonRow[]>(() => [
           ? 'bg-blue-900/20 border border-blue-800/30'
           : 'bg-gray-800/40'"
       >
-        <div>
+        <div class="min-w-0">
           <span
-            class="text-sm font-semibold"
-            :class="row.isYou ? 'text-white' : 'text-gray-200'"
+            class="font-semibold"
+            :class="[row.isYou ? 'text-white' : 'text-gray-200', compact ? 'text-xs block' : 'text-sm']"
           >{{ row.name }}</span>
-          <span class="text-[0.6rem] text-gray-400 ml-2">{{ row.style }}</span>
+          <span
+            class="text-[0.6rem] text-gray-400"
+            :class="compact ? 'block' : 'ml-2'"
+          >{{ row.style }}</span>
         </div>
-        <div class="flex items-center gap-3 font-mono text-sm">
+        <div
+          class="flex items-center font-mono shrink-0"
+          :class="compact ? 'gap-2 text-xs' : 'gap-3 text-sm'"
+        >
           <span
             class="font-bold"
             :class="RETURN_TIER_TEXT[returnTier(row.returnPct)]"

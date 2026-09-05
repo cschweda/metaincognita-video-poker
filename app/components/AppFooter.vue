@@ -1,31 +1,38 @@
 <script setup lang="ts">
 // The one footer. Previously copy-pasted into all four pages with an inline
-// octocat SVG each — and they had already drifted (analysis.vue's copy lost
-// AnalysisStatus). Keep nav, status, and the GitHub link here only.
+// octocat SVG each — and they had already drifted. Keep nav, status, and the
+// GitHub link here only. Per docs/design-system.md a page omits its own
+// link, and the analysis page reports its own run, so it carries no
+// AnalysisStatus.
+const route = useRoute()
+
+const NAV = [
+  { to: '/', label: 'Home' },
+  { to: '/game', label: 'Game' },
+  { to: '/analysis', label: 'Analysis' },
+  { to: '/history', label: 'History' }
+]
+
+const links = computed(() => NAV.filter(link => link.to !== route.path))
+const showAnalysisStatus = computed(() => route.path !== '/analysis')
 </script>
 
 <template>
   <footer class="border-t border-gray-800 pt-4 mt-10 flex items-center justify-center gap-4 text-xs text-gray-400">
-    <NuxtLink
-      to="/"
-      class="hover:text-gray-300 transition-colors"
-    >Setup</NuxtLink>
-    <span aria-hidden="true">&middot;</span>
-    <NuxtLink
-      to="/game"
-      class="hover:text-gray-300 transition-colors"
-    >Game</NuxtLink>
-    <span aria-hidden="true">&middot;</span>
-    <NuxtLink
-      to="/analysis"
-      class="hover:text-gray-300 transition-colors"
-    >Analysis</NuxtLink>
-    <span aria-hidden="true">&middot;</span>
-    <NuxtLink
-      to="/history"
-      class="hover:text-gray-300 transition-colors"
-    >History</NuxtLink>
-    <AnalysisStatus />
+    <template
+      v-for="(link, i) in links"
+      :key="link.to"
+    >
+      <span
+        v-if="i > 0"
+        aria-hidden="true"
+      >&middot;</span>
+      <NuxtLink
+        :to="link.to"
+        class="hover:text-gray-300 transition-colors"
+      >{{ link.label }}</NuxtLink>
+    </template>
+    <AnalysisStatus v-if="showAnalysisStatus" />
     <span aria-hidden="true">&middot;</span>
     <a
       href="https://github.com/cschweda/metaincognita-video-poker"

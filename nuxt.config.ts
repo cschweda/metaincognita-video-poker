@@ -29,5 +29,16 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  // ssr: false makes @nuxt/icon default to the runtime iconify API; scanning
+  // the source for the icons actually used bundles them instead, so the
+  // footer's GitHub glyph (and the Lucide UI icons) render offline and under
+  // a stricter CSP.
+  icon: {
+    clientBundle: {
+      scan: true,
+      sizeLimitKb: 256
+    }
   }
 })

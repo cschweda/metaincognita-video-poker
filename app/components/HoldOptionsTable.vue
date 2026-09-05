@@ -14,15 +14,19 @@ const props = withDefaults(defineProps<{
   highlightVariant?: 'current' | 'player'
   /** Decimals for the Δ-vs-best column */
   deltaDecimals?: number
+  /** Header for the Δ-vs-best column ("Δ" in the sidebar, "Δ Best" on the result screen) */
+  deltaLabel?: string
 }>(), {
   limit: undefined,
   highlight: null,
   highlightVariant: 'current',
-  deltaDecimals: 4
+  deltaDecimals: 4,
+  deltaLabel: '\u0394'
 })
 
+// `limit: 0` means no rows, not "no limit"
 const visible = computed(() =>
-  props.limit ? props.options.slice(0, props.limit) : props.options
+  props.limit !== undefined ? props.options.slice(0, props.limit) : props.options
 )
 
 function isHighlighted(opt: HoldAnalysis): boolean {
@@ -44,7 +48,7 @@ function delta(opt: HoldAnalysis, index: number): string {
       <span class="hot-rank">#</span>
       <span class="hot-hold">Hold</span>
       <span class="hot-ev">EV</span>
-      <span class="hot-delta">&#916;</span>
+      <span class="hot-delta">{{ deltaLabel }}</span>
     </div>
     <div
       v-for="(opt, i) in visible"
