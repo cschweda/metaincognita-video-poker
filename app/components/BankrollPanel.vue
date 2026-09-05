@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VARIANT_RULES } from '~/utils/variantRules'
-import { formatDollars, formatSignedDollars } from '~/utils/format'
+import { formatDollars, formatSignedDollars, formatHandNet } from '~/utils/format'
 
 const game = useGameStore()
 const rulesOpen = ref(false)
@@ -139,11 +139,14 @@ const netResult = computed(() => {
         >
           {{ game.resultHandName || 'No Win' }}
         </div>
+        <!-- Net of the wager, like every other per-hand figure: a hand that
+             pays 1:1 returns the bet, so it reads +$0.00, not +$1.25 -->
         <div
-          v-if="game.resultPayout > 0"
           class="bp-hand-payout"
+          :class="{ 'bp-hand-payout--loss': game.resultPayout < game.coinsBet }"
+          data-test="last-hand-net"
         >
-          +${{ formatDollars(game.resultPayout, game.denomination) }}
+          {{ formatHandNet(game.resultPayout, game.coinsBet, game.denomination) }}
         </div>
         <div
           v-if="!game.wasOptimal"
@@ -318,6 +321,10 @@ const netResult = computed(() => {
   font-size: 0.65rem;
   color: var(--vp-win);
   font-weight: 600;
+}
+
+.bp-hand-payout--loss {
+  color: var(--vp-loss);
 }
 
 .bp-hand-mistake {
