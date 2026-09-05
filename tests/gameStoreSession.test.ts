@@ -147,6 +147,104 @@ describe('game store — session lifecycle', () => {
     expect(store.handHistory).toHaveLength(0)
   })
 
+  it('back-fills both hands when two hands are drawn before either analysis lands', async () => {
+    const store = useGameStore()
+    const mistakeOptions = () => [option([1, 2], 2.0), option([0], 1.5), option([], 0.3)]
+
+    // Hand 1: hold card 0 and draw before the analysis
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    store.toggleHold(0)
+    store.draw()
+    await vi.runAllTimersAsync()
+
+    // Hand 2: same play, still before either analysis has resolved
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    store.toggleHold(0)
+    store.draw()
+    await vi.runAllTimersAsync()
+    expect(pendingResolvers).toHaveLength(2)
+
+    pendingResolvers[0]!(mistakeOptions())
+    await flushMicrotasks()
+    pendingResolvers[1]!(mistakeOptions())
+    await flushMicrotasks()
+
+    // Both hands were mistakes (EV 1.5 vs 2.0 at 5 coins × $0.25 = $0.625 each)
+    expect(store.stats.totalMistakes).toBe(2)
+    expect(store.stats.totalEVLost).toBeCloseTo(1.25)
+    const first = store.handHistory.find(h => h.handNumber === 1)!
+    expect(first.optimalHeld).toEqual([1, 2])
+    expect(first.mistakeCost).toBeCloseTo(0.625)
+    const second = store.handHistory.find(h => h.handNumber === 2)!
+    expect(second.mistakeCost).toBeCloseTo(0.625)
+  })
+
+  it('prices a late back-fill at the wager the hand was played for', async () => {
+    const store = useGameStore()
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    store.toggleHold(0)
+    store.draw()
+    await vi.runAllTimersAsync()
+
+    // The denomination changes before the analysis arrives; the hand was
+    // played at $0.25, so its mistake must still cost 0.5 × 5 × $0.25
+    store.denomination = 1.00
+    pendingResolvers[0]!([option([1, 2], 2.0), option([0], 1.5), option([], 0.3)])
+    await flushMicrotasks()
+
+    expect(store.handHistory[0]!.mistakeCost).toBeCloseTo(0.625)
+    expect(store.stats.totalEVLost).toBeCloseTo(0.625)
+  })
+
+  it('setDenomination after a completed hand starts a fresh session', async () => {
+    const store = useGameStore()
+    await playOneHand(store)
+    expect(store.stats.handsPlayed).toBe(1)
+
+    store.setDenomination(1.00)
+
+    expect(store.denomination).toBe(1.00)
+    expect(store.stats.handsPlayed).toBe(0)
+    expect(store.handHistory).toHaveLength(0)
+    expect(store.dealtDecks).toHaveLength(0)
+    expect(store.credits).toBe(100)
+  })
+
+  it('keeps every completed hand in history past 500 hands', async () => {
+    const store = useGameStore()
+    for (let i = 0; i < 501; i++) {
+      if (store.credits < store.coinsBet) store.insertCredits()
+      await playOneHand(store)
+    }
+
+    expect(store.stats.handsPlayed).toBe(501)
+    expect(store.handHistory).toHaveLength(501)
+    expect(store.handHistory[store.handHistory.length - 1]!.handNumber).toBe(1)
+  })
+
+  it('finishing the hand after a mid-hand endSession refreshes the persona comparison', async () => {
+    const store = useGameStore()
+    await playOneHand(store)
+
+    // Hand 2 dealt; the inactivity timeout ends the session while it is live
+    store.deal()
+    await vi.advanceTimersByTimeAsync(700)
+    store.endSession()
+    expect(store.personaResults[0]!.handsPlayed).toBe(1)
+
+    // The player comes back and finishes the hand
+    pendingResolvers[pendingResolvers.length - 1]!([option([], 0.5), option([0], 0.3)])
+    await flushMicrotasks()
+    store.draw()
+    await vi.runAllTimersAsync()
+
+    expect(store.sessionEnded).toBe(true)
+    expect(store.personaResults[0]!.handsPlayed).toBe(2)
+  })
+
   it('reconciles a late analysis for a previous hand after a new deal', async () => {
     const store = useGameStore()
 

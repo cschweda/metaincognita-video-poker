@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import { cardLabel } from '~/utils/cards'
 
-// Scrolling per-hand history inside the training panel.
+// Scrolling per-hand history inside the training panel. The store keeps
+// every hand (the profit trend, export and counts depend on it); this
+// sidebar list only renders the most recent ones — the History page has
+// the whole session.
+const RECENT_LIMIT = 100
+
 const game = useGameStore()
+
+const recent = computed(() => game.handHistory.slice(0, RECENT_LIMIT))
+const hiddenCount = computed(() => Math.max(0, game.handHistory.length - RECENT_LIMIT))
 </script>
 
 <template>
   <div class="thl">
     <div
-      v-for="entry in game.handHistory"
+      v-for="entry in recent"
       :key="entry.handNumber"
       class="thl-entry"
       :class="{ 'thl-entry--mistake': entry.mistakeCost > 0.001 }"
@@ -43,6 +51,12 @@ const game = useGameStore()
         Optimal: {{ entry.optimalHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') || 'nothing' }}
         &middot; Cost: ${{ entry.mistakeCost.toFixed(2) }}
       </div>
+    </div>
+    <div
+      v-if="hiddenCount > 0"
+      class="thl-more"
+    >
+      {{ hiddenCount }} earlier {{ hiddenCount === 1 ? 'hand' : 'hands' }} not shown here &mdash; the History page lists every hand.
     </div>
   </div>
 </template>
@@ -118,5 +132,11 @@ const game = useGameStore()
   padding: 3px 6px;
   background: rgba(127, 29, 29, 0.2);
   border-radius: 3px;
+}
+
+.thl-more {
+  font-size: 0.68rem;
+  color: var(--vp-muted);
+  padding: 4px 2px;
 }
 </style>

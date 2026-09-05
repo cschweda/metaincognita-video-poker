@@ -64,17 +64,21 @@ export const useGameStore = defineStore('game', () => {
 
   // Guards against stale worker responses (new deal / reset supersedes old analysis)
   let analysisToken = 0
-  // Set when the player draws before the analysis arrives; reconciled on arrival.
-  // Keyed by the deal's analysis token so a late analysis can still back-fill
-  // its own hand even after a newer hand has been dealt (card ids could
-  // collide across two identical deals; the token cannot).
-  let pendingDrawReconcile: { playerHeldIndices: number[], handNumber: number, forToken: number } | null = null
+  // Hands the player drew before their analysis arrived, keyed by the deal's
+  // analysis token, each carrying the wager it was played for. A map, not a
+  // slot: a fast player can draw two hands before either analysis lands, and
+  // every one of them must still be back-filled when its own analysis arrives.
+  interface PendingDrawReconcile {
+    playerHeldIndices: number[]
+    handNumber: number
+    wagerDollars: number
+  }
+  const pendingDrawReconciles = new Map<number, PendingDrawReconcile>()
 
   // --- Hand history ---
-  // Display cap: newest entries win. dealtDecks stays uncapped — persona
-  // replay needs every completed hand, and sessions are bounded by the
-  // 5-minute inactivity timeout anyway.
-  const HAND_HISTORY_LIMIT = 500
+  // Uncapped, like dealtDecks: the profit trend, sparkline, export and counts
+  // all fold over the whole session, so truncating here would silently
+  // desynchronize them from `stats`. Views that only need recent hands slice.
   const handHistory = ref<HandHistoryEntry[]>([])
 
   // --- Dealt decks for persona replay ---
@@ -271,9 +275,7 @@ export const useGameStore = defineStore('game', () => {
     }).catch((err) => {
       console.error('EV analysis failed for this hand:', err)
       // A reconcile recorded for this hand can never complete now
-      if (pendingDrawReconcile?.forToken === token) {
-        pendingDrawReconcile = null
-      }
+      pendingDrawReconciles.delete(token)
       if (token !== analysisToken) return
       analysisPending.value = false
       analysisError.value = true
@@ -301,8 +303,9 @@ export const useGameStore = defineStore('game', () => {
       .map((h, i) => h ? i : -1)
       .filter(i => i >= 0)
 
-    // Capture dealt hand for history
+    // Capture dealt hand for history, and the wager this hand is played for
     const dealtCards = [...hand.value] as Card[]
+    const wagerDollars = coinsBet.value * denomination.value
 
     phase.value = 'drawing'
 
@@ -372,20 +375,20 @@ export const useGameStore = defineStore('game', () => {
           playerAnalysis.value = playerOption
           const evDiff = optimal.expectedValue - playerOption.expectedValue
           wasOptimal.value = evDiff < 0.0001 // floating point tolerance
-          lastMistakeCost.value = evDiff * coinsBet.value * denomination.value
+          lastMistakeCost.value = evDiff * wagerDollars
           if (!wasOptimal.value) {
             stats.value.totalMistakes++
             stats.value.totalEVLost += lastMistakeCost.value
           }
         } else {
-          pendingDrawReconcile = {
+          // analysisToken still identifies this hand's deal: nothing
+          // increments it between deal and draw except a reset, which
+          // clears the pending map anyway
+          pendingDrawReconciles.set(analysisToken, {
             playerHeldIndices,
             handNumber: stats.value.handsPlayed,
-            // analysisToken still identifies this hand's deal: nothing
-            // increments it between deal and draw except a reset, which
-            // clears the reconcile anyway
-            forToken: analysisToken
-          }
+            wagerDollars
+          })
         }
 
         // Add to hand history
@@ -401,9 +404,11 @@ export const useGameStore = defineStore('game', () => {
           handResult: handName,
           payout: resultPayout.value
         })
-        if (handHistory.value.length > HAND_HISTORY_LIMIT) {
-          handHistory.value.length = HAND_HISTORY_LIMIT
-        }
+
+        // The inactivity timeout may have ended the session while this hand
+        // was live; now that it is complete, the bots replay it too, so
+        // "You" and the personas keep scoring the same hands.
+        if (sessionEnded.value) endSession()
 
         phase.value = 'result'
       }, delay + 400)
@@ -416,12 +421,10 @@ export const useGameStore = defineStore('game', () => {
    * even if the player has already dealt the next hand.
    */
   function reconcilePendingDraw(token: number, options: HoldAnalysis[], isCurrent: boolean) {
-    if (!pendingDrawReconcile) return
-    const { playerHeldIndices, handNumber, forToken } = pendingDrawReconcile
-
-    // This analysis belongs to a different deal than the pending draw
-    if (forToken !== token) return
-    pendingDrawReconcile = null
+    const pending = pendingDrawReconciles.get(token)
+    if (!pending) return
+    pendingDrawReconciles.delete(token)
+    const { playerHeldIndices, handNumber, wagerDollars } = pending
 
     const optimal = options[0]
     const playerOption = options.find(opt =>
@@ -432,7 +435,8 @@ export const useGameStore = defineStore('game', () => {
 
     const evDiff = optimal.expectedValue - playerOption.expectedValue
     const optimalNow = evDiff < 0.0001 // floating point tolerance
-    const cost = evDiff * coinsBet.value * denomination.value
+    // Priced at the wager the hand was played for, not today's denomination
+    const cost = evDiff * wagerDollars
 
     const entry = handHistory.value.find(h => h.handNumber === handNumber)
     if (entry) {
@@ -468,12 +472,26 @@ export const useGameStore = defineStore('game', () => {
     credits.value += 100
   }
 
+  /**
+   * Change the denomination. Every dollar figure in the session is coins ×
+   * denomination, so a change mid-session would silently re-price hands
+   * already played; once a hand has been dealt the change starts a fresh
+   * session instead, exactly as PLAY on the setup page does.
+   */
+  function setDenomination(value: number) {
+    if (!(value > 0)) return
+    if (stats.value.handsPlayed > 0 || phase.value !== 'idle') {
+      resetSession()
+    }
+    denomination.value = value
+  }
+
   function resetGame() {
     // Invalidate any in-flight worker analysis — it belongs to a cleared hand
     analysisToken++
     analysisPending.value = false
     analysisError.value = false
-    pendingDrawReconcile = null
+    pendingDrawReconciles.clear()
 
     // A pending flip timer must never mutate the cleared table
     clearAnimationTimers()
@@ -583,6 +601,7 @@ export const useGameStore = defineStore('game', () => {
     draw,
     dealOrDraw,
     insertCredits,
+    setDenomination,
     tickClock,
     resetGame,
     resetSession,

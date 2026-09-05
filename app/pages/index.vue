@@ -198,11 +198,17 @@ function startGame(tableId?: string) {
             :class="game.denomination === d
               ? 'border-primary-500 bg-primary-500/10 text-white'
               : 'border-gray-700/50 bg-gray-900/60 text-gray-400 hover:border-gray-600'"
-            @click="game.denomination = d"
+            @click="game.setDenomination(d)"
           >
             ${{ d.toFixed(2) }}
           </button>
         </div>
+        <p
+          v-if="game.stats.handsPlayed > 0 || game.phase !== 'idle'"
+          class="text-xs text-gray-400 mt-2"
+        >
+          Every figure in a session is priced at its denomination, so changing it starts a new session — the same as PLAY.
+        </p>
       </div>
 
       <!-- Start button -->
