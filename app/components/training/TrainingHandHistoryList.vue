@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { cardLabel } from '~/utils/cards'
+import { formatHandNet } from '~/utils/format'
 
 // Scrolling per-hand history inside the training panel. The store keeps
 // every hand (the profit trend, export and counts depend on it); this
@@ -33,9 +34,9 @@ const hiddenCount = computed(() => Math.max(0, game.handHistory.length - RECENT_
         >No Win</span>
         <span
           class="thl-payout"
-          :class="entry.payout > 0 ? '' : 'thl-payout--loss'"
+          :class="entry.payout >= game.coinsBet ? '' : 'thl-payout--loss'"
         >
-          {{ entry.payout > 0 ? '+' : '-' }}${{ ((entry.payout > 0 ? entry.payout : game.coinsBet) * game.denomination).toFixed(2) }}
+          {{ formatHandNet(entry.payout, game.coinsBet, game.denomination) }}
         </span>
       </div>
       <div class="thl-cards">

@@ -1,3 +1,4 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { PAY_TABLES, PAY_TABLE_GROUPS } from '~/utils/payTables'
 import type { SimulationResult } from '~/utils/simulationWorker'
@@ -15,6 +16,11 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
   // results[variantIndex][runIndex]
   const results = ref<SimulationResult[][]>([])
+
+  // Why the simulation cannot run here, if it cannot. Set up front so the
+  // page can disable Run and explain, not just on a click that does nothing.
+  const NO_WORKER_REASON = 'This browser has no Web Worker support, which the simulation needs to run off the main thread.'
+  const unavailableReason = ref<string | null>(typeof Worker === 'undefined' ? NO_WORKER_REASON : null)
 
   let worker: Worker | null = null
 
@@ -42,11 +48,29 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
   function startAnalysis() {
     if (status.value === 'running') return
-    // Degrade with a message instead of throwing when Workers are unavailable
+    // Degrade with a reason the page shows, instead of a click that does nothing
     if (typeof Worker === 'undefined') {
-      runPhase.value = 'Simulation requires Web Worker support'
+      unavailableReason.value = NO_WORKER_REASON
       return
     }
+
+    // Create the worker first: a synchronous constructor throw (module
+    // workers unsupported, worker-src blocked) must not leave the page
+    // "running" at 0%
+    let created: Worker
+    try {
+      // Create worker with relative path (Vite resolves this)
+      created = new Worker(
+        new URL('../utils/simulationWorker.ts', import.meta.url),
+        { type: 'module' }
+      )
+    } catch (err) {
+      console.error('Simulation worker could not be created:', err)
+      unavailableReason.value = 'The simulation worker could not be started in this browser (module Web Workers are unsupported or blocked by policy).'
+      return
+    }
+    unavailableReason.value = null
+    worker = created
 
     status.value = 'running'
     results.value = []
@@ -58,12 +82,6 @@ export const useAnalysisStore = defineStore('analysis', () => {
     const emptyResults: SimulationResult[][] = simTargets.value.map(() => [])
 
     const startTime = Date.now()
-
-    // Create worker with relative path (Vite resolves this)
-    worker = new Worker(
-      new URL('../utils/simulationWorker.ts', import.meta.url),
-      { type: 'module' }
-    )
 
     worker.onmessage = (e: MessageEvent) => {
       const msg = e.data
@@ -138,6 +156,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
     handsPerRun,
     numRuns,
     results,
+    unavailableReason,
     simTargets,
     totalHands,
     startAnalysis,

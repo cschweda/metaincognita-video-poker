@@ -14,6 +14,14 @@ export function formatSignedDollars(coins: number, denomination: number): string
   return `${dollars >= 0 ? '+' : '-'}$${Math.abs(dollars).toFixed(2)}`
 }
 
+/**
+ * A hand's result net of its wager, signed. A 1:1 pair at 5 coins returns
+ * the bet: "+$0.00", not a gain; no win is the whole wager: "-$1.25".
+ */
+export function formatHandNet(payoutCoins: number, coinsBet: number, denomination: number): string {
+  return formatSignedDollars(payoutCoins - coinsBet, denomination)
+}
+
 export type ReturnTier = 'good' | 'ok' | 'bad'
 
 /**

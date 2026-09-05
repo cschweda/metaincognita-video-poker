@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Card } from '~/utils/cards'
 import { cardLabel } from '~/utils/cards'
+import { formatDollars, formatSignedDollars, formatHandNet } from '~/utils/format'
 
 defineOptions({ name: 'History' })
 useHead({ title: 'Session History — Video Poker Trainer' })
@@ -62,7 +63,7 @@ function exportHandHistory() {
     lines.push(`  Held:    ${h.playerHeld.length > 0 ? h.playerHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(nothing)'}`)
     lines.push(`  Optimal: ${h.optimalHeld.length > 0 ? h.optimalHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(nothing)'}`)
     lines.push(`  Final:   ${formatCards(h.finalCards)}`)
-    lines.push(`  Result:  ${h.handResult || 'No Win'} | Payout: $${(h.payout * game.denomination).toFixed(2)}`)
+    lines.push(`  Result:  ${h.handResult || 'No Win'} | Payout: $${formatDollars(h.payout, game.denomination)} | Net: ${formatHandNet(h.payout, game.coinsBet, game.denomination)}`)
     if (h.mistakeCost > 0.001) {
       lines.push(`  ** MISTAKE: cost $${h.mistakeCost.toFixed(2)} | Your EV: ${h.playerEV.toFixed(4)} | Optimal EV: ${h.optimalEV.toFixed(4)}`)
     }
@@ -72,9 +73,9 @@ function exportHandHistory() {
   if (game.personaResults.length > 0) {
     lines.push(`--- BOT COMPARISON ---`)
     lines.push(``)
-    lines.push(`You:             ${game.effectiveReturn.toFixed(2)}%  Net: $${((game.stats.totalReturned - game.stats.totalWagered) * game.denomination).toFixed(2)}`)
+    lines.push(`You:             ${game.effectiveReturn.toFixed(2)}%  Net: ${formatSignedDollars(game.stats.totalReturned - game.stats.totalWagered, game.denomination)}`)
     for (const pr of game.personaResults) {
-      lines.push(`${pr.personaName.padEnd(17)}${pr.returnPct.toFixed(2)}%  Net: $${((pr.totalPayout - pr.totalWagered) * game.denomination).toFixed(2)}`)
+      lines.push(`${pr.personaName.padEnd(17)}${pr.returnPct.toFixed(2)}%  Net: ${formatSignedDollars(pr.totalPayout - pr.totalWagered, game.denomination)}`)
     }
   }
 
@@ -165,7 +166,7 @@ function exportHandHistory() {
                 class="text-4xl font-bold font-mono"
                 :class="(game.stats.totalReturned - game.stats.totalWagered) >= 0 ? 'text-green-400' : 'text-red-400'"
               >
-                {{ (game.stats.totalReturned - game.stats.totalWagered) >= 0 ? '+' : '' }}${{ ((game.stats.totalReturned - game.stats.totalWagered) * game.denomination).toFixed(2) }}
+                {{ formatSignedDollars(game.stats.totalReturned - game.stats.totalWagered, game.denomination) }}
               </div>
             </div>
             <div class="text-right space-y-1">
@@ -231,7 +232,7 @@ function exportHandHistory() {
                 :class="profitTimeline[profitTimeline.length - 1]! >= 0 ? 'text-green-400' : 'text-red-400'"
                 class="text-sm font-mono font-bold"
               >
-                {{ profitTimeline[profitTimeline.length - 1]! >= 0 ? '+' : '' }}${{ profitTimeline[profitTimeline.length - 1]!.toFixed(2) }}
+                {{ formatSignedDollars(profitTimeline[profitTimeline.length - 1]!, 1) }}
               </span>
             </div>
             <div class="flex items-end gap-[2px] h-20">
@@ -352,7 +353,7 @@ function exportHandHistory() {
                 class="font-mono text-sm w-16 text-right font-bold"
                 :class="h.payout > 0 ? 'text-green-400' : 'text-red-400'"
               >
-                {{ h.payout > 0 ? '+' : '-' }}${{ ((h.payout > 0 ? h.payout : game.coinsBet) * game.denomination).toFixed(2) }}
+                {{ formatHandNet(h.payout, game.coinsBet, game.denomination) }}
               </span>
               <span class="text-gray-500 text-xs">{{ expandedHand === h.handNumber ? '&#9660;' : '&#9654;' }}</span>
             </button>
@@ -431,7 +432,7 @@ function exportHandHistory() {
                 <span
                   v-if="h.payout > 0"
                   class="text-green-400 font-mono font-bold"
-                >+${{ (h.payout * game.denomination).toFixed(2) }}</span>
+                >${{ formatDollars(h.payout, game.denomination) }} paid</span>
               </div>
             </div>
           </div>

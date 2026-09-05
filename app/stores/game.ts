@@ -8,6 +8,7 @@ import type { PayTableDef } from '~/utils/payTables'
 import type { HoldAnalysis } from '~/utils/evCalculator'
 import { analyzeHandAsync } from '~/utils/evAnalysisClient'
 import { replayHandsThroughPersona, PERSONAS } from '~/utils/botPersonas'
+import { formatDollars } from '~/utils/format'
 import type { DealtHand, PersonaResult } from '~/utils/botPersonas'
 
 export type GamePhase = 'idle' | 'dealing' | 'dealt' | 'drawing' | 'result'
@@ -130,8 +131,8 @@ export const useGameStore = defineStore('game', () => {
   const canDraw = computed(() => phase.value === 'dealt')
   const anyHeld = computed(() => held.value.some(h => h))
 
-  const creditsAsDollars = computed(() => (credits.value * denomination.value).toFixed(2))
-  const betAsDollars = computed(() => (coinsBet.value * denomination.value).toFixed(2))
+  const creditsAsDollars = computed(() => formatDollars(credits.value, denomination.value))
+  const betAsDollars = computed(() => formatDollars(coinsBet.value, denomination.value))
 
   const effectiveReturn = computed(() => {
     if (stats.value.totalWagered === 0) return 0

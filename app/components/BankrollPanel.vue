@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { VARIANT_RULES } from '~/utils/variantRules'
+import { formatDollars, formatSignedDollars } from '~/utils/format'
 
 const game = useGameStore()
 const rulesOpen = ref(false)
@@ -78,17 +79,17 @@ const netResult = computed(() => {
       />
       <StatRow
         label="Wagered"
-        :value="`$${(game.stats.totalWagered * game.denomination).toFixed(2)}`"
+        :value="`$${formatDollars(game.stats.totalWagered, game.denomination)}`"
         tooltip="Total amount bet across all hands this session."
       />
       <StatRow
         label="Returned"
-        :value="`$${(game.stats.totalReturned * game.denomination).toFixed(2)}`"
+        :value="`$${formatDollars(game.stats.totalReturned, game.denomination)}`"
         tooltip="Total payouts received. Includes your original bet on winning hands (video poker pays 'for 1', not 'to 1')."
       />
       <StatRow
         label="Net"
-        :value="`${netResult >= 0 ? '+' : ''}$${netResult.toFixed(2)}`"
+        :value="formatSignedDollars(game.stats.totalReturned - game.stats.totalWagered, game.denomination)"
         tooltip="Returned minus Wagered. Positive = you're up. Negative = you're down."
         :value-class="netResult > 0 ? 'bp-value--good' : netResult < 0 ? 'bp-value--bad' : ''"
       />
@@ -142,7 +143,7 @@ const netResult = computed(() => {
           v-if="game.resultPayout > 0"
           class="bp-hand-payout"
         >
-          +${{ (game.resultPayout * game.denomination).toFixed(2) }}
+          +${{ formatDollars(game.resultPayout, game.denomination) }}
         </div>
         <div
           v-if="!game.wasOptimal"
@@ -173,7 +174,7 @@ const netResult = computed(() => {
         />
         <StatRow
           label="$/hr"
-          :value="`${game.effectiveHourlyRate >= 0 ? '+' : ''}$${game.effectiveHourlyRate.toFixed(2)}`"
+          :value="formatSignedDollars(game.effectiveHourlyRate, 1)"
           tooltip="Your effective hourly rate based on session results so far. Includes wins and losses but not comp value. Professional VP pros targeted $25-50/hr including comps."
           :value-class="game.effectiveHourlyRate >= 0 ? 'bp-value--good' : 'bp-value--bad'"
         />

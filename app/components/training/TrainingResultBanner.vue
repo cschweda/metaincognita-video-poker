@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDollars, formatSignedDollars } from '~/utils/format'
+
 // Win/loss banner at the top of the result phase.
 const game = useGameStore()
 </script>
@@ -19,8 +21,8 @@ const game = useGameStore()
         v-if="game.resultPayout > 0"
         class="trb__payout"
       >
-        Won ${{ (game.resultPayout * game.denomination).toFixed(2) }}
-        <span class="trb__net">(net +${{ ((game.resultPayout - game.coinsBet) * game.denomination).toFixed(2) }})</span>
+        Won ${{ formatDollars(game.resultPayout, game.denomination) }}
+        <span class="trb__net">(net {{ formatSignedDollars(game.resultPayout - game.coinsBet, game.denomination) }})</span>
       </div>
       <div
         v-else

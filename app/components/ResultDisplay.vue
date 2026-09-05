@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDollars } from '~/utils/format'
+
 const game = useGameStore()
 
 const isWin = computed(() => game.resultPayout > 0)
@@ -20,7 +22,7 @@ const isWin = computed(() => game.resultPayout > 0)
         }"
       >
         <template v-if="isWin">
-          &#9473;&#9473; {{ game.resultHandName }} &mdash; ${{ (game.resultPayout * game.denomination).toFixed(2) }} &#9473;&#9473;
+          &#9473;&#9473; {{ game.resultHandName }} &mdash; ${{ formatDollars(game.resultPayout, game.denomination) }} &#9473;&#9473;
         </template>
         <template v-else-if="game.phase === 'result'">
           No Win

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDollars, formatHandNet } from '~/utils/format'
+
 // Session balance sparkline with per-hand dots, extracted from BankrollPanel.
 // The dots are real buttons so their tooltips open on keyboard focus, not
 // just hover — the per-hand recap is teaching content, not decoration.
@@ -72,10 +74,10 @@ const sparklineZeroY = computed(() => {
 
 function dotLabel(pt: SparkPoint): string {
   if (pt.handNum === 0) {
-    return `Start: $${(pt.balance * game.denomination).toFixed(2)}`
+    return `Start: $${formatDollars(pt.balance, game.denomination)}`
   }
-  const swing = `${pt.isWin ? '+' : '-'}$${((pt.isWin ? pt.payout : game.coinsBet) * game.denomination).toFixed(2)}`
-  return `#${pt.handNum}: ${pt.handResult || 'No Win'} ${swing} → $${(pt.balance * game.denomination).toFixed(2)}`
+  const swing = formatHandNet(pt.payout, game.coinsBet, game.denomination)
+  return `#${pt.handNum}: ${pt.handResult || 'No Win'} ${swing} → $${formatDollars(pt.balance, game.denomination)}`
 }
 </script>
 

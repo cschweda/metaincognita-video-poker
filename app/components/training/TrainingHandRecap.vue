@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { cardLabel } from '~/utils/cards'
 import { optimalHoldReason } from '~/utils/optimalPlayText'
+import { formatDollars } from '~/utils/format'
 
 // Result-phase step-by-step recap of the last hand: dealt → held →
 // (optimal, if different) → final, plus mistake cost and the verdict badge.
@@ -97,7 +98,7 @@ const reason = computed(() =>
             :class="entry.payout > 0 ? 'thr__result--win' : 'thr__result--loss'"
           >
             {{ entry.handResult || 'No Win' }}
-            <span v-if="entry.payout > 0"> &mdash; +${{ (entry.payout * game.denomination).toFixed(2) }}</span>
+            <span v-if="entry.payout > 0"> &mdash; paid ${{ formatDollars(entry.payout, game.denomination) }}</span>
           </div>
         </div>
       </div>
