@@ -1,5 +1,4 @@
 import type { Card } from './cards'
-import { handShape } from './handShape'
 
 /**
  * Wild-card-aware hand classifier for Deuces Wild.
@@ -8,6 +7,12 @@ import { handShape } from './handShape'
  * then check from the highest hand type downward whether the wilds can
  * complete it. This is O(H) where H is the number of hand types (~12),
  * not O(52^W) brute-force card assignment.
+ *
+ * Like handClassifier.ts this allocates nothing per call — the EV analyzer
+ * runs it 2.6 million times per dealt hand. Its output is pinned to the
+ * handShape-based reference over every 5-card hand in
+ * tests/classifierIdentity.test.ts, and that reference was itself confirmed
+ * against brute-force wild substitution on every hand.
  */
 
 export type DeucesWildHandRank
@@ -23,182 +28,122 @@ export type DeucesWildHandRank
     | 'Three of a Kind'
     | 'Nothing'
 
+// Histogram of natural ranks (3..14); bit r of natMask ⇔ natural rank r present
+const hist = new Int32Array(15)
+
+const ROYAL_MASK = (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14)
+// Natural cards are never 2s, so the regular windows span 3-7 through 10-A
+const STRAIGHT_MASKS: number[] = []
+for (let low = 3; low <= 10; low++) {
+  STRAIGHT_MASKS.push((1 << low) | (1 << (low + 1)) | (1 << (low + 2)) | (1 << (low + 3)) | (1 << (low + 4)))
+}
+// Ace-low wheel: the 2 slot can only ever be a wild, so the naturals are A-3-4-5
+const WHEEL_NATURALS_MASK = (1 << 14) | (1 << 3) | (1 << 4) | (1 << 5)
+
+// popcount over 15-bit masks
+const POPCOUNT = new Uint8Array(1 << 15)
+for (let m = 1; m < POPCOUNT.length; m++) POPCOUNT[m] = POPCOUNT[m >> 1]! + (m & 1)
+
+/** Can the natural ranks + numWild wilds form any 5-card straight? */
+function canMakeStraight(natMask: number, numWild: number): boolean {
+  for (let i = 0; i < STRAIGHT_MASKS.length; i++) {
+    const window = STRAIGHT_MASKS[i]!
+    // Every natural rank must belong to the window (all 5 cards form the straight)
+    if (natMask & ~window) continue
+    // Window ranks missing from the naturals are the gaps the wilds must fill
+    if (5 - POPCOUNT[natMask & window]! <= numWild) return true
+  }
+  // Wheel: one wild is consumed by the 2, the rest fill A-3-4-5 gaps
+  if ((natMask & ~WHEEL_NATURALS_MASK) === 0) {
+    if (4 - POPCOUNT[natMask]! + 1 <= numWild) return true
+  }
+  return false
+}
+
 export function classifyDeucesWild(cards: Card[]): DeucesWildHandRank {
   if (cards.length !== 5) return 'Nothing'
 
-  // Separate wilds (rank 2) from natural cards
-  const wilds: Card[] = []
-  const naturals: Card[] = []
-  for (const c of cards) {
+  hist.fill(0)
+  let numWild = 0
+  let natMask = 0
+  let sameSuit = true
+  let suit: Card['suit'] | null = null
+  for (let i = 0; i < 5; i++) {
+    const c = cards[i]!
     if (c.rank === 2) {
-      wilds.push(c)
-    } else {
-      naturals.push(c)
+      numWild++
+      continue
     }
+    hist[c.rank]++
+    natMask |= 1 << c.rank
+    if (suit === null) suit = c.suit
+    else if (c.suit !== suit) sameSuit = false
   }
-
-  const numWild = wilds.length
 
   // --- 4 deuces ---
   if (numWild === 4) return 'Four Deuces'
 
+  // Rank-count shape of the naturals
+  let maxCount = 0
+  let secondCount = 0
+  for (let r = 3; r <= 14; r++) {
+    const n = hist[r]!
+    if (n === 0) continue
+    if (n > maxCount) {
+      secondCount = maxCount
+      maxCount = n
+    } else if (n > secondCount) {
+      secondCount = n
+    }
+  }
+  const distinct = POPCOUNT[natMask]!
+
   // --- 5 naturals (no wilds) ---
-  if (numWild === 0) return classifyNoWilds(naturals)
+  if (numWild === 0) {
+    // No natural 2s exist, so the wheel can never fire here
+    const low = natMask & -natMask
+    const isStraight = distinct === 5 && natMask / low === 31
+    if (sameSuit && natMask === ROYAL_MASK) return 'Natural Royal Flush'
+    if (sameSuit && isStraight) return 'Straight Flush'
+    if (maxCount === 4) return 'Four of a Kind'
+    if (maxCount === 3 && secondCount === 2) return 'Full House'
+    if (sameSuit) return 'Flush'
+    if (isStraight) return 'Straight'
+    if (maxCount === 3) return 'Three of a Kind'
+    // In Deuces Wild, pairs and two pair don't pay
+    return 'Nothing'
+  }
 
-  // --- 1, 2, or 3 wilds ---
-  const { uniqueRanks, counts, isFlush: isAllSameSuit } = handShape(naturals)
+  // --- 1, 2, or 3 wilds --- check top-down
 
-  // Check top-down
-
-  // Natural Royal Flush — impossible with wilds (it would be Wild Royal)
-
-  // Wild Royal Flush — all same suit, and wilds can fill in to make A-K-Q-J-10
-  if (isAllSameSuit && canMakeRoyal(uniqueRanks, numWild)) {
+  // Wild Royal Flush — all naturals in the royal set, wilds fill the rest
+  if (sameSuit && (natMask & ~ROYAL_MASK) === 0 && 5 - distinct <= numWild) {
     return 'Wild Royal Flush'
   }
 
   // Five of a Kind — all naturals same rank + wilds
-  if (counts[0]! + numWild >= 5) return 'Five of a Kind'
+  if (maxCount + numWild >= 5) return 'Five of a Kind'
 
   // Straight Flush — all same suit, and can make a straight with wilds
-  if (isAllSameSuit && canMakeStraight(uniqueRanks, numWild)) {
-    return 'Straight Flush'
-  }
+  if (sameSuit && canMakeStraight(natMask, numWild)) return 'Straight Flush'
 
   // Four of a Kind — highest count + wilds >= 4
-  if (counts[0]! + numWild >= 4) return 'Four of a Kind'
+  if (maxCount + numWild >= 4) return 'Four of a Kind'
 
-  // Full House — need 3+2; with wilds we can boost counts
-  if (canMakeFullHouse(counts, numWild)) return 'Full House'
+  // Full House — boost the largest group to 3, then the second to 2
+  if (distinct >= 2) {
+    const needA = Math.max(0, 3 - maxCount)
+    if (needA <= numWild && Math.max(0, 2 - secondCount) <= numWild - needA) return 'Full House'
+  }
 
-  // Flush — all same suit (wilds can be any suit)
-  if (isAllSameSuit) return 'Flush'
+  // Flush — all naturals same suit (wilds can be any suit)
+  if (sameSuit) return 'Flush'
 
-  // Straight — can make a 5-card straight with wilds filling gaps
-  if (canMakeStraight(uniqueRanks, numWild)) return 'Straight'
+  // Straight — a 5-card straight with wilds filling gaps
+  if (canMakeStraight(natMask, numWild)) return 'Straight'
 
   // Three of a Kind — highest count + wilds >= 3
-  if (counts[0]! + numWild >= 3) return 'Three of a Kind'
+  if (maxCount + numWild >= 3) return 'Three of a Kind'
 
   return 'Nothing'
-}
-
-/**
- * Classify a 5-card hand with no wild cards (used when numWild === 0).
- * Returns Deuces Wild hand types (Natural Royal only possible here).
- */
-function classifyNoWilds(cards: Card[]): DeucesWildHandRank {
-  // handShape's isStraight includes the ace-low wheel, but the wheel needs
-  // a natural 2 and every 2 here is wild — so it can never fire for this
-  // input, matching the old wheel-less check.
-  const { counts, isFlush, isStraight, isRoyal } = handShape(cards)
-
-  // Natural Royal Flush
-  if (isRoyal) return 'Natural Royal Flush'
-
-  if (isFlush && isStraight) return 'Straight Flush'
-  if (counts[0] === 4) return 'Four of a Kind'
-  if (counts[0] === 3 && counts[1] === 2) return 'Full House'
-  if (isFlush) return 'Flush'
-  if (isStraight) return 'Straight'
-  if (counts[0] === 3) return 'Three of a Kind'
-
-  // In Deuces Wild, pairs and two pair don't pay
-  return 'Nothing'
-}
-
-/**
- * Can the natural ranks + numWild wilds form a royal flush (A-K-Q-J-10)?
- */
-function canMakeRoyal(uniqueRanks: number[], numWild: number): boolean {
-  const royalRanks = [10, 11, 12, 13, 14]
-  let needed = 0
-  for (const r of royalRanks) {
-    if (!uniqueRanks.includes(r)) needed++
-  }
-  // Also check no ranks outside the royal set
-  for (const r of uniqueRanks) {
-    if (!royalRanks.includes(r)) return false
-  }
-  return needed <= numWild
-}
-
-/**
- * Can the natural unique ranks + numWild wilds form any 5-card straight?
- * Checks all possible straight windows.
- */
-function canMakeStraight(uniqueRanks: number[], numWild: number): boolean {
-  // Possible straights: A-2-3-4-5 through 10-J-Q-K-A.
-  // Natural cards are never 2s (2s are wild), so the regular windows
-  // span 3-7 through 10-A. Windows containing a 2 (2-3-4-5-6) are
-  // equivalent to a shifted window with the same gap count, so they
-  // are covered by 3-4-5-6-7.
-
-  const straightWindows = [
-    [3, 4, 5, 6, 7],
-    [4, 5, 6, 7, 8],
-    [5, 6, 7, 8, 9],
-    [6, 7, 8, 9, 10],
-    [7, 8, 9, 10, 11],
-    [8, 9, 10, 11, 12],
-    [9, 10, 11, 12, 13],
-    [10, 11, 12, 13, 14]
-  ]
-
-  for (const window of straightWindows) {
-    // Every natural rank must belong to the window (all 5 cards form the straight)
-    let hasExtraRank = false
-    for (const r of uniqueRanks) {
-      if (!window.includes(r)) {
-        hasExtraRank = true
-        break
-      }
-    }
-    if (hasExtraRank) continue
-
-    // How many of the window ranks are missing from natural ranks?
-    let gaps = 0
-    for (const r of window) {
-      if (!uniqueRanks.includes(r)) gaps++
-    }
-    if (gaps <= numWild) return true
-  }
-
-  // Ace-low wheel A-2-3-4-5: the 2 slot can only ever be a wild,
-  // so one wild is consumed by the 2 and the rest fill A-3-4-5 gaps.
-  const wheelNaturals = [14, 3, 4, 5]
-  if (uniqueRanks.every(r => wheelNaturals.includes(r))) {
-    let gaps = 0
-    for (const r of wheelNaturals) {
-      if (!uniqueRanks.includes(r)) gaps++
-    }
-    if (gaps + 1 <= numWild) return true
-  }
-
-  return false
-}
-
-/**
- * Can we form a full house (3+2) given the counts and wilds?
- */
-function canMakeFullHouse(counts: number[], numWild: number): boolean {
-  if (counts.length < 2) {
-    // Only one unique rank among naturals
-    // e.g., 3 naturals same rank + 2 wilds = five of a kind (already caught above)
-    // or 2 naturals same rank + 3 wilds = five of a kind (already caught)
-    // So reaching here means we can't make a full house
-    return false
-  }
-
-  // We need to distribute wilds across two groups to reach 3+2
-  const a = counts[0]! // largest group
-  const b = counts[1]! // second group
-
-  // Try to boost a to 3, then b to 2 with remaining wilds
-  let wildsLeft = numWild
-  const needA = Math.max(0, 3 - a)
-  if (needA > wildsLeft) return false
-  wildsLeft -= needA
-  const needB = Math.max(0, 2 - b)
-  return needB <= wildsLeft
 }
