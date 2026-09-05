@@ -6,7 +6,7 @@ import { defineConfig } from 'vitest/config'
 // chi-squared runs and the 60k-hand-per-variant strategy tripwire). They run
 // in the `statistical` project; everything else is the `fast` project for a
 // sub-5s dev loop via `pnpm test:fast`. `pnpm test` still runs both.
-const STATISTICAL_SUITES = ['tests/shuffle.test.ts', 'tests/strategyLookup.test.ts']
+const STATISTICAL_SUITES = ['tests/shuffle.test.ts', 'tests/strategyLookup.test.ts', 'tests/strategyExactEv.test.ts', 'tests/classifierIdentity.test.ts']
 
 const shared = {
   // Compiles the SFCs the component tests mount. The default environment stays
