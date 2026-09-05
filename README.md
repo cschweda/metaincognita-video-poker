@@ -253,14 +253,14 @@ Session totals accumulate: "47 hands played, 3 mistakes, $0.42 left on the table
 
 End a session and your dealt hands are replayed through four player archetypes:
 
-| Persona | Strategy | Typical Return |
-|---------|----------|---------------|
-| **Perfect Pat** | Brute-force optimal (replays the exact optimal hold recorded for each hand you played) | 99.5% |
-| **Almost Alice** | Simplified strategy | 99.4% |
-| **Gut-Feel Gary** | Common recreational mistakes | 96-97% |
-| **Superstitious Sam** | Pattern-chasing (effectively random) | 94-95% |
+| Persona | Strategy | Exact return, 9/6 Jacks or Better |
+|---------|----------|-----------------------------------|
+| **Perfect Pat** | Brute-force optimal (replays the exact optimal hold recorded for each hand you played) | 99.54% |
+| **Almost Alice** | The published 16-line "simple strategy" | 99.46% |
+| **Gut-Feel Gary** | Common recreational mistakes: kickers, never breaking a paying hand, high cards over low pairs | 92.6% |
+| **Superstitious Sam** | Pattern-chasing — effectively random holds | 35% |
 
-The gap between you and Pat is the dollar value of your mistakes. The gap between Pat and Gary is the dollar value of learning strategy.
+Returns are exact expectations over every one of the 2,598,960 possible deals. Alice, Gary and Sam play Jacks-or-Better strategy on every variant (keeping deuces and dealt paying hands on Deuces Wild, as any tourist would), so on other games they do worse. The gap between you and Pat is the dollar value of your mistakes. The gap between Pat and Gary is the dollar value of learning strategy.
 
 ---
 
@@ -346,11 +346,11 @@ The `/analysis` page runs batch simulations across all variants with optimal pla
 | RNG | `crypto.getRandomValues` + Fisher-Yates shuffle |
 | Hand classification | Deterministic, verified against standard rankings |
 | In-game EV | Exhaustive enumeration — mathematically exact |
-| Simulation strategy | Published strategy tables (<0.1% EV loss vs brute-force) |
+| Simulation strategy | Strategy tables graded over every possible deal — 0.001 to 0.006 percentage points behind exact play |
 | Pay table payouts | From Wizard of Odds published values |
 | Theoretical returns | From Wizard of Odds published values |
 
-The only approximation in simulation: penalty card adjustments are omitted from strategy tables, affecting ~2% of hands at ~0.01% EV each.
+The only approximation in simulation is the penalty-card residue a ranked strategy list cannot express. Measured exhaustively, it touches 0.2% of 9/6 Jacks or Better deals at an average 0.006 EV/coin — 0.001 percentage points of return; the largest residue on any table is 0.006 points (10/7 Double Bonus).
 
 ## Reference Sources
 
@@ -410,8 +410,9 @@ The vitest suite (`tests/`) covers the parts where correctness is the product:
 
 - **Shuffle statistics** — chi-squared positional uniformity over 50k shuffles, suit-fairness in dealt hands, adjacent-card independence, seeded-PRNG determinism
 - **Hand classifiers** — the standard/Bonus/DDB classifiers (kicker boundaries included) and the Deuces Wild classifier with its ace-low wheel edge cases (A-2-3-4-5 requires a wild for the 2; A-3-4-5-6 is not a straight), plus a classifier↔pay-table row-name integrity check
-- **Strategy tables** — every rule class graded against the exact-EV calculator at runtime, plus a deterministic 60k-hand-per-variant return tripwire
-- **Persona replay** — Perfect Pat uses recorded exact-optimal holds
+- **Strategy tables** — every rule class graded against the exact-EV calculator at runtime, a deterministic 60k-hand-per-variant return tripwire, and an exact-EV sample audit: `tests/helpers/exactEv.ts` builds inclusion–exclusion sum tables from the app's own classifier so every hold's exact EV is a handful of lookups, and the tables are held to 0.012 pp of exact play on 200,000 deals per pay table (every deal on the two that once leaked most)
+- **Classifier hot path** — the allocation-free classifiers are pinned to the readable reference implementations over every 5-card hand, with a speed floor
+- **Persona replay** — Perfect Pat uses recorded exact-optimal holds; Almost Alice is held to the simple strategy's 99.46%; the recreational personas never discard a deuce
 - **Async EV analysis** — worker race handling: drawing before the analysis lands back-fills mistake stats when it arrives; worker failure recovery
 
 The suite is split into a `fast` project (`pnpm test:fast`, ~2s) and a `statistical` project (the 50k-shuffle and 60k-hand suites). CI runs lint → typecheck → full test → build on every push and pull request, and the Netlify build gates deploys on lint + typecheck + fast tests.

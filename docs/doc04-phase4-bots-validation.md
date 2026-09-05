@@ -25,6 +25,8 @@ type BotStrategy = (dealt: Card[], payTable: PayTable) => number[]
 // Returns indices of cards to hold (same format as player holds)
 ```
 
+> **Implemented 2026-09-05 (exhaustive audit).** Alice is the published 16-line simple strategy and measures 99.46% on 9/6; Gary and Sam measure 92.6% and 35%, not the ranges guessed below. All three play Jacks-or-Better strategy on every variant, with two concessions any tourist makes on a wild-card machine: they never discard a deuce, and Alice and Gary keep a dealt paying hand pat.
+
 **Implementation approach: retroactive replay.** Bots do not run during live play. Instead, after the player finishes a session (or on demand via a "Compare" button), the simulator replays every dealt hand from the session's hand history through each bot's strategy function. For each hand, the bot's hold decision is computed, and then every possible draw outcome is evaluated to compute the bot's expected result. This is computationally cheap — it's just N hands × 4 bots × 1 strategy evaluation each, plus the same draw enumeration the EV calculator already does.
 
 The retroactive approach avoids complexity: no parallel game states during live play, no real-time synchronization, no performance impact on the player's experience. The bots analyze the same dealt hands the player saw, so the comparison is perfectly controlled.
@@ -43,7 +45,7 @@ The retroactive approach avoids complexity: no parallel game states during live 
   - Never discards all 5 cards
   - Holds inside straight draws (overvalues straights)
   - Holds "pretty" hands (suited connectors) even when not strategically justified
-- Expected session return: 96–97% on JoB 9/6
+- Measured session return: **92.6%** on JoB 9/6 (exact expectation over every deal, 2026-09-05 audit; the 96–97% written here originally was a guess)
 - The gap between Gary and Pat is the dollar value of learning optimal strategy
 
 **Almost-Alice:**
@@ -59,7 +61,7 @@ The retroactive approach avoids complexity: no parallel game states during live 
   - Holds "lucky" cards (keeps a 7 because "7 is lucky")
   - Avoids holding 13s (kings) after a loss streak
   - Core decisions are semi-random with bias
-- Expected session return: 94–96% on JoB 9/6
+- Measured session return: **35%** on JoB 9/6 (exact expectation over every deal). Effectively random holds really do return about a third of the wager — the 94–96% written here originally assumed a far more competent player
 - Point: the cards have no memory. Streaks are random. Sam's adjustments to streaks are pure superstition and cost him money
 
 ### 2. Session Comparison Dashboard (`BotComparison.vue`)

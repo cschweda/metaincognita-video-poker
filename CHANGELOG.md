@@ -4,6 +4,35 @@ All notable changes to the Video Poker Trainer will be documented in this file.
 
 ## [Unreleased]
 
+### Exhaustive Exact-EV Audit — Leak Fixes
+
+Every one of the 2,598,960 possible deals of every pay table was graded against exact expected value (inclusion–exclusion sum tables built from the app's own classifier, now in `tests/helpers/exactEv.ts`). The engine reproduces the published return of all ten pay tables to four decimals, and an independent brute-force evaluator agreed with all four classifiers on every hand. What it found, and what changed:
+
+#### Fixed
+
+- **The strategy tables leaked, badly on Double Bonus.** The previous `fastOptimalHold` lost 0.19 pp of return on 10/7 Double Bonus (playing a 100.17% game at 99.98%), 0.074 pp on full-pay Deuces Wild, 0.051 pp on 9/6 Double Double Bonus and 0.037 pp on 8/6 Bonus Deluxe. Where the published strategy order and the exact numbers disagreed, the exact numbers won: in Deuces Wild A-3-4-5 and ace-low straight-flush draws are not draws (the missing 2 can only be a wild), deuce + suited A-x loses to the bare deuce, K-high suited royal pairs lose to a redraw, 3-4-5-6 plays as an inside draw, and three deuces keep a pat five of a kind only when the pair is T–A; in Double Bonus a 3-flush with a high card beats lone and unsuited high-card holds, the ace is held alone over A + unsuited high, unsuited Q-J-T beats Q-J, only K-Q-J and Q-J-T royal draws beat a J–K pair and a 4-flush beats it only with three high cards; in the two games where two pair pays 1, inside straights beat a redraw and, with two high cards, two unsuited high cards. Residual loss is now 0.001–0.006 pp per pay table, and `tests/strategyExactEv.test.ts` holds it there.
+- **Mistake tracking could silently drop a hand.** The draw-before-analysis reconcile was a single slot; drawing two hands before either analysis landed erased the first hand's mistake. It is now a map keyed by analysis token, and each entry carries the wager the hand was played for, so a late back-fill is priced correctly even if the denomination changed meanwhile. Changing the denomination once a hand has been dealt now starts a fresh session (as PLAY does) instead of re-pricing hands already played.
+- **The 500-row history cap desynchronized the profit trend, sparkline, export and counts from the session stats** after roughly 500 hands. History is uncapped again; the training sidebar renders the latest 100 and points at the History page.
+- **The inactivity timeout could end a session mid-hand**, leaving the finished hand counted for "You" but not for the bots. Completing the hand now re-runs the persona replay.
+- **"Run Analysis" was a silent no-op where Web Workers are unavailable**, and a worker-constructor throw left the spinner at 0%. The analysis store exposes an `unavailableReason`; the page shows it and disables the button.
+- **A pushed hand showed as a green gain** (`+$1.25` for a 1:1 pair beside a banner saying net +$0.00), and the session net appeared as `-$1.25` next to `$-1.25` on the same screen. Every hand result is shown net of its wager and every dollar figure goes through the shared formatters.
+- **Regressions from the training-panel decomposition:** the panel's frame, gold accent and slate base color are back; the bot-comparison rows fit the 280px sidebar again (compact layout); the 32-option table has its "Δ Best" header; the footer calls the setup page "Home", omits the current page's own link and leaves the analysis status off the analysis page; `HoldOptionsTable` treats `limit=0` as zero rows.
+- **The footer's GitHub glyph was fetched from api.iconify.design at runtime** despite the "bundled" claim. `@nuxt/icon` now scans the source and bundles the icons it finds.
+
+#### Personas
+
+- **Almost Alice is now the published 16-line simple strategy** (exact return 99.46% on 9/6, matching Wizard of Odds), not a loose approximation that returned 97.6%.
+- **Every persona's label is its measured return**: Gary 92.6% and Sam 35% on 9/6 Jacks or Better, not the 96–97% and 94–95% previously claimed. Random play returns about a third of the wager.
+- **Alice, Gary and Sam never discard a deuce on Deuces Wild**, and Alice and Gary keep a dealt paying hand pat. Before this, Alice threw away the deuce from a dealt wild royal to keep four hearts.
+
+#### Performance
+
+- **Exact EV analysis is 6× faster.** The classifiers were the hot path (2.6 million calls per analyzed hand) and allocated ~3 KB per call through `handShape()`. They now scan into one module-level histogram and a rank bitmask with no per-call allocation: `analyzeHand` on a junk hand went from 1,249 ms to 194 ms. Output is pinned to the previous implementations over every 5-card hand in `tests/classifierIdentity.test.ts`. At this speed the analysis lands before the deal animation ends, so the draw-ahead races above are rare in practice as well as handled.
+
+#### Docs
+
+- The analysis page's Methodology block, the README's persona table, methodology table and penalty-card sentence now carry the exhaustive numbers.
+
 ### Resilience, Accessibility & Hardening Pass
 
 A full-codebase audit (game logic, UI/accessibility, tests/tooling) turned into a four-part improvement pass. The core math needed no fixes — the audit confirmed the classifiers, EV calculator, payouts, and shuffle are correct.
