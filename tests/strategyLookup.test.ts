@@ -205,6 +205,105 @@ describe('Bonus / Double Bonus / Deluxe strategy vs exact EV', () => {
   })
 })
 
+// Rule classes overturned by the 2026-09-05 exhaustive audit (every deal of
+// every pay table graded against exact EV). Each hand below was a losing deal
+// for the previous table; the loss and the exact hold are recorded in the
+// audit report.
+
+describe('Deuces Wild — exhaustive-audit rule classes', () => {
+  it('discards A-3-4-5 outright: the missing 2 can only be a wild (4 outs, not 8)', () => {
+    expectOptimal('deuces-wild-full', [c(3, 'spades'), c(4, 'spades'), c(8, 'spades'), c(5, 'hearts'), c(14, 'hearts')])
+  })
+
+  it('discards an ace-low 3 to a straight flush for the same reason', () => {
+    expectOptimal('deuces-wild-full', [c(3, 'spades'), c(4, 'spades'), c(14, 'spades'), c(5, 'hearts'), c(8, 'hearts')])
+  })
+
+  it('holds the bare deuce over deuce + suited A-K (one straight-flush window)', () => {
+    expectOptimal('deuces-wild-full', [c(2, 'spades'), c(3, 'spades'), c(4, 'spades'), c(13, 'hearts'), c(14, 'hearts')])
+  })
+
+  it('redraws rather than hold a K-high suited royal pair', () => {
+    expectOptimal('deuces-wild-full', [c(3, 'spades'), c(4, 'spades'), c(8, 'spades'), c(12, 'hearts'), c(13, 'hearts')])
+  })
+
+  it('plays 3-4-5-6 as an inside draw, so three suited connectors beat it', () => {
+    expectOptimal('deuces-wild-full', [c(3, 'spades'), c(8, 'spades'), c(4, 'hearts'), c(5, 'hearts'), c(6, 'hearts')])
+  })
+
+  it('prefers an inside straight with two high cards over suited Q-T', () => {
+    expectOptimal('deuces-wild-full', [c(3, 'spades'), c(8, 'spades'), c(11, 'spades'), c(10, 'hearts'), c(12, 'hearts')])
+  })
+
+  it('keeps a pat five of a kind with three deuces and a pair of tens', () => {
+    expectOptimal('deuces-wild-full', [c(2, 'spades'), c(10, 'spades'), c(2, 'hearts'), c(10, 'hearts'), c(2, 'diamonds')])
+  })
+})
+
+describe('Double Bonus 10/7 — exhaustive-audit rule classes', () => {
+  it('holds a 3-flush over its lone high card', () => {
+    expectOptimal('double-bonus-10-7', [c(2, 'spades'), c(3, 'spades'), c(4, 'hearts'), c(6, 'hearts'), c(11, 'hearts')])
+  })
+
+  it('extends suited A-J to the 3-flush', () => {
+    expectOptimal('double-bonus-10-7', [c(2, 'spades'), c(3, 'spades'), c(4, 'hearts'), c(11, 'hearts'), c(14, 'hearts')])
+  })
+
+  it('holds the ace alone over ace + unsuited king', () => {
+    expectOptimal('double-bonus-10-7', [c(2, 'spades'), c(3, 'spades'), c(7, 'spades'), c(13, 'hearts'), c(14, 'diamonds')])
+  })
+
+  it('holds unsuited Q-J-T over unsuited Q-J', () => {
+    expectOptimal('double-bonus-10-7', [c(2, 'spades'), c(3, 'spades'), c(10, 'spades'), c(11, 'hearts'), c(12, 'diamonds')])
+  })
+
+  it('holds a pair of jacks over an A-J-T royal draw', () => {
+    expectOptimal('double-bonus-10-7', [c(2, 'spades'), c(11, 'spades'), c(10, 'hearts'), c(11, 'hearts'), c(14, 'hearts')])
+  })
+
+  it('holds a pair of jacks over a one-high-card 4-flush', () => {
+    expectOptimal('double-bonus-10-7', [c(3, 'spades'), c(4, 'spades'), c(5, 'spades'), c(11, 'spades'), c(11, 'hearts')])
+  })
+
+  it('holds A-K-Q-J over suited Q-J', () => {
+    expectOptimal('double-bonus-10-7', [c(2, 'spades'), c(11, 'spades'), c(12, 'spades'), c(13, 'hearts'), c(14, 'hearts')])
+  })
+})
+
+describe('Double Double Bonus 9/6 — exhaustive-audit rule classes', () => {
+  it('holds a 4-card inside straight with no high cards over a redraw', () => {
+    expectOptimal('ddb-9-6', [c(2, 'spades'), c(4, 'spades'), c(7, 'spades'), c(5, 'hearts'), c(8, 'hearts')])
+  })
+
+  it('holds an inside straight with two high cards over unsuited K-Q', () => {
+    expectOptimal('ddb-9-6', [c(2, 'spades'), c(9, 'spades'), c(10, 'spades'), c(12, 'hearts'), c(13, 'diamonds')])
+  })
+
+  it('holds the ace alone over suited Q-T', () => {
+    expectOptimal('ddb-9-6', [c(2, 'spades'), c(3, 'spades'), c(10, 'hearts'), c(12, 'hearts'), c(14, 'diamonds')])
+  })
+
+  it('holds 9-T-J-Q over a pair of nines', () => {
+    expectOptimal('ddb-9-6', [c(9, 'spades'), c(10, 'spades'), c(11, 'spades'), c(9, 'hearts'), c(12, 'hearts')])
+  })
+})
+
+describe('Bonus Poker Deluxe 8/6 — exhaustive-audit rule classes', () => {
+  it('holds a 4-card inside straight with no high cards over a redraw', () => {
+    expectOptimal('bonus-deluxe-8-6', [c(2, 'spades'), c(4, 'spades'), c(7, 'spades'), c(5, 'hearts'), c(8, 'hearts')])
+  })
+
+  it('holds an inside straight with two high cards over unsuited Q-J', () => {
+    expectOptimal('bonus-deluxe-8-6', [c(2, 'spades'), c(8, 'spades'), c(10, 'spades'), c(11, 'hearts'), c(12, 'diamonds')])
+  })
+})
+
+describe('Jacks or Better — exhaustive-audit rule classes', () => {
+  it('ranks 2-3-4 suited (two straight-flush windows) below suited Q-J', () => {
+    expectOptimal('job-9-6', [c(2, 'spades'), c(3, 'spades'), c(4, 'spades'), c(11, 'hearts'), c(12, 'hearts')])
+  })
+})
+
 // Deterministic PRNG (shared app helper) so sampled hands are stable across runs
 function seededShuffle(deck: Card[], rng: () => number): Card[] {
   return shuffle(deck, n => prngInt(rng, n))

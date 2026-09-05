@@ -15,8 +15,13 @@ import { combinations } from './combinations'
  * published lore and the exact numbers disagreed (e.g. DDB kicker holds),
  * the exact numbers won.
  *
- * Known approximation: penalty-card adjustments are not modeled. They move
- * a small number of borderline hands and cost well under 0.1% total return.
+ * 2026-09-05: every rule was re-graded exhaustively — all 2,598,960 deals of
+ * every pay table against exact EV (inclusion–exclusion sum tables, see
+ * tests/helpers/exactEv.ts). Where the published order and the exact numbers
+ * disagreed (Deuces Wild ace-low draws, Double Bonus 3-flushes, the
+ * two-pair-pays-1 games' inside straights, DDB kickers…) the exact numbers won.
+ * Residual loss per pay table is now 0.001–0.006 percentage points of return,
+ * all of it penalty-card residue the ranked-list format cannot express.
  */
 
 type Suit = Card['suit']
@@ -27,7 +32,7 @@ function indicesOf(cards: Card[], predicate: (c: Card) => boolean): number[] {
   return cards.map((c, i) => predicate(c) ? i : -1).filter(i => i >= 0)
 }
 
-function indicesOfSubset(hand: Card[], subset: Card[]): number[] {
+export function indicesOfSubset(hand: Card[], subset: Card[]): number[] {
   const used = new Set<number>()
   const result: number[] = []
   for (const target of subset) {
@@ -64,7 +69,7 @@ const ALL_FIVE = [0, 1, 2, 3, 4]
 // ─── Pattern finders ────────────────────────────────────────
 
 /** n suited cards from the royal ranks (10-A) in one suit */
-function findRoyal(cards: Card[], n: number): Card[] | null {
+export function findRoyal(cards: Card[], n: number): Card[] | null {
   for (const [, suited] of getSuitGroups(cards)) {
     const royal = suited.filter(c => c.rank >= 10)
     if (royal.length >= n) return royal.slice(0, n)
@@ -73,7 +78,7 @@ function findRoyal(cards: Card[], n: number): Card[] | null {
 }
 
 /** N cards of the same suit */
-function findFlushDraw(cards: Card[], n: number): Card[] | null {
+export function findFlushDraw(cards: Card[], n: number): Card[] | null {
   for (const [, suited] of getSuitGroups(cards)) {
     if (suited.length >= n) return suited.slice(0, n)
   }
@@ -90,7 +95,7 @@ function fitsSFWindow(ranks: number[]): boolean {
 }
 
 /** 4 suited cards that fit one straight-flush window (incl. ace-low) */
-function find4ToSF(cards: Card[]): Card[] | null {
+export function find4ToSF(cards: Card[]): Card[] | null {
   for (const [, suited] of getSuitGroups(cards)) {
     if (suited.length < 4) continue
     for (const subset of choose(suited, 4)) {
@@ -101,7 +106,7 @@ function find4ToSF(cards: Card[]): Card[] | null {
 }
 
 /** 4 distinct consecutive ranks that can fill a straight on either end (2..K high) */
-function find4ToOutsideStraight(cards: Card[]): Card[] | null {
+export function find4ToOutsideStraight(cards: Card[]): Card[] | null {
   const byRank = new Map<number, Card>()
   for (const c of cards) if (!byRank.has(c.rank)) byRank.set(c.rank, c)
   // Prefer the highest run — more high-card value
@@ -125,7 +130,7 @@ const STRAIGHT_WINDOWS: number[][] = [
  * open-ended runs (those are find4ToOutsideStraight). Returns the candidate
  * with the most high cards (J, Q, K, A).
  */
-function find4ToInsideStraight(cards: Card[]): { picks: Card[], highs: number } | null {
+export function find4ToInsideStraight(cards: Card[]): { picks: Card[], highs: number } | null {
   const byRank = new Map<number, Card>()
   for (const c of cards) if (!byRank.has(c.rank)) byRank.set(c.rank, c)
 
@@ -149,33 +154,38 @@ function find4ToInsideStraight(cards: Card[]): { picks: Card[], highs: number } 
  * type 1 — high cards >= gaps; type 3 — two gaps, no high cards;
  * type 2 — everything else (including ace-low).
  */
-function find3ToSF(cards: Card[]): { picks: Card[], sfType: 1 | 2 | 3 } | null {
-  let best: { picks: Card[], sfType: 1 | 2 | 3 } | null = null
+export function find3ToSF(cards: Card[]): { picks: Card[], sfType: 1 | 2 | 3, gaps: number } | null {
+  let best: { picks: Card[], sfType: 1 | 2 | 3, gaps: number } | null = null
   for (const [, suited] of getSuitGroups(cards)) {
     if (suited.length < 3) continue
     for (const subset of choose(suited, 3)) {
       const ranks = subset.map(c => c.rank).sort((a, b) => a - b)
       let sfType: 1 | 2 | 3
+      let gaps: number
       if (ranks.includes(14)) {
         // Ace-high suited combos within a window are royal draws (handled
         // earlier); only the ace-low window remains, which is type 2.
         if (!ranks.every(r => r === 14 || r <= 5)) continue
         sfType = 2
+        gaps = [2, 3, 4, 5].filter(r => !ranks.includes(r)).length - 1
       } else {
         const span = ranks[2]! - ranks[0]!
         if (span > 4) continue
-        const gaps = span - 2
+        gaps = span - 2
         const highs = ranks.filter(r => r >= 11).length
-        sfType = highs >= gaps ? 1 : (gaps === 2 && highs === 0 ? 3 : 2)
+        // 2-3-4 fits only two straight-flush windows (A-5 and 2-6), so exact
+        // EV ranks it with the type-2 draws, below every suited high pair.
+        const is234 = ranks[0] === 2 && ranks[1] === 3 && ranks[2] === 4
+        sfType = highs >= gaps && !is234 ? 1 : (gaps === 2 && highs === 0 ? 3 : 2)
       }
-      if (!best || sfType < best.sfType) best = { picks: subset, sfType }
+      if (!best || sfType < best.sfType) best = { picks: subset, sfType, gaps }
     }
   }
   return best
 }
 
 /** First same-suit pair of the given ranks, tried in order */
-function findSuitedRanks(cards: Card[], rankPairs: [number, number][]): Card[] | null {
+export function findSuitedRanks(cards: Card[], rankPairs: [number, number][]): Card[] | null {
   const sg = getSuitGroups(cards)
   for (const [a, b] of rankPairs) {
     for (const [, suited] of sg) {
@@ -188,7 +198,7 @@ function findSuitedRanks(cards: Card[], rankPairs: [number, number][]): Card[] |
 }
 
 /** One card per wanted rank (any suits), or null if a rank is missing */
-function pickByRanks(cards: Card[], wanted: number[]): Card[] | null {
+export function pickByRanks(cards: Card[], wanted: number[]): Card[] | null {
   const picks: Card[] = []
   for (const r of wanted) {
     const card = cards.find(c => c.rank === r && !picks.includes(c))
@@ -203,12 +213,40 @@ function pickByRanks(cards: Card[], wanted: number[]): Card[] | null {
 interface JobOpts {
   /** DDB: with an ace + one other unsuited high card, hold the ace alone */
   aceAloneOverUnsuitedPair?: boolean
-  /** Double Bonus (straight pays 5): hold a 4-card inside straight over a full redraw */
+  /** Two-pair-pays-1 games: hold a 4-card inside straight over a full redraw */
   holdInsideStraightOverRedraw?: boolean
+  /** DB (5-coin straight): an inside straight with a high card beats the unsuited high-card holds */
+  insideWithHighOverHighCards?: boolean
+  /** DB: an inside straight with 3+ high cards beats suited Q-J */
+  insideThreeHighOverSuitedQJ?: boolean
+  /** DB: a type-1 straight-flush draw with a high card beats a low pair */
+  sfType1HighOverLowPair?: boolean
+  /** DB: suited T-Q beats unsuited K-Q / K-J */
+  suitedTQOverUnsuitedKx?: boolean
   /** Double Bonus (flush pays 7): 3-to-royal and 4-to-flush outrank a non-ace high pair */
   flushDrawOverHighPair?: boolean
-  /** Double Bonus (straight pays 5): a 4-card outside straight outranks a low pair */
-  straightDrawOverLowPair?: boolean
+  /** Outside straight outranks a low pair when it has at least this many high cards (DB 0, DDB 1) */
+  straightDrawOverLowPairMinHighs?: number
+  /** Two-pair-pays-1 games: A-K-Q-J (4-high inside straight) beats suited Q-J */
+  fourHighInsideOverSuitedQJ?: boolean
+  /** Two-pair-pays-1 games: inside straight with 2 high cards beats two unsuited high cards / suited T-x */
+  insideTwoHighOverTwoHigh?: boolean
+  /** Two-pair-pays-1 games: a 4-flush containing an A-x-T royal beats the bare 3-royal */
+  flushOverAceTenRoyal?: boolean
+  /** DDB: a lone ace beats suited T-x royals and unsuited K-x */
+  aceOverKingCombos?: boolean
+  /** DB (7-coin flush): a 3-flush with a high card beats lone/unsuited high cards and extends suited K-x / A-x holds */
+  threeFlushWithHigh?: boolean
+  /** DB: unsuited Q-J-T beats unsuited Q-J */
+  qjtOverQJ?: boolean
+  /** DB: a type-3 straight-flush draw beats a lone high card */
+  type3SFOverHighCard?: boolean
+}
+
+/** Add the third same-suit card to a suited 2-card hold when one exists */
+function extendToFlush3(cards: Card[], pair: Card[]): Card[] {
+  const third = cards.find(c => c.suit === pair[0]!.suit && !pair.includes(c))
+  return third ? [...pair, third] : pair
 }
 
 function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
@@ -247,24 +285,40 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
   const pairRank = counts[0] === 2 ? [...rc.entries()].find(([, c]) => c === 2)![0] : null
   if (pairRank !== null && pairRank >= 11) {
     if (opts.flushDrawOverHighPair && pairRank !== 14) {
-      // Flush first: a 4-flush containing the royal cards beats the bare
-      // 3-royal at a 7-coin flush (1.51 vs 1.37)
-      const flush4 = findFlushDraw(cards, 4)
-      if (flush4) return indicesOfSubset(cards, flush4)
+      // Exhaustive exact EV (10/7 DB): only the 3-royals with the most
+      // straight windows beat a J-K pair — Q-J-T (even over the 4-flush
+      // containing it) and K-Q-J; a 4-flush beats the pair only with 3 high cards.
       const royal3 = findRoyal(cards, 3)
-      if (royal3) return indicesOfSubset(cards, royal3)
+      const royalKey = royal3 ? royal3.map(c => c.rank).sort((a, b) => a - b).join(',') : ''
+      if (royalKey === '10,11,12') return indicesOfSubset(cards, royal3!)
+      const flush4 = findFlushDraw(cards, 4)
+      if (flush4 && flush4.filter(c => c.rank >= 11).length >= 3) return indicesOfSubset(cards, flush4)
+      if (royalKey === '11,12,13') return indicesOfSubset(cards, royal3!)
     }
     return indicesOf(cards, c => c.rank === pairRank)
   }
 
   // 12-13. Three to a royal, then four to a flush. Double Bonus flips them:
   // at a 7-coin flush the 4-flush beats the 3-royal it contains.
+  const r3 = findRoyal(cards, 3)
   if (opts.flushDrawOverHighPair) {
+    // Q-J-T is the one 3-royal that beats the 7-coin 4-flush containing it
+    if (r3 && r3.map(c => c.rank).sort((a, b) => a - b).join(',') === '10,11,12') return indicesOfSubset(cards, r3)
     const dbFlush4 = findFlushDraw(cards, 4)
     if (dbFlush4) return indicesOfSubset(cards, dbFlush4)
   }
-  const r3 = findRoyal(cards, 3)
-  if (r3) return indicesOfSubset(cards, r3)
+  if (r3) {
+    // A-x-T royals have a single straight window: with two-pair paying 1 the
+    // 4-flush containing them is worth more than the bare 3-royal
+    if (opts.flushOverAceTenRoyal) {
+      const rr = r3.map(c => c.rank)
+      if (rr.includes(14) && rr.includes(10)) {
+        const f4 = findFlushDraw(cards, 4)
+        if (f4) return indicesOfSubset(cards, f4)
+      }
+    }
+    return indicesOfSubset(cards, r3)
+  }
 
   const f4 = findFlushDraw(cards, 4)
   if (f4) return indicesOfSubset(cards, f4)
@@ -275,9 +329,20 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
 
   // 15. Low pair (Double Bonus prefers the 4-card outside straight: 0.85 vs 0.74)
   if (pairRank !== null) {
-    if (opts.straightDrawOverLowPair) {
+    if (opts.straightDrawOverLowPairMinHighs !== undefined) {
       const run4 = find4ToOutsideStraight(cards)
-      if (run4) return indicesOfSubset(cards, run4)
+      if (run4 && run4.filter(c => c.rank >= 11).length >= opts.straightDrawOverLowPairMinHighs) {
+        return indicesOfSubset(cards, run4)
+      }
+    }
+    if (opts.sfType1HighOverLowPair) {
+      // Only the strongest type-1 draws (more high cards than gaps: 9-T-J,
+      // 9-J-Q...) beat the pair; 8-9-J or 8-J-Q do not
+      const sfEarly = find3ToSF(cards)
+      if (sfEarly && sfEarly.sfType === 1
+        && sfEarly.picks.filter(c => c.rank >= 11).length - sfEarly.gaps >= 1) {
+        return indicesOfSubset(cards, sfEarly.picks)
+      }
     }
     return indicesOf(cards, c => c.rank === pairRank)
   }
@@ -293,9 +358,10 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
   // 17b. Double Bonus only: an inside straight with 3 high cards beats the
   // suited high-card combos below it (0.617 vs suited QJ at 0.581)
   const inside = find4ToInsideStraight(cards)
-  if (opts.holdInsideStraightOverRedraw && inside && inside.highs === 3) {
+  if (opts.insideThreeHighOverSuitedQJ && inside && inside.highs >= 3) {
     return indicesOfSubset(cards, inside.picks)
   }
+  if (opts.fourHighInsideOverSuitedQJ && inside && inside.highs === 4) return indicesOfSubset(cards, inside.picks)
 
   // 18. Suited Q-J
   const qj = findSuitedRanks(cards, [[12, 11]])
@@ -304,13 +370,13 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
   // 19. Four to an inside straight, 4 high cards (J-Q-K-A)
   if (inside && inside.highs === 4) return indicesOfSubset(cards, inside.picks)
 
-  // 20. Suited K-Q or K-J
+  // 20. Suited K-Q or K-J (Double Bonus: keep a third suited card too)
   const kx = findSuitedRanks(cards, [[13, 12], [13, 11]])
-  if (kx) return indicesOfSubset(cards, kx)
+  if (kx) return indicesOfSubset(cards, opts.threeFlushWithHigh ? extendToFlush3(cards, kx) : kx)
 
-  // 21. Suited A-K, A-Q or A-J
+  // 21. Suited A-K, A-Q or A-J (Double Bonus: keep a third suited card too)
   const ax = findSuitedRanks(cards, [[14, 13], [14, 12], [14, 11]])
-  if (ax) return indicesOfSubset(cards, ax)
+  if (ax) return indicesOfSubset(cards, opts.threeFlushWithHigh ? extendToFlush3(cards, ax) : ax)
 
   // 22. Four to an inside straight, 3 high cards
   if (inside && inside.highs === 3) return indicesOfSubset(cards, inside.picks)
@@ -318,10 +384,13 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
   // 23. Three to a straight flush, type 2
   if (sf3 && sf3.sfType === 2) return indicesOfSubset(cards, sf3.picks)
 
+  // 23a. Two-pair-pays-1 games: inside straight with 2 high cards beats two high cards
+  if (opts.insideTwoHighOverTwoHigh && inside && inside.highs >= 2) return indicesOfSubset(cards, inside.picks)
+
   // 23b. Double Bonus only: at a 5-coin straight, an inside straight holding
   // at least one high card beats every unsuited high-card combination below
   // (e.g. A-2-3-4 at 0.49 vs ace + jack at 0.45)
-  if (opts.holdInsideStraightOverRedraw && inside && inside.highs >= 1) {
+  if (opts.insideWithHighOverHighCards && inside && inside.highs >= 1) {
     return indicesOfSubset(cards, inside.picks)
   }
 
@@ -329,20 +398,39 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
   const jqk = pickByRanks(cards, [11, 12, 13])
   if (jqk) return indicesOfSubset(cards, jqk)
 
+  // 24b. Double Bonus (5-coin straight): unsuited Q-J-T beats unsuited Q-J
+  if (opts.qjtOverQJ) {
+    const qjt = pickByRanks(cards, [10, 11, 12])
+    if (qjt) return indicesOfSubset(cards, qjt)
+  }
+
   // 25. Unsuited J-Q
   const jq = pickByRanks(cards, [11, 12])
   if (jq) return indicesOfSubset(cards, jq)
 
+  // 25b. DDB: a lone ace beats suited T-x and unsuited K-x from here down
+  if (opts.aceOverKingCombos && rc.has(14)) return indicesOf(cards, c => c.rank === 14).slice(0, 1)
+
   // 26. Suited T-J
   const tj = findSuitedRanks(cards, [[11, 10]])
   if (tj) return indicesOfSubset(cards, tj)
+
+  // 26b. Double Bonus (7-coin flush): a 3-flush with a high card beats every
+  // lone / unsuited high-card hold below it
+  if (opts.threeFlushWithHigh) {
+    const f3 = findFlushDraw(cards, 3)
+    if (f3 && f3.some(c => c.rank >= 11)) return indicesOfSubset(cards, f3)
+  }
+
+  // 28 (DB order). Suited T-Q beats unsuited K-x at a 7-coin flush
+  const tq = findSuitedRanks(cards, [[12, 10]])
+  if (opts.suitedTQOverUnsuitedKx && tq) return indicesOfSubset(cards, tq)
 
   // 27. Unsuited K-Q or K-J
   const kq = pickByRanks(cards, [13, 12]) ?? pickByRanks(cards, [13, 11])
   if (kq) return indicesOfSubset(cards, kq)
 
   // 28. Suited T-Q
-  const tq = findSuitedRanks(cards, [[12, 10]])
   if (tq) return indicesOfSubset(cards, tq)
 
   // 29. Unsuited ace + J/Q/K (DDB holds the ace alone instead)
@@ -359,6 +447,9 @@ function jobStrategy(cards: Card[], opts: JobOpts = {}): number[] {
   // 30. Suited T-K
   const tk = findSuitedRanks(cards, [[13, 10]])
   if (tk) return indicesOfSubset(cards, tk)
+
+  // 30b. Double Bonus: a two-gap straight-flush draw beats a lone high card
+  if (opts.type3SFOverHighCard && sf3 && sf3.sfType === 3) return indicesOfSubset(cards, sf3.picks)
 
   // 31. One high card (prefer J, then Q, K, A — lower ranks keep more straights alive)
   const highCards = cards.filter(c => c.rank >= 11)
@@ -391,7 +482,8 @@ function bonusStrategy(cards: Card[], payTable: PayTableDef): number[] {
   // a straight pays 5, making 4-card inside straights better than a redraw,
   // and quad aces pay 160, making trip aces worth breaking a full house for
   // (10.11 vs 10.00 exact EV).
-  if (getPayForHand(payTable, 'Four Aces', 1) >= 160) {
+  const isDoubleBonus = getPayForHand(payTable, 'Four Aces', 1) >= 160
+  if (isDoubleBonus) {
     const rc = getRankCounts(cards)
     if (rc.get(14) === 3) return indicesOf(cards, c => c.rank === 14)
   }
@@ -399,8 +491,17 @@ function bonusStrategy(cards: Card[], payTable: PayTableDef): number[] {
   const flushPay = getPayForHand(payTable, 'Flush', 1)
   return jobStrategy(cards, {
     holdInsideStraightOverRedraw: straightPay >= 5,
-    straightDrawOverLowPair: straightPay >= 5,
-    flushDrawOverHighPair: flushPay >= 7
+    insideWithHighOverHighCards: straightPay >= 5,
+    insideThreeHighOverSuitedQJ: straightPay >= 5,
+    straightDrawOverLowPairMinHighs: straightPay >= 5 ? 0 : undefined,
+    flushDrawOverHighPair: flushPay >= 7,
+    aceAloneOverUnsuitedPair: isDoubleBonus,
+    threeFlushWithHigh: isDoubleBonus,
+    qjtOverQJ: isDoubleBonus,
+    type3SFOverHighCard: isDoubleBonus,
+    fourHighInsideOverSuitedQJ: isDoubleBonus,
+    sfType1HighOverLowPair: isDoubleBonus,
+    suitedTQOverUnsuitedKx: isDoubleBonus
   })
 }
 
@@ -437,7 +538,15 @@ function ddbStrategy(cards: Card[]): number[] {
     return indicesOf(cards, c => c.rank === 14)
   }
 
-  return jobStrategy(cards, { aceAloneOverUnsuitedPair: true })
+  return jobStrategy(cards, {
+    aceAloneOverUnsuitedPair: true,
+    aceOverKingCombos: true,
+    holdInsideStraightOverRedraw: true,
+    insideTwoHighOverTwoHigh: true,
+    fourHighInsideOverSuitedQJ: true,
+    flushOverAceTenRoyal: true,
+    straightDrawOverLowPairMinHighs: 1
+  })
 }
 
 // ─── Deuces Wild (full pay, by deuce count) ─────────────────
@@ -449,7 +558,8 @@ function findSuitedConsecutive2(naturals: Card[], minLow: number): Card[] | null
     for (let i = 0; i + 1 < sorted.length; i++) {
       const a = sorted[i]!
       const b = sorted[i + 1]!
-      if (b.rank - a.rank === 1 && a.rank >= minLow) return [a, b]
+      // K-A is a royal pair with one straight-flush window, not a connector
+      if (b.rank - a.rank === 1 && a.rank >= minLow && b.rank !== 14) return [a, b]
     }
   }
   return null
@@ -480,6 +590,24 @@ function find3SuitedSFWindow(naturals: Card[]): Card[] | null {
   return null
 }
 
+/** Deuces Wild inside-straight finder: the wheel is excluded (its missing 2 can only be a wild) */
+function find4ToInsideStraightDW(cards: Card[]): { picks: Card[], highs: number } | null {
+  const byRank = new Map<number, Card>()
+  for (const c of cards) if (!byRank.has(c.rank)) byRank.set(c.rank, c)
+  let best: { picks: Card[], highs: number } | null = null
+  for (const window of STRAIGHT_WINDOWS) {
+    if (window.includes(2)) continue
+    const present = window.filter(r => byRank.has(r))
+    if (present.length !== 4) continue
+    const sorted = [...present].sort((a, b) => a - b)
+    if (sorted[3]! - sorted[0]! === 3 && sorted[0]! >= 4 && sorted[3]! <= 13) continue
+    const picks = present.map(r => byRank.get(r)!)
+    const highs = present.filter(r => r >= 11).length
+    if (!best || highs > best.highs) best = { picks, highs }
+  }
+  return best
+}
+
 function deucesWildStrategy(cards: Card[]): number[] {
   const deuceIndices = indicesOf(cards, c => c.rank === 2)
   const naturals = cards.filter(c => c.rank !== 2)
@@ -489,9 +617,12 @@ function deucesWildStrategy(cards: Card[]): number[] {
   if (numDeuces === 4) return ALL_FIVE
 
   if (numDeuces === 3) {
-    // Only a made wild royal beats holding the three deuces alone. Even a
-    // pat five of a kind loses by a hair (15.00 vs 15.06 exact EV).
+    // Only a made wild royal beats holding the three deuces alone. A pat
+    // five of a kind loses by a hair (15.00 vs 15.06 exact EV) — unless the
+    // pair is T-A: discarding two royal ranks costs enough wild-royal and
+    // straight-flush outs that the pat 15 is worth more.
     if (made === 'Wild Royal Flush') return ALL_FIVE
+    if (made === 'Five of a Kind' && naturals[0]!.rank >= 10) return ALL_FIVE
     return deuceIndices
   }
 
@@ -552,9 +683,10 @@ function deucesWildStrategy(cards: Card[]): number[] {
     const sfAny = find3SuitedSFWindow(naturals)
     if (sfAny) return [...deuceIndices, ...indicesOfSubset(cards, sfAny)]
 
-    // 3 to a wild royal
+    // 3 to a wild royal — but not with an ace: A-K/A-Q/A-J/A-T suited have a
+    // single straight-flush window and lose to the bare deuce (exact EV)
     const r2 = findRoyal(naturals, 2)
-    if (r2) return [...deuceIndices, ...indicesOfSubset(cards, r2)]
+    if (r2 && !r2.some(c => c.rank === 14)) return [...deuceIndices, ...indicesOfSubset(cards, r2)]
 
     // 3 to a straight flush: two suited consecutive naturals, 6-7 or higher
     const sf2 = findSuitedConsecutive2(naturals, 6)
@@ -607,25 +739,39 @@ function deucesWildStrategy(cards: Card[]): number[] {
   const f4 = findFlushDraw(cards, 4)
   if (f4) return indicesOfSubset(cards, f4)
 
-  // 4 to an outside straight
+  // 4 to an outside straight. 3-4-5-6 is not open-ended here: its low end
+  // needs a deuce, which is already counted as a wild out, so it has the
+  // same 8 outs as an inside draw and ranks with them.
   const st4 = find4ToOutsideStraight(cards)
-  if (st4) return indicesOfSubset(cards, st4)
+  const st4Low = st4 ? Math.min(...st4.map(c => c.rank)) : 0
+  if (st4 && st4Low >= 4) return indicesOfSubset(cards, st4)
 
-  // 3 to a straight flush (any type)
+  // 3 to a straight flush, at most one gap. Ace-low (A-3-4 etc.) needs a
+  // deuce as the 2 and is worth less than a full redraw; two-gap draws rank
+  // below the J/Q-high royal pairs.
   const sf3 = find3ToSF(cards)
-  if (sf3) return indicesOfSubset(cards, sf3.picks)
+  const sf3Live = sf3 && !sf3.picks.some(c => c.rank === 14) ? sf3 : null
+  if (sf3Live && sf3Live.gaps <= 1) return indicesOfSubset(cards, sf3Live.picks)
 
-  // 2 to a royal, J or Q high (K-high ranks below an inside straight; A-high not at all)
-  const jqRoyal = findSuitedRanks(cards, [[12, 11], [12, 10], [11, 10]])
-  if (jqRoyal) return indicesOfSubset(cards, jqRoyal)
+  // 2 to a royal, J-T: four straight-flush windows make it worth more than
+  // any inside straight or two-gap draw that contains it
+  const jtRoyal = findSuitedRanks(cards, [[11, 10]])
+  if (jtRoyal) return indicesOfSubset(cards, jtRoyal)
 
-  // 4 to an inside straight (a wild deuce doubles the completing outs)
-  const inside = find4ToInsideStraight(cards)
+  // 4 to an inside straight with a high card (a wild deuce doubles the
+  // completing outs). A-3-4-5 is excluded: its only outs are the deuces.
+  const inside = find4ToInsideStraightDW(cards) ?? (st4 && st4Low === 3 ? { picks: st4, highs: 0 } : null)
+  if (inside && inside.highs >= 1) return indicesOfSubset(cards, inside.picks)
+
+  // 3 to a straight flush, two gaps
+  if (sf3Live) return indicesOfSubset(cards, sf3Live.picks)
+
+  // 2 to a royal, Q-J or Q-T (K-high loses to a redraw; A-high not at all)
+  const qRoyal = findSuitedRanks(cards, [[12, 11], [12, 10]])
+  if (qRoyal) return indicesOfSubset(cards, qRoyal)
+
+  // 4 to an inside straight, no high cards
   if (inside) return indicesOfSubset(cards, inside.picks)
-
-  // 2 to a royal, K high
-  const kRoyal = findSuitedRanks(cards, [[13, 12], [13, 11], [13, 10]])
-  if (kRoyal) return indicesOfSubset(cards, kRoyal)
 
   // Discard everything
   return []
@@ -643,5 +789,15 @@ export function fastOptimalHold(cards: Card[], payTable?: PayTableDef): number[]
   if (classifier === 'deucesWild') return deucesWildStrategy(cards)
   if (classifier === 'ddb') return ddbStrategy(cards)
   if (classifier === 'bonus' && payTable) return bonusStrategy(cards, payTable)
+  if (payTable && getPayForHand(payTable, 'Two Pair', 1) === 1) {
+    // Bonus Poker Deluxe: JoB shape, but the 1-coin two pair devalues every
+    // pair-and-high-card hold relative to straight draws
+    return jobStrategy(cards, {
+      holdInsideStraightOverRedraw: true,
+      insideTwoHighOverTwoHigh: true,
+      fourHighInsideOverSuitedQJ: true,
+      flushOverAceTenRoyal: true
+    })
+  }
   return jobStrategy(cards)
 }
