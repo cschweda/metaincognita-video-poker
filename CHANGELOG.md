@@ -4,6 +4,28 @@ All notable changes to the Video Poker Trainer will be documented in this file.
 
 ## [Unreleased]
 
+### Whole-App Audit — Teaching Copy, Small Logic Bugs, Headers
+
+A read-through of the whole app, with every numeric claim in the rules text and README re-run through the app's own exact-EV calculator.
+
+#### Fixed
+
+- **The optimal-play headline called royal and straight-flush draws "a flush".** Four to a royal (18.55 EV) read "Hold 4 to a flush"; so did three to a royal and every straight-flush draw. Suited draws are now named for the best hand they reach, and A-2-3-4 is recognized as a straight draw.
+- **Rules text the calculator contradicts.** Jacks or Better never breaks a pair of Aces for four to a flush (1.54 vs 1.19); 10/7 Double Bonus always holds two pair, even Aces up (1.766 vs 1.764); quad Aces drawing at the kicker average 221, not 216; three deuces beat a pat five of a kind only in 3s–9s (Tens through Aces stay pat, 15.00 vs 14.96); four to a straight flush, not only four to a royal, beats a high pair.
+- **Short-pay cost figures were computed at $1,250/hour while the text said $1,000/hour.** They are now $11.50 (8/6), $22.40 (8/5), $34 (7/5) and $45 (6/5) per hour, and the yearly figures state their hours.
+- **The bankroll panel said OPTIMAL for a hand that was never analyzed.** A verdict now appears only once the hand's analysis has landed.
+- **Two definitions of a mistake.** The session count used an EV gap; the history lists used a dollar threshold, so the count and the list could disagree. Each history entry now records `wasMistake` from the one test, a sub-cent cost reads `<$0.01` instead of `$0.00`, and an unanalyzed hand reads "not analyzed" instead of "optimal: discard everything".
+- **The balance sparkline ignored inserted credits** (it re-derived the balance from 100). It now plots the machine's real balance after each hand, and only the latest 40 hands get a focusable dot. The header balance is colored by session net, not by "at least 100 credits".
+- **The analysis report mislabeled its run** if the dropdowns were changed afterwards, a cancelled run kept the previous run's timestamp over partial results, and a worker crash was silent. The run's settings are frozen with its results, and cancellation and failure are both stated on the page.
+- **Holding Space or Enter auto-played hands** with nothing held (key repeat).
+- **A pushed hand was green in the History list.**
+
+#### Changed
+
+- **Headers:** `connect-src` no longer allows api.iconify.design (icons are bundled), `X-XSS-Protection` is `0`, and the cache rules that could not match are replaced with one for `/_fonts/*`.
+- **Persona replay keeps five draw cards per hand, not 47.**
+- **README:** the mistake example and outcome distribution are the calculator's real numbers; the simulation's seeded RNG is described as such; the "convergence viewer", "4-color suits", test timings, build command, hub link and simulator table are corrected.
+
 ### Exhaustive Exact-EV Audit — Leak Fixes
 
 Every one of the 2,598,960 possible deals of every pay table was graded against exact expected value (inclusion–exclusion sum tables built from the app's own classifier, now in `tests/helpers/exactEv.ts`). The engine reproduces the published return of all ten pay tables to four decimals, and an independent brute-force evaluator agreed with all four classifiers on every hand. What it found, and what changed:

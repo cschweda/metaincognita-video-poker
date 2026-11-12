@@ -18,19 +18,24 @@ interface SparkPoint {
 
 const WIDTH = 240
 const HEIGHT = 40
+const START_BALANCE = 100
+// The line covers the whole session, but only the most recent hands get a
+// focusable dot: one button per hand, uncapped, meant hundreds of tab stops
+// packed into a 240px strip after a long session.
+const MAX_DOTS = 40
 
 const sparkData = computed<SparkPoint[]>(() => {
   if (game.handHistory.length < 2) return []
   const history = [...game.handHistory].reverse()
-  const startBalance = 100
-  let balance = startBalance
+  const balance = START_BALANCE
   const points: { balance: number, handNum: number, payout: number, handResult: string | null }[] = [
     { balance, handNum: 0, payout: 0, handResult: null }
   ]
 
   for (const h of history) {
-    balance = balance - game.coinsBet + h.payout
-    points.push({ balance, handNum: h.handNumber, payout: h.payout, handResult: h.handResult })
+    // The machine's real balance after the hand — a running bet/payout sum
+    // from 100 drifted from it as soon as credits were inserted
+    points.push({ balance: h.balanceAfter, handNum: h.handNumber, payout: h.payout, handResult: h.handResult })
   }
 
   const balances = points.map(p => p.balance)
@@ -50,6 +55,8 @@ const sparkData = computed<SparkPoint[]>(() => {
   }))
 })
 
+const dotData = computed(() => sparkData.value.slice(-MAX_DOTS))
+
 const sparklinePoints = computed(() =>
   sparkData.value.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
 )
@@ -64,7 +71,7 @@ const sparklineColor = computed(() =>
 
 const sparklineZeroY = computed(() => {
   if (sparkData.value.length === 0) return '20'
-  const startBalance = 100
+  const startBalance = START_BALANCE
   const balances = sparkData.value.map(p => p.balance)
   const min = Math.min(...balances)
   const max = Math.max(...balances)
@@ -115,8 +122,8 @@ function dotLabel(pt: SparkPoint): string {
     <!-- Dots overlay (HTML buttons for tooltip + keyboard support) -->
     <div class="bp-sparkline__dots">
       <UTooltip
-        v-for="(pt, i) in sparkData"
-        :key="i"
+        v-for="pt in dotData"
+        :key="pt.handNum"
         :text="dotLabel(pt)"
       >
         <button

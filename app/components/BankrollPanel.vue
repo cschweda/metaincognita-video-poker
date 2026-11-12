@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VARIANT_RULES } from '~/utils/variantRules'
-import { formatDollars, formatSignedDollars, formatHandNet } from '~/utils/format'
+import { formatDollars, formatSignedDollars, formatHandNet, formatMistakeCost } from '~/utils/format'
 
 const game = useGameStore()
 const rulesOpen = ref(false)
@@ -148,15 +148,19 @@ const netResult = computed(() => {
         >
           {{ formatHandNet(game.resultPayout, game.coinsBet, game.denomination) }}
         </div>
+        <!-- A verdict only once this hand's analysis has landed: wasOptimal
+             defaults to true, so an unanalyzed hand must not read OPTIMAL -->
         <div
-          v-if="!game.wasOptimal"
+          v-if="game.playerAnalysis && !game.wasOptimal"
           class="bp-hand-mistake"
+          data-test="last-hand-verdict"
         >
-          MISTAKE &mdash; ${{ game.lastMistakeCost.toFixed(2) }} lost
+          MISTAKE &mdash; {{ formatMistakeCost(game.lastMistakeCost) }} lost
         </div>
         <div
-          v-else-if="game.stats.handsPlayed > 0"
+          v-else-if="game.playerAnalysis"
           class="bp-hand-optimal"
+          data-test="last-hand-verdict"
         >
           OPTIMAL
         </div>

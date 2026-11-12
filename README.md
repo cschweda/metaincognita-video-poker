@@ -6,7 +6,7 @@
 
 A mathematically rigorous video poker training simulator with exhaustive hand analysis, real-time optimal play guidance, and statistical validation. Not a casino game — a casino *education tool* that teaches players to identify profitable machines, make mathematically optimal hold/discard decisions, and understand exactly how much their mistakes cost them.
 
-Part of the [Metaincognita Casino](https://holdem.metaincognita.com) simulator collection alongside the [No-Limit Hold'em Simulator](https://holdem.metaincognita.com) ([repo](https://github.com/cschweda/NLH-simulation)).
+Part of the [Metaincognita Casino](https://metaincognita.com) simulator collection alongside the [No-Limit Hold'em Simulator](https://holdem.metaincognita.com) ([repo](https://github.com/cschweda/NLH-simulation)).
 
 ---
 
@@ -79,7 +79,7 @@ The naming convention comes from the two numbers that most affect the return per
 | **Double Double Bonus** | **9/6** (FH=9, Fl=6) | 98.98% | 8/5 | 96.79% | 2.19% |
 | **Deuces Wild** | **25/15/9/5/3** (WR/5K/SF/4K/FH) | 100.76% | "Not So Ugly" 25/15/9/4/3 | 99.73% | 1.03% |
 
-The numbers are small — 1–2% — but the dollar impact is enormous at professional play speeds. A 9/6 Jacks or Better machine and an 8/5 machine sit side by side on the casino floor. Same cabinet. Same screen layout. Same buttons. The *only* difference is that in one row of the pay table, the number 9 has been replaced with 8, and in another row, 6 with 5. That change costs the player $28/hour at $1,000/hour throughput. Over a year of regular play (4 hours/day, 5 days/week), that's **$29,120 in lost value** — from two numbers on a screen.
+The numbers are small — 1–2% — but the dollar impact is enormous at professional play speeds. A 9/6 Jacks or Better machine and an 8/5 machine sit side by side on the casino floor. Same cabinet. Same screen layout. Same buttons. The *only* difference is that in one row of the pay table, the number 9 has been replaced with 8, and in another row, 6 with 5. That change costs the player $22.40/hour at $1,000/hour throughput. Over a year of full-time play (4 hours/day, 5 days/week), that's **$23,296 in lost value** — from two numbers on a screen.
 
 Deuces Wild uses a different naming convention because the Full House and Flush aren't the primary variables. Instead, pros identified Deuces Wild pay tables by five key payouts: Wild Royal (25), Five of a Kind (15), Straight Flush (9), Four of a Kind (5), Full House (3). Any reduction in any of these five numbers creates a short-pay variant. The full-pay version — sometimes called "Ugly Deuces" for its low Four of a Kind payout — is the only common VP game that returns over 100.5%.
 
@@ -90,7 +90,7 @@ The ability to instantly identify a full-pay machine by scanning the pay table w
 Professional VP players kept detailed records that would be familiar to any serious quantitative trader:
 
 - **Bankroll requirements** — A $1.25/hand Deuces Wild player needed a minimum bankroll of **$6,000–8,000** to keep their risk of ruin below 5%, or **$10,000–15,000** for a more conservative 1% risk of ruin. (At $5/hand, multiply by 4.) The key driver: Royal Flushes and Four Deuces account for a disproportionate share of total return but hit infrequently — a Natural Royal once every ~40,000–45,000 hands (~50 hours), Four Deuces roughly once every 4,900 hands (~6 hours). Between these big hands, you're grinding at a net loss. Without adequate bankroll, a normal (and statistically expected) dry spell could wipe you out before the law of large numbers had time to work. Pros calculated their specific "risk of ruin" — the mathematical probability of going broke given their bankroll, game edge, and variance — and wouldn't play unless it was below their threshold.
-- **Pay table scouting** — This was a critical real-world skill. Pros walked casino floors scanning the pay tables on every video poker machine. A 9/6 Jacks or Better machine sitting next to an 8/5 machine looks physically identical — same cabinet, same screen, same buttons. The only difference is two numbers in two rows of the pay table. That difference: 99.54% return vs 97.30%. At 800 hands/hour and $1.25/hand, playing the wrong machine costs **$28/hour**. Over a year of regular play, that's the difference between a living and a slow bleed. The pay-table sub-tabs in this simulator teach exactly this skill — the same game at 9/6, 8/6, 8/5, 7/5 and 6/5, with the real cost of each downgrade on the label.
+- **Pay table scouting** — This was a critical real-world skill. Pros walked casino floors scanning the pay tables on every video poker machine. A 9/6 Jacks or Better machine sitting next to an 8/5 machine looks physically identical — same cabinet, same screen, same buttons. The only difference is two numbers in two rows of the pay table. That difference: 99.54% return vs 97.30%. At 800 hands/hour and $1.25/hand, playing the wrong machine costs **$22.40/hour**. Over a year of regular play, that's the difference between a living and a slow bleed. The pay-table sub-tabs in this simulator teach exactly this skill — the same game at 9/6, 8/6, 8/5, 7/5 and 6/5, with the real cost of each downgrade on the label.
 - **Comp rate per property** — Pros maintained spreadsheets tracking their comp rate at every casino they played. Station Casinos might offer 0.5% cashback + generous food comps; Wynn might offer 0.25% cashback but comp premium hotel rooms; downtown properties might run aggressive 3x point promotions to compete with the Strip. Selecting the right casino on the right day was as important as selecting the right machine.
 - **Theoretical loss ("theo")** — Casinos tracked each player's "theo" — what the house expected to win from them based on average play. This number determined comp levels. Since casinos assumed every player had negative expectation, a pro playing a +EV game generated positive theo while actually having an edge. This was the information asymmetry that made the whole enterprise work.
 - **Mistake rate and error cost** — Using training software, pros tracked their error frequency and the cumulative EV cost of their mistakes. A 0.1% mistake rate on $1,000/hour throughput costs $1/hour — a significant fraction of the total edge. The best players aimed for zero mistakes per session. This simulator's per-hand mistake tracking and session-end comparison against Perfect Pat is modeled directly on this discipline.
@@ -106,7 +106,7 @@ Even with perfect play and a positive mathematical edge, most video poker sessio
 
 The positive EV in Deuces Wild depends heavily on hitting rare, high-value hands. Four Deuces (200 coins) hits roughly once every 4,900 hands. A Natural Royal Flush (4,000 coins at max bet) hits once every ~40,000–45,000 hands. These hands account for a disproportionate share of the total return. In their absence, the game's return on the remaining hands is significantly below 100%.
 
-A typical 4-hour session on full-pay Deuces Wild (about 3,200 hands at 800/hour) has roughly a **55–60% chance of ending at a loss**, even with perfect play. The median session result is slightly negative — you need to hit a Four Deuces or better to push a session positive, and that's a ~48% chance in 3,200 hands. Over a week of daily play, the probability of a net-positive week is around 60–65%. It's only over hundreds of hours — thousands of sessions — that the law of large numbers pulls the actual return toward the theoretical value. The convergence viewer in this simulator's analysis page demonstrates this vividly: at 100 hands, the return might be anywhere from 80% to 120%; at 10,000 hands, it's within a few percent; at 100,000 hands, it locks in.
+A typical 4-hour session on full-pay Deuces Wild (about 3,200 hands at 800/hour) has roughly a **55–60% chance of ending at a loss**, even with perfect play. The median session result is slightly negative — you need to hit a Four Deuces or better to push a session positive, and that's a ~48% chance in 3,200 hands. Over a week of daily play, the probability of a net-positive week is around 60–65%. It's only over hundreds of hours — thousands of sessions — that the law of large numbers pulls the actual return toward the theoretical value. The batch simulation on this simulator's analysis page demonstrates this: at 500–1,000 hands per run, returns swing from roughly 85% to 115%; at 10,000 hands they are typically within a percent or two; only at 100,000 hands and beyond does the return lock in.
 
 Living with this variance required a specific temperament. Pros talked about "emotional bankroll" alongside financial bankroll. The math says you'll win in the long run, but the long run can be very, very long, and the short run can be brutal. Many aspiring pros washed out not because they couldn't learn the strategy, but because they couldn't tolerate weeks of losing while knowing they were playing perfectly.
 
@@ -206,7 +206,7 @@ The Queen of Hearts raffle has been a cultural phenomenon in Illinois small town
 
 What remains is the mathematics. The hand rankings, the EV calculations, the strategy tables, the pay table analysis — all of it is as valid today as it was in 1995. The game hasn't changed; only the casino's willingness to offer beatable pay tables has changed.
 
-This simulator preserves that mathematical heritage. When you see the brute-force EV analysis evaluate all 32 hold options for your dealt hand, you're seeing the same computation that Bob Dancer's software performed, that Stanford Wong described in *Professional Video Poker*, that Ethier formalized in *The Doctrine of Chances*. When the training panel tells you that holding the low pair beats holding the ace kicker by 0.047 EV, that number is exact — derived from exhaustive enumeration of every possible draw outcome, not from a heuristic or approximation.
+This simulator preserves that mathematical heritage. When you see the brute-force EV analysis evaluate all 32 hold options for your dealt hand, you're seeing the same computation that Bob Dancer's software performed, that Stanford Wong described in *Professional Video Poker*, that Ethier formalized in *The Doctrine of Chances*. When the training panel tells you that holding the low pair beats holding the ace kicker by 0.148 EV, that number is exact — derived from exhaustive enumeration of every possible draw outcome, not from a heuristic or approximation.
 
 The professional era may be over, but the math is eternal. And the math is genuinely beautiful: a game that looks like mindless button-pushing reveals, under analysis, a rich decision tree where seemingly insignificant choices — holding a 9 of clubs vs. discarding it — cascade through thousands of possible futures and shift the expected value by fractions of a cent that compound, over hours and days and months, into the difference between a winner and a loser.
 
@@ -234,18 +234,18 @@ As you toggle holds, the training panel updates instantly with the exact probabi
 
 ```
 Draw Outcomes (holding 7♦ 7♣):
-Three of a Kind    10.8%  ████████░░░
-Two Pair           16.5%  ████████████░
-Full House          2.1%  ██░░░░░░░░░
 Four of a Kind      0.3%  ░░░░░░░░░░░
-Nothing            58.4%  ██████████████████████████████
+Full House          1.0%  █░░░░░░░░░░
+Three of a Kind    11.4%  ██████░░░░░
+Two Pair           16.0%  ████████░░░
+Nothing            71.3%  ████████████████████████████████████
 ```
 
 ### Mistake Cost Tracking
 
 Every suboptimal play is quantified in dollars:
 
-> **MISTAKE** — Your play: Hold A♠ 7♦ 7♣ (EV: 0.824) → Optimal: Hold 7♦ 7♣ (EV: 0.871) → Cost: $0.06
+> **MISTAKE** — Your play: Hold A♠ 7♦ 7♣ (EV: 0.675) → Optimal: Hold 7♦ 7♣ (EV: 0.824) → Cost: $0.19
 
 Session totals accumulate: "47 hands played, 3 mistakes, $0.42 left on the table, effective return: 99.1%."
 
@@ -273,12 +273,12 @@ The foundational game and the best starting point for learning. Standard 52-card
 | Pay Table | Full House | Flush | Theoretical Return | Notes |
 |-----------|-----------|-------|-------------------|-------|
 | **9/6** | 9 | 6 | **99.54%** | Full-pay. The gold standard. Still found at some downtown Las Vegas properties. |
-| 8/6 | 8 | 6 | 98.39% | Common on the Strip. Costs the player ~$14/hr vs 9/6. |
-| 8/5 | 8 | 5 | 97.30% | Very common. Looks nearly identical to 9/6 — costs ~$28/hr. |
+| 8/6 | 8 | 6 | 98.39% | Common on the Strip. Costs the player ~$11.50/hr vs 9/6 (at $1,000/hr throughput). |
+| 8/5 | 8 | 5 | 97.30% | Very common. Looks nearly identical to 9/6 — costs ~$22/hr. |
 | 7/5 | 7 | 5 | 96.15% | Below average. Found in airports and tourist traps. |
-| 6/5 | 6 | 5 | 95.00% | Worst common variant. Costs ~$57/hr vs 9/6. |
+| 6/5 | 6 | 5 | 95.00% | Worst common variant. Costs ~$45/hr vs 9/6. |
 
-**Strategy complexity:** ~30 ranked entries. A simplified "simple strategy" with ~15 entries sacrifices only 0.08% return. The most learnable variant.
+**Strategy complexity:** ~30 ranked entries. A simplified "simple strategy" with 16 lines sacrifices only 0.08% return. The most learnable variant.
 
 ### Bonus Poker (8/5 full-pay)
 
@@ -302,7 +302,7 @@ Simplified bonus variant. All four-of-a-kind hands pay 80 coins regardless of ra
 Massive four-of-a-kind bonuses: Four Aces pays 160 coins. The tradeoff: Two Pair pays only 1:1. **One of the rare player-advantage games.**
 
 - **Theoretical return:** 100.17% **(player edge: +0.17%)**
-- **Key difference:** Two Pair paying 1:1 changes everything. Break two pair more often. Aces held extremely aggressively. Most sessions end at a loss despite the positive theoretical edge — variance is brutal.
+- **Key difference:** Two Pair paying 1:1 changes everything. On 10/7 two pair is still always held, but Aces up is razor-thin (1.766 vs 1.764 for the Aces alone). Aces held extremely aggressively. Most sessions end at a loss despite the positive theoretical edge — variance is brutal.
 - **Real-world note:** These machines are specifically tracked by advantage players. Casinos have largely removed full-pay 10/7 from their floors. In Nevada, games above 100% return are legal; in Illinois, the Gaming Board caps return at 100%.
 - **Why it's hard to profit:** The +0.17% edge at $1.25/hand = $1.70/hour from the math alone. You need Royal Flushes (accounting for ~2% of return) to stay positive, and those hit once every ~40,000 hands.
 
@@ -343,7 +343,8 @@ The `/analysis` page runs batch simulations across all variants with optimal pla
 
 | Component | Precision |
 |-----------|-----------|
-| RNG | `crypto.getRandomValues` + Fisher-Yates shuffle |
+| RNG (hands you play) | `crypto.getRandomValues` + Fisher-Yates shuffle, rejection-sampled |
+| RNG (batch simulation) | Seeded xorshift32 + Fisher-Yates — fast and reproducible, seeded from `crypto.getRandomValues` |
 | Hand classification | Deterministic, verified against standard rankings |
 | In-game EV | Exhaustive enumeration — mathematically exact |
 | Simulation strategy | Strategy tables graded over every possible deal — 0.001 to 0.006 percentage points behind exact play |
@@ -370,11 +371,9 @@ This simulator is part of the **Metaincognita Casino** collection — a suite of
 | Simulator | Status | Repo |
 |-----------|--------|------|
 | **No-Limit Hold'em** | [Live](https://holdem.metaincognita.com) | [cschweda/NLH-simulation](https://github.com/cschweda/NLH-simulation) (canonical reference) |
-| **Video Poker** | Live | This repo |
-| **Craps** | Planned | — |
-| **Blackjack** | Planned | — |
-| **Roulette** | Planned | — |
-| **Slots** | Planned | — |
+| **Video Poker** | [Live](https://videopoker.metaincognita.com) | This repo |
+
+The full, current list of games lives on the hub at [metaincognita.com](https://metaincognita.com) — every simulator's top bar links back to it.
 
 The [NLH Hold'em Simulator](https://holdem.metaincognita.com) ([repo](https://github.com/cschweda/NLH-simulation)) is the canonical reference implementation. All other simulators follow its UI patterns: dark theme (`bg-gray-950`), metric cards, tab bars, tooltip-wrapped stats, profit trend bars, header info bars, analysis pages with Web Worker simulation, and consistent footer navigation.
 
@@ -394,8 +393,8 @@ The full design system specification — covering shared colors, typography, com
 ```bash
 pnpm install
 pnpm dev        # http://localhost:3000
-pnpm test       # Full vitest suite, incl. statistical tests (~2 min)
-pnpm test:fast  # Everything except the two statistical suites (~2s)
+pnpm test       # Full vitest suite, incl. statistical tests (~30s)
+pnpm test:fast  # Everything except the four statistical suites (a few seconds)
 pnpm lint       # ESLint
 pnpm typecheck  # vue-tsc
 pnpm generate   # Static SPA build → dist
@@ -415,19 +414,19 @@ The vitest suite (`tests/`) covers the parts where correctness is the product:
 - **Persona replay** — Perfect Pat uses recorded exact-optimal holds; Almost Alice is held to the simple strategy's 99.46%; the recreational personas never discard a deuce
 - **Async EV analysis** — worker race handling: drawing before the analysis lands back-fills mistake stats when it arrives; worker failure recovery
 
-The suite is split into a `fast` project (`pnpm test:fast`, ~2s) and a `statistical` project (the 50k-shuffle and 60k-hand suites). CI runs lint → typecheck → full test → build on every push and pull request, and the Netlify build gates deploys on lint + typecheck + fast tests.
+The suite is split into a `fast` project (`pnpm test:fast`, a few seconds) and a `statistical` project (the 50k-shuffle, 60k-hand, exact-EV and classifier-identity suites). CI runs lint → typecheck → full test → build on every push and pull request, and the Netlify build gates deploys on lint + typecheck + fast tests.
 
 ## Deployment
 
 Static SPA deployed to **Netlify**. The `netlify.toml` configures:
 
-- **Build command:** `pnpm generate` (Nuxt static generation with `ssr: false`)
+- **Build command:** `pnpm lint && pnpm typecheck && pnpm test:fast && pnpm generate` — the checks gate the deploy, then Nuxt static generation with `ssr: false`
 - **Publish directory:** `dist`
 - **No serverless functions** — the build is plain HTML/JS/CSS; nothing invokes Netlify Functions or edge functions
 - **SPA fallback:** All routes redirect to `/index.html` (client-side routing)
 - **Node 22** build environment
 
-Connect the GitHub repo to Netlify — it auto-deploys on push to `main`.
+Connect the GitHub repo to Netlify — it auto-deploys on push to `main`. Work is batched on the `staging` branch and merged to `main` in one go, since each production deploy is billed.
 
 ### Security Headers
 
@@ -435,7 +434,7 @@ Hardened for a static SPA with no backend:
 
 | Header | Value | Purpose |
 |--------|-------|---------|
-| `Content-Security-Policy` | `default-src 'none'`; explicit whitelist | No external scripts, no eval, no form submissions |
+| `Content-Security-Policy` | `default-src 'none'`; explicit whitelist | No external scripts or connections, no eval, no form submissions |
 | `Strict-Transport-Security` | 2 years, includeSubDomains, preload | Force HTTPS always |
 | `X-Frame-Options` | DENY | Prevent clickjacking |
 | `Cross-Origin-Opener-Policy` | same-origin | Spectre/side-channel mitigation |
@@ -456,7 +455,7 @@ The only CSP relaxation: `'unsafe-inline'` in `script-src` and `style-src` is re
 - WCAG 2.1 AA baseline
 - `aria-pressed` on hold toggles, `aria-live` for results
 - Keyboard navigation (arrow keys between cards, Space/Enter for deal/draw)
-- 4-color suits (shape + color, not color alone)
+- Suits are told apart by shape as well as color (spades near-black, clubs green, hearts and diamonds red) — never by color alone
 - `prefers-reduced-motion` respected (all animations skippable)
 - Semantic HTML (`<table>` for pay tables, `<button>` for cards)
 

@@ -52,6 +52,18 @@ describe('BankrollPanel — LAST HAND result', () => {
     expect(panelAfterHand(15).get('[data-test="last-hand-net"]').text()).toBe('+$2.50')
   })
 
+  it('gives no verdict for a hand whose analysis has not landed', () => {
+    // wasOptimal defaults to true; the panel used to print OPTIMAL for a
+    // hand that was never analyzed (worker failure, or still pending)
+    expect(panelAfterHand(0).find('[data-test="last-hand-verdict"]').exists()).toBe(false)
+  })
+
+  it('shows the verdict once the analysis is in', () => {
+    const game = useGameStore()
+    game.playerAnalysis = { heldIndices: [], heldCards: [], expectedValue: 0.36, handDistribution: {} }
+    expect(panelAfterHand(0).get('[data-test="last-hand-verdict"]').text()).toBe('OPTIMAL')
+  })
+
   it('shows a loss as the wager lost', () => {
     expect(panelAfterHand(0).get('[data-test="last-hand-net"]').text()).toBe('-$1.25')
   })

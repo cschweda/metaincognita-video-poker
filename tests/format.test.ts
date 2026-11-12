@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { formatDollars, formatSignedDollars, formatHandNet, returnTier } from '../app/utils/format'
+import { formatDollars, formatSignedDollars, formatHandNet, formatMistakeCost, returnTier } from '../app/utils/format'
 
 describe('dollar formatting', () => {
+  it('never shows a real mistake as costing $0.00', () => {
+    expect(formatMistakeCost(0.0019)).toBe('<$0.01')
+    expect(formatMistakeCost(0.19)).toBe('$0.19')
+    expect(formatMistakeCost(0)).toBe('$0.00')
+  })
+
   it('formats coins × denomination as plain dollars', () => {
     expect(formatDollars(12.5, 0.25)).toBe('3.13')
     expect(formatDollars(100, 0.25)).toBe('25.00')

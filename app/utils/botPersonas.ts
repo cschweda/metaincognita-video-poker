@@ -35,7 +35,7 @@ export const PERSONAS: BotPersona[] = [
     name: 'Perfect Pat',
     description: 'Plays mathematically optimal strategy on every hand. The benchmark — this is the theoretical maximum return.',
     style: 'Brute-force optimal',
-    expectedReturn: '99.5%'
+    expectedReturn: '99.54% on 9/6 JoB'
   },
   {
     id: 'almost-alice',
