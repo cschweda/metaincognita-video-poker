@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cardLabel } from '~/utils/cards'
 import { optimalHoldReason } from '~/utils/optimalPlayText'
-import { formatDollars } from '~/utils/format'
+import { formatDollars, formatMistakeCost } from '~/utils/format'
 
 // Result-phase step-by-step recap of the last hand: dealt → held →
 // (optimal, if different) → final, plus mistake cost and the verdict badge.
@@ -51,7 +51,7 @@ const reason = computed(() =>
               : 'Nothing (drew 5 new cards)' }}
           </div>
           <div class="thr__ev">
-            EV: {{ entry.playerEV.toFixed(4) }}
+            EV: {{ entry.analyzed ? entry.playerEV.toFixed(4) : '—' }}
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@ const reason = computed(() =>
       v-if="!game.wasOptimal"
       class="thr-mistake-cost"
     >
-      Cost of mistake: <strong>${{ game.lastMistakeCost.toFixed(2) }}</strong>
+      Cost of mistake: <strong>{{ formatMistakeCost(game.lastMistakeCost) }}</strong>
       <span class="thr-rank">(your play ranked #{{ playerRank }} of 32)</span>
     </div>
 

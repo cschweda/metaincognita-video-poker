@@ -22,6 +22,15 @@ export function formatHandNet(payoutCoins: number, coinsBet: number, denominatio
   return formatSignedDollars(payoutCoins - coinsBet, denomination)
 }
 
+/**
+ * Dollar cost of a mistake. A real mistake can cost less than half a cent;
+ * "$0.00" would read as "no cost", so those show as "<$0.01".
+ */
+export function formatMistakeCost(dollars: number): string {
+  if (dollars > 0 && dollars < 0.005) return '<$0.01'
+  return `$${dollars.toFixed(2)}`
+}
+
 export type ReturnTier = 'good' | 'ok' | 'bad'
 
 /**

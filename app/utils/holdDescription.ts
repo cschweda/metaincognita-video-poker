@@ -42,24 +42,40 @@ export function describeHold(cards: Card[], isDeucesWild: boolean): string {
     const [lo, hi] = pairs.map(([r]) => Number(r)).sort((a, b) => a - b)
     return `Hold two pair — ${RANK_NAMES[hi!]}s and ${RANK_NAMES[lo!]}s${wildSuffix}`
   }
-  if (naturals.length >= 3 && allSameSuit && naturals.length + deuces.length === 4) {
-    return `Hold 4 to a flush (${SUIT_NAMES[suits[0]!]})${wildSuffix}`
+  // A suited draw is named for the best hand it reaches: a royal draw is
+  // not "a flush draw" (four to a royal is worth ~18.5 coins per coin bet,
+  // four to a flush ~1.2), and neither is a straight-flush draw.
+  const suitedDraw = (size: number): string => {
+    const suit = SUIT_NAMES[suits[0]!]
+    if (ranks.every(r => r >= 10)) return `Hold ${size} to a royal flush (${suit})${wildSuffix}`
+    if (fitsStraightWindow(ranks)) return `Hold ${size} to a straight flush (${suit})${wildSuffix}`
+    return `Hold ${size} to a flush (${suit})${wildSuffix}`
   }
-  if (naturals.length >= 3 && naturals.length + deuces.length === 4) {
-    // A straight draw needs DISTINCT ranks spanning ≤ 4 — without the
-    // distinctness check, two pair like [3,3,7,7] (span 4) matches.
-    const sorted = [...ranks].sort((a, b) => a - b)
-    const distinctRanks = new Set(sorted).size === sorted.length
-    const isStraightDraw = distinctRanks && sorted[sorted.length - 1]! - sorted[0]! <= 4
-    if (isStraightDraw) return `Hold 4 to a straight${wildSuffix}`
+
+  if (naturals.length >= 3 && allSameSuit && naturals.length + deuces.length === 4) {
+    return suitedDraw(4)
+  }
+  if (naturals.length >= 3 && naturals.length + deuces.length === 4 && fitsStraightWindow(ranks)) {
+    return `Hold 4 to a straight${wildSuffix}`
   }
   if (naturals.length >= 2 && allSameSuit && naturals.length + deuces.length === 3) {
-    return `Hold 3 to a flush (${SUIT_NAMES[suits[0]!]})${wildSuffix}`
+    return suitedDraw(3)
   }
 
   // Fallback: list the cards
   const shortLabels = cards.map(c => cardLabel(c))
   return `Hold ${shortLabels.join(', ')}`
+}
+
+/**
+ * Do these ranks fit inside one five-card straight window? They must be
+ * DISTINCT — without that, two pair like [3,3,7,7] (span 4) matches — and
+ * the ace also plays low, so A-2-3-4 is a straight draw.
+ */
+function fitsStraightWindow(ranks: number[]): boolean {
+  if (new Set(ranks).size !== ranks.length) return false
+  const span = (rs: number[]) => Math.max(...rs) - Math.min(...rs)
+  return span(ranks) <= 4 || span(ranks.map(r => r === 14 ? 1 : r)) <= 4
 }
 
 /**

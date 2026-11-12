@@ -48,6 +48,9 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault()
+    // A held key auto-repeats; without this it deals and draws hand after
+    // hand with nothing held
+    if (e.repeat) return
     game.dealOrDraw()
   }
 }
@@ -200,7 +203,7 @@ onUnmounted(() => {
           <span class="vp-infobar__balance-label">Balance</span>
           <span
             class="vp-infobar__balance-value"
-            :class="game.credits >= 100 ? 'vp-infobar__balance-value--up' : 'vp-infobar__balance-value--down'"
+            :class="game.stats.totalReturned >= game.stats.totalWagered ? 'vp-infobar__balance-value--up' : 'vp-infobar__balance-value--down'"
           >
             ${{ game.creditsAsDollars }}
           </span>

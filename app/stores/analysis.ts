@@ -14,6 +14,13 @@ export const useAnalysisStore = defineStore('analysis', () => {
   const handsPerRun = ref(1000)
   const numRuns = ref(3)
 
+  // The settings the displayed results were actually produced with. The
+  // selects above stay editable after a run, so the report must not read them.
+  const lastRun = ref<{ handsPerRun: number, numRuns: number, totalHands: number } | null>(null)
+  // Why the last run stopped short, if it did (worker crash / cancelled)
+  const runError = ref<string | null>(null)
+  const runCancelled = ref(false)
+
   // results[variantIndex][runIndex]
   const results = ref<SimulationResult[][]>([])
 
@@ -36,14 +43,11 @@ export const useAnalysisStore = defineStore('analysis', () => {
   )
 
   // Track progress across all variants and runs
-  const totalJobs = computed(() => simTargets.value.length * numRuns.value)
   let completedJobs = 0
   let currentJobProgress = 0
 
-  function updateOverallProgress() {
-    const jobFraction = completedJobs / totalJobs.value
-    const currentFraction = currentJobProgress / totalJobs.value
-    runProgress.value = Math.round((jobFraction + currentFraction) * 100)
+  function updateOverallProgress(totalJobs: number) {
+    runProgress.value = Math.round(((completedJobs + currentJobProgress) / totalJobs) * 100)
   }
 
   function startAnalysis() {
@@ -73,6 +77,13 @@ export const useAnalysisStore = defineStore('analysis', () => {
     worker = created
 
     status.value = 'running'
+    runError.value = null
+    runCancelled.value = false
+    runTimestamp.value = null
+    // Frozen for this run: progress and the report use these, not the selects
+    const runNumRuns = numRuns.value
+    const runTotalJobs = simTargets.value.length * runNumRuns
+    lastRun.value = { handsPerRun: handsPerRun.value, numRuns: runNumRuns, totalHands: totalHands.value }
     results.value = []
     completedJobs = 0
     currentJobProgress = 0
@@ -89,9 +100,9 @@ export const useAnalysisStore = defineStore('analysis', () => {
       if (msg.type === 'progress') {
         const { variantIndex, runIndex, completed, total } = msg
         const target = simTargets.value[variantIndex]
-        runPhase.value = `${target?.payTable.variant ?? '?'} — Run ${runIndex + 1}/${numRuns.value}`
+        runPhase.value = `${target?.payTable.variant ?? '?'} — Run ${runIndex + 1}/${runNumRuns}`
         currentJobProgress = completed / total
-        updateOverallProgress()
+        updateOverallProgress(runTotalJobs)
       }
 
       if (msg.type === 'result') {
@@ -99,9 +110,9 @@ export const useAnalysisStore = defineStore('analysis', () => {
         emptyResults[variantIndex]!.push(result as SimulationResult)
         completedJobs++
         currentJobProgress = 0
-        updateOverallProgress()
+        updateOverallProgress(runTotalJobs)
 
-        // Update results reactively after each variant completes all runs
+        // Publish each run's result as it completes
         results.value = [...emptyResults]
       }
 
@@ -121,6 +132,8 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
     worker.onerror = (err) => {
       console.error('Simulation worker error:', err)
+      runError.value = 'The simulation stopped unexpectedly. Any results below are partial — run the analysis again.'
+      runPhase.value = ''
       status.value = 'idle'
       worker?.terminate()
       worker = null
@@ -135,12 +148,14 @@ export const useAnalysisStore = defineStore('analysis', () => {
       type: 'runAll',
       targets,
       numHands: handsPerRun.value,
-      numRuns: numRuns.value,
+      numRuns: runNumRuns,
       coins: 5
     })
   }
 
   function cancelAnalysis() {
+    if (status.value !== 'running') return
+    runCancelled.value = true
     worker?.terminate()
     worker = null
     status.value = 'idle'
@@ -156,6 +171,9 @@ export const useAnalysisStore = defineStore('analysis', () => {
     handsPerRun,
     numRuns,
     results,
+    lastRun,
+    runError,
+    runCancelled,
     unavailableReason,
     simTargets,
     totalHands,

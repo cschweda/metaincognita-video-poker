@@ -62,6 +62,34 @@ describe('describeHold', () => {
       expect(describeHold(hold, false)).toBe('Hold 3 to a flush (Hearts)')
     })
 
+    it('names a royal draw for the royal, not the flush', () => {
+      // Four to a royal is worth ~18.5 EV; calling it "4 to a flush" (~1.2)
+      // taught the wrong hand
+      const four = [c(14, 'spades'), c(13, 'spades'), c(12, 'spades'), c(11, 'spades')]
+      expect(describeHold(four, false)).toBe('Hold 4 to a royal flush (Spades)')
+      const three = [c(14, 'clubs'), c(11, 'clubs'), c(10, 'clubs')]
+      expect(describeHold(three, false)).toBe('Hold 3 to a royal flush (Clubs)')
+    })
+
+    it('names a straight-flush draw, including the ace-low wheel', () => {
+      const four = [c(6, 'spades'), c(7, 'spades'), c(8, 'spades'), c(9, 'spades')]
+      expect(describeHold(four, false)).toBe('Hold 4 to a straight flush (Spades)')
+      const three = [c(9, 'clubs'), c(10, 'clubs'), c(11, 'clubs')]
+      expect(describeHold(three, false)).toBe('Hold 3 to a straight flush (Clubs)')
+      const wheel = [c(14, 'hearts'), c(2, 'hearts'), c(3, 'hearts'), c(5, 'hearts')]
+      expect(describeHold(wheel, false)).toBe('Hold 4 to a straight flush (Hearts)')
+    })
+
+    it('labels an ace-low straight draw', () => {
+      const hold = [c(14, 'spades'), c(2, 'diamonds'), c(3, 'clubs'), c(4, 'hearts')]
+      expect(describeHold(hold, false)).toBe('Hold 4 to a straight')
+    })
+
+    it('names a wild royal draw', () => {
+      const hold = [c(13, 'hearts'), c(12, 'hearts'), c(11, 'hearts'), c(2, 'spades')]
+      expect(describeHold(hold, true)).toBe('Hold 4 to a royal flush (Hearts) + 1 wild')
+    })
+
     it('labels an empty hold', () => {
       expect(describeHold([], false)).toBe('Discard everything — draw 5 new cards')
     })

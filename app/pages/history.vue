@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Card } from '~/utils/cards'
+import type { HandHistoryEntry } from '~/stores/game'
 import { cardLabel } from '~/utils/cards'
-import { formatDollars, formatSignedDollars, formatHandNet } from '~/utils/format'
+import { formatDollars, formatSignedDollars, formatHandNet, formatMistakeCost } from '~/utils/format'
 
 defineOptions({ name: 'History' })
 useHead({ title: 'Session History — Video Poker Trainer' })
@@ -34,13 +35,19 @@ const biggestWin = computed(() => {
 const biggestLoss = computed(() => game.coinsBet * game.denomination)
 
 const mistakeHands = computed(() =>
-  game.handHistory.filter(h => h.mistakeCost > 0.001)
+  game.handHistory.filter(h => h.wasMistake)
 )
 
 const reversedHistory = computed(() => [...game.handHistory].reverse())
 
 function formatCards(cards: Card[]): string {
   return cards.map(c => cardLabel(c)).join(' ')
+}
+
+/** The optimal hold as text — or an honest "not analyzed" when the analysis never landed. */
+function optimalLabel(h: HandHistoryEntry, nothing: string): string {
+  if (!h.analyzed) return '(not analyzed)'
+  return h.optimalHeld.length > 0 ? h.optimalHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : nothing
 }
 
 function exportHandHistory() {
@@ -61,11 +68,11 @@ function exportHandHistory() {
     lines.push(`Hand #${h.handNumber}`)
     lines.push(`  Dealt:   ${formatCards(h.dealtCards)}`)
     lines.push(`  Held:    ${h.playerHeld.length > 0 ? h.playerHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(nothing)'}`)
-    lines.push(`  Optimal: ${h.optimalHeld.length > 0 ? h.optimalHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(nothing)'}`)
+    lines.push(`  Optimal: ${optimalLabel(h, '(nothing)')}`)
     lines.push(`  Final:   ${formatCards(h.finalCards)}`)
     lines.push(`  Result:  ${h.handResult || 'No Win'} | Payout: $${formatDollars(h.payout, game.denomination)} | Net: ${formatHandNet(h.payout, game.coinsBet, game.denomination)}`)
-    if (h.mistakeCost > 0.001) {
-      lines.push(`  ** MISTAKE: cost $${h.mistakeCost.toFixed(2)} | Your EV: ${h.playerEV.toFixed(4)} | Optimal EV: ${h.optimalEV.toFixed(4)}`)
+    if (h.wasMistake) {
+      lines.push(`  ** MISTAKE: cost ${formatMistakeCost(h.mistakeCost)} | Your EV: ${h.playerEV.toFixed(4)} | Optimal EV: ${h.optimalEV.toFixed(4)}`)
     }
     lines.push(``)
   }
@@ -299,7 +306,7 @@ function exportHandHistory() {
               >
                 <span class="text-gray-400 font-mono w-8">#{{ h.handNumber }}</span>
                 <span class="text-white font-mono flex-1">{{ formatCards(h.dealtCards) }}</span>
-                <span class="text-red-400 font-mono font-bold">-${{ h.mistakeCost.toFixed(2) }}</span>
+                <span class="text-red-400 font-mono font-bold">-{{ formatMistakeCost(h.mistakeCost) }}</span>
                 <span class="text-gray-500">&rsaquo;</span>
               </button>
             </div>
@@ -328,7 +335,7 @@ function exportHandHistory() {
             v-for="h in reversedHistory"
             :key="h.handNumber"
             class="bg-gray-900/60 border rounded-xl overflow-hidden transition-colors"
-            :class="h.mistakeCost > 0.001 ? 'border-red-800/30' : 'border-gray-800/60'"
+            :class="h.wasMistake ? 'border-red-800/30' : 'border-gray-800/60'"
           >
             <!-- Hand summary row -->
             <button
@@ -338,7 +345,7 @@ function exportHandHistory() {
               <span class="text-xs text-gray-400 font-mono w-8">#{{ h.handNumber }}</span>
               <span class="font-mono text-white text-sm flex-1">{{ formatCards(h.dealtCards) }}</span>
               <span
-                v-if="h.mistakeCost > 0.001"
+                v-if="h.wasMistake"
                 class="text-[0.55rem] px-1.5 py-0.5 rounded bg-red-900/40 text-red-400"
               >MISTAKE</span>
               <span
@@ -351,7 +358,7 @@ function exportHandHistory() {
               </span>
               <span
                 class="font-mono text-sm w-16 text-right font-bold"
-                :class="h.payout > 0 ? 'text-green-400' : 'text-red-400'"
+                :class="h.payout > game.coinsBet ? 'text-green-400' : h.payout === game.coinsBet ? 'text-gray-400' : 'text-red-400'"
               >
                 {{ formatHandNet(h.payout, game.coinsBet, game.denomination) }}
               </span>
@@ -391,40 +398,40 @@ function exportHandHistory() {
                     {{ h.playerHeld.length > 0 ? h.playerHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(drew 5 new)' }}
                   </div>
                   <div class="text-[0.55rem] text-gray-400 font-mono mt-1">
-                    EV: {{ h.playerEV.toFixed(4) }}
+                    EV: {{ h.analyzed ? h.playerEV.toFixed(4) : '—' }}
                   </div>
                 </div>
                 <div
                   class="bg-gray-900/50 rounded-lg p-3"
-                  :class="h.mistakeCost > 0.001 ? 'border border-green-800/30' : ''"
+                  :class="h.wasMistake ? 'border border-green-800/30' : ''"
                 >
                   <div
                     class="text-[0.6rem] uppercase mb-1"
-                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-gray-400'"
+                    :class="h.wasMistake ? 'text-green-400' : 'text-gray-400'"
                   >
                     Optimal
                   </div>
                   <div
                     class="font-mono"
-                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-white'"
+                    :class="h.wasMistake ? 'text-green-400' : 'text-white'"
                   >
-                    {{ h.optimalHeld.length > 0 ? h.optimalHeld.map(i => cardLabel(h.dealtCards[i]!)).join(' ') : '(drew 5 new)' }}
+                    {{ optimalLabel(h, '(drew 5 new)') }}
                   </div>
                   <div
                     class="text-[0.55rem] font-mono mt-1"
-                    :class="h.mistakeCost > 0.001 ? 'text-green-400' : 'text-gray-400'"
+                    :class="h.wasMistake ? 'text-green-400' : 'text-gray-400'"
                   >
-                    EV: {{ h.optimalEV.toFixed(4) }}
+                    EV: {{ h.analyzed ? h.optimalEV.toFixed(4) : '—' }}
                   </div>
                 </div>
               </div>
 
               <div
-                v-if="h.mistakeCost > 0.001"
+                v-if="h.wasMistake"
                 class="bg-red-900/20 border border-red-800/30 rounded-lg px-3 py-2 flex items-center justify-between"
               >
                 <span class="text-xs text-red-400">Mistake cost</span>
-                <span class="text-sm text-red-400 font-mono font-bold">${{ h.mistakeCost.toFixed(2) }}</span>
+                <span class="text-sm text-red-400 font-mono font-bold">{{ formatMistakeCost(h.mistakeCost) }}</span>
               </div>
 
               <div class="flex items-center justify-between text-xs text-gray-400">
