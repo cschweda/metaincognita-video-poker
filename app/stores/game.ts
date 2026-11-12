@@ -22,9 +22,18 @@ export interface HandHistoryEntry {
   playerEV: number
   optimalEV: number
   mistakeCost: number
+  /** The exact-EV analysis for this hand has landed (false: pending or failed) */
+  analyzed: boolean
+  /** Same test as stats.totalMistakes — the one definition of a mistake */
+  wasMistake: boolean
   handResult: string | null
   payout: number
+  /** Credits on the machine once this hand was paid (reflects inserted credits) */
+  balanceAfter: number
 }
+
+/** EV-per-coin gap below which two holds count as equally good (float noise) */
+export const MISTAKE_EV_TOLERANCE = 0.0001
 
 export interface SessionStats {
   handsPlayed: number
@@ -246,7 +255,9 @@ export const useGameStore = defineStore('game', () => {
     const dealtCards = fullDeck.slice(0, 5)
     const remainingCards = fullDeck.slice(5)
     const pt = payTable.value
-    dealtDecks.value.push({ cards: [...dealtCards], remaining: [...remainingCards], payTableId: pt.id })
+    // A replay never draws more than five cards, so only the top five of the
+    // draw pile are kept — the full 47 added ~4KB to every hand of a session.
+    dealtDecks.value.push({ cards: [...dealtCards], remaining: remainingCards.slice(0, 5), payTableId: pt.id })
     const deckEntryIndex = dealtDecks.value.length - 1
 
     // Start EV computation in the worker, in parallel with the deal animation
@@ -375,7 +386,7 @@ export const useGameStore = defineStore('game', () => {
         if (analysisReady) {
           playerAnalysis.value = playerOption
           const evDiff = optimal.expectedValue - playerOption.expectedValue
-          wasOptimal.value = evDiff < 0.0001 // floating point tolerance
+          wasOptimal.value = evDiff < MISTAKE_EV_TOLERANCE
           lastMistakeCost.value = evDiff * wagerDollars
           if (!wasOptimal.value) {
             stats.value.totalMistakes++
@@ -402,8 +413,11 @@ export const useGameStore = defineStore('game', () => {
           playerEV: analysisReady ? playerOption.expectedValue : 0,
           optimalEV: analysisReady ? optimal.expectedValue : 0,
           mistakeCost: analysisReady ? lastMistakeCost.value : 0,
+          analyzed: analysisReady,
+          wasMistake: analysisReady && !wasOptimal.value,
           handResult: handName,
-          payout: resultPayout.value
+          payout: resultPayout.value,
+          balanceAfter: credits.value
         })
 
         // The inactivity timeout may have ended the session while this hand
@@ -435,7 +449,7 @@ export const useGameStore = defineStore('game', () => {
     if (!optimal || !playerOption) return
 
     const evDiff = optimal.expectedValue - playerOption.expectedValue
-    const optimalNow = evDiff < 0.0001 // floating point tolerance
+    const optimalNow = evDiff < MISTAKE_EV_TOLERANCE
     // Priced at the wager the hand was played for, not today's denomination
     const cost = evDiff * wagerDollars
 
@@ -445,6 +459,8 @@ export const useGameStore = defineStore('game', () => {
       entry.playerEV = playerOption.expectedValue
       entry.optimalEV = optimal.expectedValue
       entry.mistakeCost = cost
+      entry.analyzed = true
+      entry.wasMistake = !optimalNow
     }
 
     if (!optimalNow) {

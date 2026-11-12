@@ -65,9 +65,15 @@ describe('game store — async EV analysis', () => {
     expect(entry.optimalEV).toBeCloseTo(2.0)
     // (2.0 - 1.5) EV/coin × 5 coins × $0.25 denom
     expect(entry.mistakeCost).toBeCloseTo(0.625)
+    expect(entry.analyzed).toBe(true)
+    expect(entry.wasMistake).toBe(true)
+    // 100 credits − 5 bet + whatever the draw paid: the machine's real balance
+    expect(entry.balanceAfter).toBe(store.credits)
     expect(store.wasOptimal).toBe(false)
     expect(store.stats.totalMistakes).toBe(1)
     expect(store.stats.totalEVLost).toBeCloseTo(0.625)
+    // A replay draws at most five cards — the rest of the deck is not kept
+    expect(store.dealtDecks[0]!.remaining).toHaveLength(5)
   })
 
   it('reconciles history and stats when the draw beats the analysis (race)', async () => {
@@ -85,6 +91,9 @@ describe('game store — async EV analysis', () => {
     expect(store.handHistory).toHaveLength(1)
     // Analysis not in yet — entry recorded without optimal data
     expect(store.handHistory[0]!.optimalHeld).toEqual([])
+    // ...and flagged as not analyzed, so no view calls it optimal
+    expect(store.handHistory[0]!.analyzed).toBe(false)
+    expect(store.handHistory[0]!.wasMistake).toBe(false)
     expect(store.stats.totalMistakes).toBe(0)
 
     // Worker finally responds

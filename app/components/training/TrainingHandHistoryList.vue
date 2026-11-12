@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cardLabel } from '~/utils/cards'
-import { formatHandNet } from '~/utils/format'
+import { formatHandNet, formatMistakeCost } from '~/utils/format'
 
 // Scrolling per-hand history inside the training panel. The store keeps
 // every hand (the profit trend, export and counts depend on it); this
@@ -20,7 +20,7 @@ const hiddenCount = computed(() => Math.max(0, game.handHistory.length - RECENT_
       v-for="entry in recent"
       :key="entry.handNumber"
       class="thl-entry"
-      :class="{ 'thl-entry--mistake': entry.mistakeCost > 0.001 }"
+      :class="{ 'thl-entry--mistake': entry.wasMistake }"
     >
       <div class="thl-header">
         <span class="thl-num">#{{ entry.handNumber }}</span>
@@ -46,11 +46,11 @@ const hiddenCount = computed(() => Math.max(0, game.handHistory.length - RECENT_
         Held: {{ entry.playerHeld.length > 0 ? entry.playerHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') : 'nothing' }}
       </div>
       <div
-        v-if="entry.mistakeCost > 0.001"
+        v-if="entry.wasMistake"
         class="thl-mistake"
       >
         Optimal: {{ entry.optimalHeld.map(i => cardLabel(entry.dealtCards[i]!)).join(' ') || 'nothing' }}
-        &middot; Cost: ${{ entry.mistakeCost.toFixed(2) }}
+        &middot; Cost: {{ formatMistakeCost(entry.mistakeCost) }}
       </div>
     </div>
     <div
