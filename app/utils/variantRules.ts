@@ -37,7 +37,7 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'Jacks or Better — A pair of J, Q, K, or A (1)'
     ],
     strategyNotes: [
-      'Always hold a paying hand (pair of Jacks+) unless you have 4 to a Royal Flush.',
+      'Always hold a paying hand (pair of Jacks+) unless you have 4 to a Royal Flush or 4 to a Straight Flush.',
       'A low pair (2s through 10s) beats holding a single high card in most situations.',
       'Never break a Flush or Straight to chase a Royal unless you have 4 to the Royal.',
       'Hold two suited high cards over a single high card.',
@@ -49,9 +49,9 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'Low pair (2s-10s) beats a single high card (A, K, Q, J) in almost every situation. This is the #1 mistake new players make.',
       'Four to a flush beats a low pair. Four to an outside straight beats two unsuited high cards.',
       'Never break a flush or straight unless you have four to a royal flush.',
-      'Three to a royal flush beats everything except a made paying hand or four to a straight flush.'
+      'Three to a royal flush beats everything except a made paying hand or four to a straight flush — with one wrinkle: the weakest royal draws (Ace-high with a Ten) can lose to four to a flush.'
     ],
-    strategyComplexity: 'Beginner-friendly. ~30 ranked entries in the full strategy, but a simplified 15-entry "simple strategy" captures 99.46% return (only 0.08% less than perfect). The most learnable variant.',
+    strategyComplexity: 'Beginner-friendly. ~30 ranked entries in the full strategy, but a simplified 16-line "simple strategy" captures 99.46% return (only 0.08% less than perfect). The most learnable variant.',
     payTableVariants: [
       {
         name: '9/6 (Full Pay)',
@@ -61,17 +61,17 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       {
         name: '8/6 (Short Pay)',
         returnPct: 98.39,
-        description: 'Full House drops to 8, Flush stays at 6. Costs the player 1.15% vs full-pay — about $14/hour at typical speed. Casinos introduced this as a stealth downgrade: players who only checked the Flush payout (still 6) didn\'t notice the Full House dropped. A common bait-and-switch on the Strip.'
+        description: 'Full House drops to 8, Flush stays at 6. Costs the player 1.15% vs full-pay — about $11.50/hour at $1,000/hour of throughput (800 hands at $1.25). Casinos introduced this as a stealth downgrade: players who only checked the Flush payout (still 6) didn\'t notice the Full House dropped. A common bait-and-switch on the Strip.'
       },
       {
         name: '8/5 (Short Pay)',
         returnPct: 97.30,
-        description: 'Full House 8, Flush 5. The most common JoB variant in modern casinos. Costs 2.24% vs 9/6 — that\'s $28/hour at $1,000 throughput, or $5,600/year for a regular player. The difference between 9/6 and 8/5 is invisible to most players but worth more than many people\'s car payment. This is the machine that teaches pay table literacy: two numbers, $5,600/year.'
+        description: 'Full House 8, Flush 5. The most common JoB variant in modern casinos. Costs 2.24% vs 9/6 — that\'s $22.40/hour at $1,000 throughput, or about $4,500/year for a regular player (200 hours). The difference between 9/6 and 8/5 is invisible to most players but worth more than many people\'s car payment. This is the machine that teaches pay table literacy: two numbers, $4,500/year.'
       },
       {
         name: '7/5 (Short Pay)',
         returnPct: 96.15,
-        description: 'Full House 7, Flush 5. Below-average payout found in captive-audience locations: airports, hotel lobbies, cruise ships. The house edge (3.85%) approaches slot machine territory. A player who can\'t tell this from 9/6 is giving up $42/hour. The casino is counting on you not checking.'
+        description: 'Full House 7, Flush 5. Below-average payout found in captive-audience locations: airports, hotel lobbies, cruise ships. The house edge (3.85%) approaches slot machine territory. A player who can\'t tell this from 9/6 is giving up about $34/hour at $1,000 throughput. The casino is counting on you not checking.'
       },
       {
         name: '6/5 (Short Pay)',
@@ -79,7 +79,7 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
         description: 'Full House 6, Flush 5. The worst common JoB pay table. House edge: 5% — worse than roulette (2.7% European, 5.26% American). Found in tourist traps, bars, and gas station VGTs. At this point you\'re playing a slot machine with extra steps. The only educational value: it demonstrates how far a pay table can degrade while still looking like "video poker."'
       }
     ],
-    payTableTip: 'Look for 9/6 machines — they return 99.54% with optimal play. An 8/5 machine looks almost identical but returns only 97.30%. That 2.24% difference costs about $28/hour at typical play speed.'
+    payTableTip: 'Look for 9/6 machines — they return 99.54% with optimal play. An 8/5 machine looks almost identical but returns only 97.30%. That 2.24% difference costs about $22/hour at typical play speed ($1,000/hour of throughput).'
   },
 
   'Bonus Poker': {
@@ -103,12 +103,12 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
     ],
     strategyNotes: [
       'Hold Aces more aggressively than in Jacks or Better due to the 80-coin bonus.',
-      'A pair of Aces is worth more than in JoB — don\'t break them for a 4-flush.',
+      'A pair of Aces is worth more than in JoB (1.68 vs 1.54 EV) — as in JoB, never break them for a 4-flush.',
       'Low pairs (2s-4s) are slightly more valuable because of the 40-coin four-of-a-kind bonus.',
       'Strategy is very similar to JoB with subtle differences around Ace and low-pair holdings.'
     ],
     strategyDifferences: [
-      'vs JoB: Aces are held more aggressively due to the 80-coin Four Aces bonus. In JoB, you might break a pair of Aces for four to a flush — in Bonus Poker, you hold the Aces.',
+      'vs JoB: Aces are worth more because Four Aces pays 80 — a pair of Aces is 1.68 EV here against 1.54 in JoB. In both games the pair beats four to a flush (about 1.2).',
       'vs JoB: Low pairs (2s-4s) gain slightly more value because Four 2s-4s pays 40 instead of 25.',
       'vs JoB: Two Pair still pays 2:1 (unlike Double Bonus), so the volatility is similar to JoB.',
       'The strategy is 90% identical to JoB — the differences only matter in specific Ace-related and low-pair situations.'
@@ -137,13 +137,13 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'Jacks or Better (1)'
     ],
     strategyNotes: [
-      'Two Pair paying only 1:1 changes everything — break two pair more often to chase bigger hands.',
+      'Two Pair paying only 1:1 halves the most common winning hand. On 10/7 you still hold two pair — but Aces up is razor-thin (1.766 vs 1.764 for the Aces alone).',
       'Aces are held extremely aggressively. A single Ace is often worth holding over other combinations.',
       'The positive EV (+0.17%) is theoretical — variance is brutal and most sessions end at a loss.',
       'This game rewards perfect play more than any other JoB variant.'
     ],
     strategyDifferences: [
-      'vs JoB: TWO PAIR ONLY PAYS 1:1. This is the single biggest strategy change. In JoB, Two Pair pays 2:1 and you always hold both pairs. In Double Bonus, you sometimes break Two Pair to chase a bigger hand.',
+      'vs JoB: TWO PAIR ONLY PAYS 1:1. This is the single biggest change to the game\'s feel. On the 10/7 table you still always hold both pairs, but with Aces up the margin shrinks to almost nothing (1.766 vs 1.764) — and on Double Double Bonus it flips.',
       'vs JoB: Aces are held with extreme aggression. A single Ace is often worth holding over other combinations because Four Aces pays 160 coins.',
       'vs JoB/Bonus: Four 2s-4s pays 80 (vs 40 in Bonus, 25 in JoB). Low pairs become more valuable.',
       'vs JoB: Breaking a made straight or flush to chase four to a royal is more common because the royal bonus is a larger fraction of total return.',
@@ -177,15 +177,15 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
     strategyNotes: [
       'The kicker bonuses pay when a kicker ARRIVES with the quads — but holding a bare kicker next to three Aces is a mistake (exact EV: three Aces alone 12.49 vs 11.83 with the kicker). Two fresh draws beat one.',
       'Aces up (Aces + a second pair): hold ONLY the Aces. This is the most famous DDB-specific play — the quad-Aces upside beats the two-pair payout.',
-      'Quad Aces with a 5-K kicker: discard the kicker and draw for the 2-4 kicker (216 average vs 160 locked).',
+      'Quad Aces with a 5-K kicker: discard the kicker and draw for the 2-4 kicker (221 average vs 160 locked).',
       'Two Pair pays only 1:1, making the game volatile.'
     ],
     strategyDifferences: [
-      'vs JoB/Double Bonus: ACES UP — with Aces and a second pair, hold only the Aces (1.90 vs 1.68 EV). In JoB you always hold two pair.',
+      'vs JoB/Double Bonus: ACES UP — with Aces and a second pair, hold only the Aces (about 1.92 vs 1.68 EV). In JoB you always hold two pair.',
       'vs Double Bonus: quad Aces with a 5-K kicker are not pat — discard the kicker and draw at the 400-coin version.',
       'A lone Ace outranks holding Ace + another unsuited high card (0.459 vs 0.444 EV) because of the quad-Aces upside.',
       'Three Aces are held ALONE — even out of a full house. Never hold a bare kicker; the 400-coin hand pays when the kicker is drawn, not held.',
-      'vs JoB: Two Pair pays 1:1 (same as Double Bonus). All the Two Pair strategy changes from Double Bonus apply here too.'
+      'vs JoB: Two Pair pays 1:1 (same as Double Bonus), so the same long losing streaks apply — and here Aces up really is broken.'
     ],
     strategyComplexity: 'Advanced. ~45 ranked entries — the most complex non-wild variant. The kicker rules add a layer of decision-making that doesn\'t exist in any other game. Not recommended until you\'ve mastered JoB and Double Bonus.',
     payTableTip: 'The common 9/6 DDB pay table returns 98.98% with optimal play. The massive jackpot hands (400 for Four Aces + kicker) create exciting peaks but the Two Pair reduction ensures deep valleys.'
@@ -248,7 +248,7 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'With 0 deuces: play similar to JoB but more aggressively toward straights and flushes.',
       'With 1 deuce: hold the deuce plus any paying combination; chase straights and flushes.',
       'With 2 deuces: hold a made wild royal, five of a kind or straight flush pat; with quads (pair + deuces) discard the kicker and draw at five of a kind; otherwise hold just the two deuces.',
-      'With 3 deuces: hold all five only for a wild royal. Otherwise hold JUST the three deuces — even breaking a pat five of a kind (15.06 vs 15.00 exact EV).',
+      'With 3 deuces: hold all five for a wild royal, or for five of a kind in Tens through Aces. Otherwise hold JUST the three deuces — even breaking a pat five of a kind in 3s–9s (15.06 vs 15.00 exact EV).',
       'With 4 deuces: hold all five cards — Four Deuces pays 200 coins.',
       'Pairs and Two Pair do NOT pay in Deuces Wild — don\'t hold them unless they\'re part of a better draw.'
     ],
@@ -260,7 +260,7 @@ export const VARIANT_RULES: Record<string, VariantRules> = {
       'With 0 deuces: Play more aggressively toward straights and flushes than in JoB, because pairs don\'t pay.',
       'With 1 deuce: The deuce + any pair = Three of a Kind (paying hand). Chase flushes and straights aggressively.',
       'With 2 deuces: Two deuces + any natural pair = Four of a Kind — but discard the fifth card and draw at Five of a Kind. Otherwise just hold the two deuces.',
-      'With 3 deuces: Hold just the three deuces unless the other two cards complete a wild royal. Even a pat Five of a Kind is worth breaking — three bare deuces average slightly more (15.06 vs 15.00).',
+      'With 3 deuces: Hold just the three deuces unless the other two cards complete a wild royal or a five of a kind in Tens through Aces. A pat Five of a Kind in 3s–9s is worth breaking — three bare deuces average slightly more (15.06 vs 15.00).',
       'With 4 deuces: Hold all five cards. Four Deuces pays 200 coins — the second-highest hand.'
     ],
     strategyComplexity: 'Advanced. ~45 entries across 5 sub-strategies (one per deuce count). The #1 mistake: applying JoB thinking to a game where pairs don\'t pay.',
